@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using EnumCollection;
 
 public class BattleScenarioTest : MonoBehaviour
 {
@@ -10,17 +11,19 @@ public class BattleScenarioTest : MonoBehaviour
     private TMP_Text botText;
     private TMP_Text moveText;
     public CharacterBase moveTarget;
+    private BattleScenario battleScenario;
     private void Start()
     {
         botText = canvasTest.GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
         moveText = canvasTest.GetChild(0).GetChild(2).GetChild(0).GetComponent<TMP_Text>();
+        battleScenario = GameManager.battleScenario;
     }
     public enum TestPattern
     {
         Default, Bot, Move
     }
     public TestPattern testPattern = TestPattern.Default;
-    public void HpInit()
+    public void BattleInit()
     {
         foreach (FriendlyScript x in GameManager.gameManager.Friendlies)
         {
@@ -32,6 +35,7 @@ public class BattleScenarioTest : MonoBehaviour
             x.hp = x.maxHp;
             x.CalculateHpImage();
         }
+        battleScenario.battlePatern = BattlePatern.Pause;
     }
     public void BotTest()
     {
@@ -97,7 +101,15 @@ public class BattleScenarioTest : MonoBehaviour
             GameManager.gameManager.Friendlies.Add(script);
             baseScript = script;
         }
-        GameManager.battleScenario.regularEffect += baseScript.ActiveRegularEffect;
+        battleScenario.regularEffect += baseScript.ActiveRegularEffect;
 
+    }
+    public void GameOverTest()
+    {
+        battleScenario.GameOver();
+    }
+    public void StageClearTest()
+    {
+        battleScenario.StageClear();
     }
 }

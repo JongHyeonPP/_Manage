@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class BattleScenario : MonoBehaviour
 {
@@ -127,7 +128,7 @@ public class BattleScenario : MonoBehaviour
     public void OnGridPointExit(int _gridIndex, bool _isEnemyGrid)
     {
         var grids = GetCharacterGrids(_isEnemyGrid);
-        if (battleScenarioTest&& battleScenarioTest.testPattern!=BattleScenarioTest.TestPattern.Default)
+        if (battleScenarioTest && battleScenarioTest.testPattern != BattleScenarioTest.TestPattern.Default)
         {
             grids[_gridIndex].GetComponent<Image>().color = defaultGridColor;
         }
@@ -194,7 +195,7 @@ public class BattleScenario : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(null);
         var character = GetCharacter(_gridIndex, _isEnemyGrid);
         //Test Logic
-        if (battleScenarioTest&&battleScenarioTest.testPattern != BattleScenarioTest.TestPattern.Default)
+        if (battleScenarioTest && battleScenarioTest.testPattern != BattleScenarioTest.TestPattern.Default)
         {
             switch (battleScenarioTest.testPattern)
             {
@@ -233,7 +234,7 @@ public class BattleScenario : MonoBehaviour
             {
                 GameManager.battleScenario.ActiveCampByStc();
             }
-            
+
             return;
         }
         //Default Logic
@@ -308,7 +309,7 @@ public class BattleScenario : MonoBehaviour
     }
     public void RefreshGrid(bool _isEnemyGrid)
     {
-        foreach(var x in _isEnemyGrid?enemyGrids:friendlyGrids)
+        foreach (var x in _isEnemyGrid ? enemyGrids : friendlyGrids)
         {
             x.GetComponent<Image>().color = defaultGridColor;
         }
@@ -348,7 +349,7 @@ public class BattleScenario : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            switch(battlePatern)
+            switch (battlePatern)
             {
                 case BattlePatern.Default:
                     if (GameManager.IsPaused)
@@ -412,7 +413,7 @@ public class BattleScenario : MonoBehaviour
         }
         return true;
     }
-    
+
     private void LanguageChange(Language _language)
     {
         foreach (KeyValuePair<TMP_Text, Dictionary<Language, string>> keyValue in texts)
@@ -501,5 +502,16 @@ public class BattleScenario : MonoBehaviour
         }
         onskill = false;
     }
-    private List<GameObject> GetCharacterGrids( bool _isEnemyGrid) => _isEnemyGrid ? enemyGrids : friendlyGrids;
+    private List<GameObject> GetCharacterGrids(bool _isEnemyGrid) => _isEnemyGrid ? enemyGrids : friendlyGrids;
+    public void GameOver()
+    {
+        Debug.Log("GameOver");
+        characterUI.gameObject.SetActive(false);
+    }
+    public void StageClear()
+    {
+        Debug.Log("StageClear");
+        battlePatern = BattlePatern.Done;
+    }
+    public void ToMap() => SceneManager.LoadScene("Map");
 }

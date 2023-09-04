@@ -19,7 +19,6 @@ public class GameManager : MonoBehaviour
     }
     public Dictionary<string, object> userDoc;
     public Dictionary<string, object> progressDoc;
-    public IScenarioMessenger messenger;
     public static int seed { get; private set; }
     public float fame;
     public float gold;
@@ -85,19 +84,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void LoadSceneVia(string _destination)
-    {
-        switch (SceneManager.GetActiveScene().name)
-        {
-            case "Map":
-                if (_destination == "Battle")
-                {
-                    messenger = new IScenarioMessenger.MapToBattleData(MapArea.Plains, BattleDifficulty.Normal);
-                    SceneManager.LoadScene("Battle");
-                }
-                break;
-        }
-    }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
         battleScenario = null;
@@ -111,17 +97,11 @@ public class GameManager : MonoBehaviour
                 break;
             case "Battle":
                 battleScenario = scenarioObject.GetComponent<BattleScenario>();
-                if (messenger is IScenarioMessenger.MapToBattleData)
-                {
-                    IScenarioMessenger.MapToBattleData x = (IScenarioMessenger.MapToBattleData)messenger;
-                    battleScenario.battleDifficulty = x.battleDifficulty;
-                }
                 break;
             case "Lobby":
                 lobbyScenario = scenarioObject.GetComponent<LobbyScenario>();
                 break;
         }
-        messenger = null;
     }
     private void InitGrid()
     {

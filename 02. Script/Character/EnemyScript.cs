@@ -15,6 +15,18 @@ public class EnemyScript : CharacterBase
         PriorProbs.Add(new PriorProb(new Skill()));
         PriorProbs = PriorProbs.OrderBy(x => x.priority).ToList();
     }
+
+    public override void OnDead()
+    {
+        Debug.Log("Àû Á×À½");
+        GameManager.gameManager.Enemies.Remove(this);
+        GameManager.battleScenario.regularEffect -= ActiveRegularEffect;
+        if (GameManager.gameManager.Enemies.Count == 0)
+        {
+            GameManager.battleScenario.StageClear();
+        }
+    }
+
     public class PriorProb
     {
         public Skill skill;

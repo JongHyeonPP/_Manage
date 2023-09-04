@@ -41,6 +41,17 @@ public class FriendlyScript : CharacterBase
         ability = _ability;
         job = _job;
     }
+
+    public override void OnDead()
+    {
+        GameManager.gameManager.Friendlies.Remove(this);
+        GameManager.battleScenario.regularEffect -= ActiveRegularEffect;
+        if (GameManager.gameManager.Friendlies.Count == 0)
+        {
+            GameManager.battleScenario.GameOver();
+        }
+    }
+
     private void ApplyTalent()
     {
         foreach (TalentStruct x0 in talents)

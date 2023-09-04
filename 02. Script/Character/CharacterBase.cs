@@ -55,12 +55,8 @@ abstract public class CharacterBase : MonoBehaviour
         }
         CalculateHpImage();
     }
-    
-    private void OnDead()
-    {
-        Debug.Log("»ç¸ÁÆÇÁ¤");
-        isDead = true;
-    }
+
+    public abstract void OnDead();
     public void CalculateHpImage()
     {
         float hpUpper = (hp + armor > maxHp)? hp + armor:maxHp;
