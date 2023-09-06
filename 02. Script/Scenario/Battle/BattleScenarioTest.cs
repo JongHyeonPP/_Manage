@@ -35,7 +35,6 @@ public class BattleScenarioTest : MonoBehaviour
             x.hp = x.maxHp;
             x.CalculateHpImage();
         }
-        battleScenario.battlePatern = BattlePatern.Pause;
     }
     public void BotTest()
     {
@@ -106,7 +105,7 @@ public class BattleScenarioTest : MonoBehaviour
     }
     public void GameOverTest()
     {
-        battleScenario.GameOver();
+        GameManager.gameManager.GameOver();
     }
     public void StageClearTest()
     {

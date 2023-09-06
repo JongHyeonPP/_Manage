@@ -58,8 +58,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             InitGrid();
             //Until Steam API
-            //uid = "FMefxTlgP9aHsgfE0Grc";//다수
-            uid = "KF5U1XMs5cy7n13dgKjF";//소수
+            uid = "FMefxTlgP9aHsgfE0Grc";//다수
+            //uid = "KF5U1XMs5cy7n13dgKjF";//소수
         }
     }
     async void Start()
@@ -83,7 +83,16 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
+    public void GameOver()
+    {
+        Debug.Log("GameOver");
+        if(battleScenario)
+        battleScenario.characterUI.gameObject.SetActive(false);
+        foreach (var x in Friendlies)
+            x.StopAllCoroutines();
+        foreach (var x in Enemies)
+            x.StopAllCoroutines();
+    }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
         battleScenario = null;

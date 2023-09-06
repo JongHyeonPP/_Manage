@@ -14,17 +14,18 @@ public class EnemyScript : CharacterBase
         InitCharacter(_skills, GameManager.gameManager.EnemyGrids[_gridIndex], _gridIndex, _hp, _hp, _ability, _resist);
         PriorProbs.Add(new PriorProb(new Skill()));
         PriorProbs = PriorProbs.OrderBy(x => x.priority).ToList();
+        IsEnemy = true;
     }
 
     public override void OnDead()
     {
-        Debug.Log("Àû Á×À½");
-        GameManager.gameManager.Enemies.Remove(this);
-        GameManager.battleScenario.regularEffect -= ActiveRegularEffect;
-        if (GameManager.gameManager.Enemies.Count == 0)
-        {
+        OnDead_Base();
+        bool gameOverFlag = false;
+        foreach (var x in GameManager.gameManager.Enemies)
+            if (!x.isDead)
+                gameOverFlag = true;
+        if (!gameOverFlag)
             GameManager.battleScenario.StageClear();
-        }
     }
 
     public class PriorProb

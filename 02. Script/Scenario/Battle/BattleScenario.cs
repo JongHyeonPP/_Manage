@@ -26,7 +26,7 @@ public class BattleScenario : MonoBehaviour
     public CharacterBase.SkillTargetCor SelectedStc { get; private set; }
     #region UI
     public Transform canvasBattle;
-    private Transform characterUI;
+    public Transform characterUI;
     private TMP_Text textBattlePatern;
     public static readonly Color defaultGridColor = new(1f, 1f, 1f, 0.4f);
     public static readonly Color opponentGridColor = Color.red;
@@ -144,16 +144,35 @@ public class BattleScenario : MonoBehaviour
     {
         //0은 아군, 1은 적, 2는 둘 다 
 
+        short targetIndex =  GetTargetIndex(SelectedStc.skill);
+        if (targetIndex != 0)
+        {
+            foreach (var x in enemies)
+            {
+                x.gridPatern = GridPatern.Interactable;
+            }
+        }
+        if (targetIndex != 1)
+        {
+            foreach (var x in friendlies)
+            {
+                x.gridPatern = GridPatern.Interactable;
+            }
+        }
+    }
+    public static short GetTargetIndex(Skill _skill)
+    {
+        //0은 아군에 대해서, 1은 적에 대해서, 2는 모두에 대해서 사용 가능
         short targetIndex = -1;
-        foreach (var effect in SelectedStc.skill.effects)
+        foreach (var effect in _skill.effects)
         {
             if (effect.type == EffectType.Damage ||
-                effect.type == EffectType.AttDebuff ||
-                effect.type == EffectType.DefDebuff ||
-                effect.type == EffectType.Paralyze ||
-                effect.type == EffectType.Bleed ||
-                effect.type == EffectType.ArmorAtt ||
-                effect.type == EffectType.BleedTransfer
+                        effect.type == EffectType.AttDebuff ||
+                        effect.type == EffectType.DefDebuff ||
+                        effect.type == EffectType.Paralyze ||
+                        effect.type == EffectType.Bleed ||
+                        effect.type == EffectType.ArmorAtt ||
+                        effect.type == EffectType.BleedTransfer
                 )
             {
                 if (targetIndex == 0)
@@ -175,21 +194,10 @@ public class BattleScenario : MonoBehaviour
                     targetIndex = 0;
             }
         }
-        if (targetIndex != 0)
-        {
-            foreach (var x in enemies)
-            {
-                x.gridPatern = GridPatern.Interactable;
-            }
-        }
-        if (targetIndex != 1)
-        {
-            foreach (var x in friendlies)
-            {
-                x.gridPatern = GridPatern.Interactable;
-            }
-        }
+        return targetIndex;
     }
+
+
     public void OnCharacterGridClicked(int _gridIndex, bool _isEnemyGrid)
     {
         EventSystem.current.SetSelectedGameObject(null);
@@ -493,6 +501,15 @@ public class BattleScenario : MonoBehaviour
         }
         //모든 스킬의 타겟이 배정된 이후, 전투 시작
         battlePatern = BattlePatern.Default;
+        foreach (var x in enemies)
+        {
+            foreach (var x0 in x.skillTargetCor)
+            {
+                x0.target = x0.FindProperTarget();
+                x0.StartSkillCoroutine();
+            }
+        }
+
         foreach (var x in friendlies)
         {
             foreach (var x0 in x.skillTargetCor)
@@ -503,15 +520,17 @@ public class BattleScenario : MonoBehaviour
         onskill = false;
     }
     private List<GameObject> GetCharacterGrids(bool _isEnemyGrid) => _isEnemyGrid ? enemyGrids : friendlyGrids;
-    public void GameOver()
-    {
-        Debug.Log("GameOver");
-        characterUI.gameObject.SetActive(false);
-    }
+
     public void StageClear()
     {
         Debug.Log("StageClear");
         battlePatern = BattlePatern.Done;
+        canvasBattle.GetChild(2).gameObject.SetActive(true);
+        characterUI.gameObject.SetActive(false);
+        foreach (var x in friendlies)
+            x.StopAllCoroutines();
+        foreach (var x in enemies)
+            x.StopAllCoroutines();
     }
     public void ToMap() => SceneManager.LoadScene("Map");
 }
