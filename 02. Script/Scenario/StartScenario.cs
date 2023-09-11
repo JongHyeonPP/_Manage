@@ -6,8 +6,9 @@ using UnityEngine.SceneManagement;
 
 public class StartScenario : MonoBehaviour
 {
-    public GameObject panelNewGame;
-    public GameObject panelMainMenu;
+    public Transform canvasStart;
+    private Transform panelMainMenu;
+    private Transform panelDifficultySelect;
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     TMP_Text
         textNewGame,
@@ -19,16 +20,18 @@ public class StartScenario : MonoBehaviour
 
     private void Awake()
     {
-        
-        textNewGame = panelMainMenu.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
-        textLoadGame = panelMainMenu.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textExit = panelMainMenu.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
-        
-        textEasy = panelNewGame.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
-        textNormal = panelNewGame.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textHard = panelNewGame.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
-        
-        panelNewGame.SetActive(false);
+        panelMainMenu = canvasStart.GetChild(0);
+        panelDifficultySelect = canvasStart.GetChild(1);
+
+        textNewGame = panelMainMenu.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+        textLoadGame = panelMainMenu.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textExit = panelMainMenu.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
+
+        textEasy = panelDifficultySelect.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+        textNormal = panelDifficultySelect.GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+        textHard = panelDifficultySelect.GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+
+        panelDifficultySelect.gameObject.SetActive(false);
         texts =
                 new()
                 {
@@ -81,16 +84,16 @@ public class StartScenario : MonoBehaviour
     }
     public void NewGameBtnClick()
     {
-        panelNewGame.SetActive(true);
+        panelDifficultySelect.gameObject.SetActive(true);
     }
     public void DifficultySelect(int i)
     {
-        GameManager.gameManager.difficulty = (EnumCollection.Difficulty)i;
+        GameManager.gameManager.difficulty = (Difficulty)i;
         SceneManager.LoadScene("Lobby");
     }
     public void CloseDifficulty()
     {
-        panelNewGame.SetActive(false);
+        panelDifficultySelect.gameObject.SetActive(false);
     }
     public void ExitBtnClick()
     {

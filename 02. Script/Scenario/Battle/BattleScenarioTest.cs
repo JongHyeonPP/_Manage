@@ -25,16 +25,29 @@ public class BattleScenarioTest : MonoBehaviour
     public TestPattern testPattern = TestPattern.Default;
     public void BattleInit()
     {
-        foreach (FriendlyScript x in GameManager.gameManager.Friendlies)
+        List<CharacterBase> allCharacters = new();
+        allCharacters.AddRange(GameManager.gameManager.Friendlies);
+        allCharacters.AddRange(GameManager.gameManager.Enemies);
+        battleScenario.characterUI.SetActive(true);
+        foreach (var x in allCharacters)
         {
             x.hp = x.maxHp;
             x.CalculateHpImage();
+            x.StopAllCoroutines();
+            x.isCasting = false;
+            foreach (var stc in x.skillTargetCor)
+            {
+                stc.target = null;
+                stc.isReady = false;
+                if (stc.imageSkill == null) continue;
+                Image imageCool = stc.imageSkill.transform.GetChild(0).GetComponent<Image>();
+                imageCool.fillAmount = 0f;
+            }
         }
-        foreach (EnemyScript x in GameManager.gameManager.Enemies)
-        {
-            x.hp = x.maxHp;
-            x.CalculateHpImage();
-        }
+        battleScenario.SetNextStcIndex();
+        battleScenario.panelClear.SetActive(false);
+        battleScenario.battlePatern = BattlePatern.OnReady;
+        battleScenario.onSkill = true;
     }
     public void BotTest()
     {

@@ -87,8 +87,8 @@ public class MapScenario : MonoBehaviour
     public void SceneChange(string targetScene)
     {
         isAction = false;
-        SceneManager.LoadScene("CJH_Map");
-        //ms.gameObject.SetActive(false);
+        SceneManager.LoadScene("Battle");
+        ms.gameObject.SetActive(false);
     }
 }
 

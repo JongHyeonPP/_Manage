@@ -58,8 +58,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             InitGrid();
             //Until Steam API
-            uid = "FMefxTlgP9aHsgfE0Grc";//다수
-            //uid = "KF5U1XMs5cy7n13dgKjF";//소수
+            //uid = "FMefxTlgP9aHsgfE0Grc";//다수
+            uid = "KF5U1XMs5cy7n13dgKjF";//소수
         }
     }
     async void Start()

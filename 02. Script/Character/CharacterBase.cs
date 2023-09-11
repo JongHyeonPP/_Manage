@@ -207,7 +207,6 @@ abstract public class CharacterBase : MonoBehaviour
                 {
                     yield return null;
                 }
-
                 caster.isCasting = true;
                 yield return new WaitForSeconds(skillCastTime);
                 caster.isCasting = false;
@@ -323,20 +322,20 @@ abstract public class CharacterBase : MonoBehaviour
         }
         public IEnumerator SkillCoolDown()
         {
-            var x = imageSkill.transform.GetChild(0).GetComponent<Image>();
-            x.fillAmount = 1f;
+            Image imageCool = imageSkill.transform.GetChild(0).GetComponent<Image>();
+            imageCool.fillAmount = 1f;
             while (true)
             {
                 yield return new WaitForSeconds(coolUpdateTime);
-                x.fillAmount -= coolUpdateTime / skill.coolTime;
-                if (x.fillAmount == 0)
+                imageCool.fillAmount -= coolUpdateTime / skill.coolTime;
+                if (imageCool.fillAmount == 0)
                     break;
             }
         }
 
         internal CharacterBase FindProperTarget()
         {
-            CharacterBase targetCharacter = null;
+            List<CharacterBase> maxCharacters = new();
             Dictionary<CharacterBase, float> targetPriority = new();
             List<CharacterBase> targets = new();
             int targetIndex = BattleScenario.GetTargetIndex(skill);
@@ -384,21 +383,23 @@ abstract public class CharacterBase : MonoBehaviour
             }
             //TargetColumn에 대한 연산
 
-
-
+            float maxValue = 0f;
             foreach (var x in targetPriority.Keys)
             {
-                if (targetCharacter == null)
+                if (targetPriority[x] > maxValue)
                 {
-                    targetCharacter = x;
-                    continue;
+                    maxCharacters.Clear();
+                    maxCharacters.Add(x);
+                    maxValue = targetPriority[x];
+                    Debug.Log("Max값 재설정");
                 }
-                if (targetPriority[x] > targetPriority[targetCharacter])
+                else if(targetPriority[x] == maxValue)
                 {
-                    targetCharacter = x;
+                    maxCharacters.Add(x);
+                    Debug.Log("Max값 추가");
                 }
             }
-            return targetCharacter;
+            return maxCharacters[Random.Range(0, maxCharacters.Count)];
         }
     }
 }
