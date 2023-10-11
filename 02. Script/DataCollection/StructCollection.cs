@@ -22,10 +22,8 @@ namespace StructCollection
         public Dictionary<Language, string> name;
         public List<Dictionary<Language, string>> explain;
         public SkillCategori categori;
-        public SkillTarget target;
-        public short targetColumn = -1;
         public float coolTime;
-        public bool isSelf;
+        public bool isTargetEnemy;
         public List<List<SkillEffect>> effects;
         public SkillForm SetName(Dictionary<Language, string> _name)
         {
@@ -42,11 +40,6 @@ namespace StructCollection
             categori = _categori;
             return this;
         }
-        public SkillForm SetTarget(SkillTarget _target)
-        {
-            target = _target;
-            return this;
-        }
         public SkillForm SetCoolTime(float _coolTime)
         {
             coolTime = _coolTime;
@@ -54,7 +47,7 @@ namespace StructCollection
         }
         public SkillForm SetIsSelf(bool _isSelf)
         {
-            isSelf = _isSelf;
+            isTargetEnemy = _isSelf;
             return this;
         }
         public SkillForm SetEffects(List<List<SkillEffect>> _effects)
@@ -62,73 +55,57 @@ namespace StructCollection
             effects = _effects;
             return this;
         }
-        public SkillForm SetTargetColumn(short _targetColumn)
-        {
-            targetColumn = _targetColumn;
-            return this;
-        }
     }
     public class Skill
     {
         public Dictionary<Language, string> name;
         public Dictionary<Language, string> explain;
-        public SkillTarget target;
-        public short targetColumn;
         public SkillCategori categori;
         public float coolTime;
-        public bool isSelf;
         public List<SkillEffect> effects;
+        public bool isTargetEnemy;
         public Skill(SkillForm _skillForm, byte _level)//Skill
         {
             name = _skillForm.name;
             explain = _skillForm.explain[_level];
-            target = _skillForm.target;
             categori = _skillForm.categori;
             coolTime = _skillForm.coolTime;
-            isSelf = _skillForm.isSelf;
-            targetColumn = _skillForm.targetColumn;
+            isTargetEnemy = _skillForm.isTargetEnemy;
             effects = new();
             foreach (var x in _skillForm.effects[_level])
             {
                 effects.Add(new SkillEffect().
                     SetCount(x.count).
-                    SetCycle(x.cycle).
                     SetIsConst(x.isConst).
-                    SetRange(x.range).
                     SetType(x.type).
                     SetValue(x.value).
                     SetDelay(x.delay)
                     );
             }
         }
-        public Skill()//Default Attack
+        public Skill(float _speed)//Default Attack
         {
             name = new() { {Language.En, "Default Attack" },{ Language.Ko, "기본 공격"} };
             explain = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
-            target = SkillTarget.Nontarget;
-            coolTime = 3f;
-            isSelf = false;
-            targetColumn = -1;
+            coolTime = 1 / _speed;
+            isTargetEnemy = true;
             effects = new() { new SkillEffect().
                 SetType(EffectType.Damage).
-                SetRange(EffectRange.Dot).
                 SetCount(1).
                 SetIsConst(false).
                 SetValue(1f).
-                SetDelay(0f).
-                SetCycle(1)};
+                SetDelay(0f)
+            };
         }
     }
     public class SkillEffect
     {
         public float value;
         public int count;
-        public int cycle;
-        public int currentCycle;
         public EffectType type;
-        public EffectRange range;
         public bool isConst;
         public float delay;
+        public EffectRange range;
         public SkillEffect SetValue(float _value)
         {
             value = _value;
@@ -144,25 +121,19 @@ namespace StructCollection
             type = _type;
             return this;
         }
-        public SkillEffect SetRange(EffectRange _range)
-        {
-            range = _range;
-            return this;
-        }
         public SkillEffect SetIsConst(bool _isConst)
         {
             isConst = _isConst;
             return this;
         }
-        public SkillEffect SetCycle(int _cycle)
-        {
-            cycle = _cycle;
-            currentCycle = 0;
-            return this;
-        }
         public SkillEffect SetDelay(float _delay)
         {
             delay = _delay;
+            return this;
+        }
+        public SkillEffect SetRange(EffectRange _range)
+        {
+            range = _range;
             return this;
         }
     }
@@ -185,13 +156,36 @@ namespace StructCollection
         public float hp;
         public float resist;
         public List<Skill> skills;
-        public EnemyStruct(string _name, float _ability, float _hp, float _resist, List<Skill> _skills)
+        public float speed;
+        public EnemyStruct SetName(string _name)
         {
             name = _name;
+            return this;
+        }
+        public EnemyStruct SetAbility(float _ability)
+        {
             ability = _ability;
+            return this;
+        }
+        public EnemyStruct SetHp(float _hp)
+        {
             hp = _hp;
-            skills = _skills;
+            return this;
+        }
+        public EnemyStruct SetResist(float _resist)
+        {
             resist = _resist;
+            return this;
+        }
+        public EnemyStruct SetSkills(List<Skill> _skills)
+        {
+            skills = _skills;
+            return this;
+        }
+        public EnemyStruct SetSpeed(float _speed)
+        {
+            speed = _speed;
+            return this;
         }
     }
     public struct GuildStruct
@@ -213,13 +207,36 @@ namespace StructCollection
         public float hp;
         public float resist;
         public List<TalentStruct> talents;
-        public CandidateInfoStruct(string _name, float _ability, float _hp ,float _resist, List<TalentStruct> _talent)
+        public float speed;
+        public CandidateInfoStruct SetName(string _name)
         {
             name = _name;
+            return this;
+        }
+        public CandidateInfoStruct SetAbility(float _ability)
+        {
             ability = _ability;
+            return this;
+        }
+        public CandidateInfoStruct SetHp(float _hp)
+        {
             hp = _hp;
+            return this;
+        }
+        public CandidateInfoStruct SetResist(float _resist)
+        {
             resist = _resist;
-            talents = _talent;
+            return this;
+        }
+        public CandidateInfoStruct SetTalent(List<TalentStruct> _talents)
+        {
+            talents = _talents;
+            return this;
+        }
+        public CandidateInfoStruct SetSpeed(float _speed)
+        {
+            speed = _speed;
+            return this;
         }
     }
     public struct TalentFormStruct

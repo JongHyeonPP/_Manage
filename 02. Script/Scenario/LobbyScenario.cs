@@ -222,7 +222,12 @@ public class LobbyScenario : MonoBehaviour
             }
             if(talents.Count==0)
             talents.Add(noTalent);
-            candidate.info = new(name, ability, hp, resist, talents);
+            candidate.info = new CandidateInfoStruct().
+                SetName(name).
+                SetAbility(ability).
+                SetHp(hp).
+                SetResist(resist).
+                SetTalent(talents);
         }
         SettingManager.onLanguageChange += LanguageChange1;
     }
@@ -290,12 +295,9 @@ public class LobbyScenario : MonoBehaviour
         DocumentReference docRef = FirebaseFirestore.DefaultInstance.Collection("User").Document(GameManager.gameManager.Uid);
         FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
         {
-            return Transaction.GetSnapshotAsync(docRef).ContinueWith((snapshotTast) =>
-            {
-                DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + _index, _value);
-                DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", GameManager.gameManager.fame);
-            });
-
+            DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + _index, _value);
+            DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", GameManager.gameManager.fame);
+            return System.Threading.Tasks.Task.CompletedTask;
         });
     }
     public void OnCandidateClicked(RecruitCandidate _clickedCandidate)

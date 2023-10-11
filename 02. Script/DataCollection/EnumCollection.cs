@@ -26,7 +26,7 @@ namespace EnumCollection
     }
     public enum EffectRange : byte
     {
-        Dot, Cross, Neighbors
+        Dot, Row, All
     }
     public enum SkillCategori : byte
     {

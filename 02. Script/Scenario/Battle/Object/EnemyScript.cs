@@ -9,19 +9,21 @@ public class EnemyScript : CharacterBase
     public static readonly float DEFAULT_PROB = 0.6f;
     public static readonly float INCREASE_PROB = 0.1f;
     public List<PriorProb> PriorProbs { get; private set; } = new();
-    public void InitEnemy(List<Skill> _skills, int _gridIndex, float _hp, float _ability, float _resist)
+    public void InitEnemy(List<Skill> _skills, ObjectGrid _grid, float _hp, float _ability, float _resist, float _speed)
     {
-        InitCharacter(_skills, GameManager.gameManager.EnemyGrids[_gridIndex], _gridIndex, _hp, _hp, _ability, _resist);
-        PriorProbs.Add(new PriorProb(new Skill()));
+        InitCharacter(_skills, _hp, _hp, _ability, _resist, _speed);
+        PriorProbs.Add(new PriorProb(new Skill(_speed)));
         PriorProbs = PriorProbs.OrderBy(x => x.priority).ToList();
         IsEnemy = true;
+        grid = _grid;
+        grid.owner = this;
     }
 
     public override void OnDead()
     {
         OnDead_Base();
         bool gameOverFlag = false;
-        foreach (var x in GameManager.gameManager.Enemies)
+        foreach (var x in GameManager.Enemies)
             if (!x.isDead)
                 gameOverFlag = true;
         if (!gameOverFlag)

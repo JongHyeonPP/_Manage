@@ -78,19 +78,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         categori = SkillCategori.Enemy;
                         break;
                 }
-            SkillTarget target;
-            if (skillDict.ContainsKey("Target"))
-                switch ((string)skillDict["Target"])
-                {
-                    default:
-                        target = SkillTarget.Target;
-                        break;
-                    case "Nontarget":
-                        target = SkillTarget.Nontarget;
-                        break;
-                }
-            else
-                target = SkillTarget.Target;
             List<List<SkillEffect>> effects;
             if (categori == SkillCategori.Enemy)
             {
@@ -132,27 +119,19 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             else
                 coolTime = 3f;
             //IsSelf
-            bool isSelf;
-            if (skillDict.ContainsKey("IsSelf"))
-                isSelf = (bool)skillDict["IsSelf"];
+            bool isTargetEnemy;
+            if (skillDict.ContainsKey("IsTargetEnemy"))
+                isTargetEnemy = (bool)skillDict["IsTargetEnemy"];
             else
-                isSelf = false;
-            //TargetColumn
-            short targetColumn;
-            if (skillDict.ContainsKey("TargetColumn"))
-                targetColumn = (short)(long)skillDict["TargetColumn"];
-            else
-                targetColumn = -1;
-
+                isTargetEnemy = false;
+            //ProperDistance
             var skillForm = new SkillForm().
                 SetCategori(categori).
                 SetCoolTime(coolTime).
                 SetEffects(effects).
                 SetExplain(explains).
-                SetIsSelf(isSelf).
-                SetName(name).
-                SetTarget(target).
-                SetTargetColumn(targetColumn);
+                SetIsSelf(isTargetEnemy).
+                SetName(name)
                 ;
             skillsDict.Add(doc.Id, skillForm);
         }
@@ -179,7 +158,28 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 skills.Add(GameManager.LocalizeSkill((string)x));
             }
-            enemyiesDict.Add(doc.Id, new EnemyStruct((string)dict["Name"], GetFloatValue(dict, "Ability"), GetFloatValue(dict, "Hp"), GetFloatValue(dict, "Resist"), skills));
+            float resist;
+            float speed;
+            if (dict.ContainsKey("Resist"))
+            {
+                resist = GetFloatValue(dict, "Resist");
+            }
+            else
+                resist = 0;
+            if (dict.ContainsKey("Speed"))
+            {
+                speed = GetFloatValue(dict, "Speed");
+            }
+            else
+                speed = 0;
+
+            EnemyStruct enemyStruct = new EnemyStruct().SetName((string)dict["Name"]).
+                SetAbility(GetFloatValue(dict, "Ability")).
+                SetHp(GetFloatValue(dict, "Hp")).
+                SetResist(resist).
+                SetSkills(skills).
+                SetSpeed(speed);
+            enemyiesDict.Add(doc.Id, enemyStruct);
         }
     }
     private async Task InitGuild()
@@ -275,26 +275,24 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     {
         DocumentReference userRef = FirebaseFirestore.DefaultInstance.Collection("User").Document(GameManager.gameManager.Uid);
         DocumentSnapshot snapshot = await userRef.GetSnapshotAsync();
-        if (snapshot.Exists)
+
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
         {
-            await GameManager.gameManager.LoadUserDoc();
-        }
-        else
-        {
-            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+            if (snapshot.Exists)
             {
-                return Transaction.GetSnapshotAsync(userRef).ContinueWith((snapshotTast) =>
+                await GameManager.gameManager.LoadUserDoc();
+            }
+            else
+            {
+                for (int i = 0; i < guildDict.Count; i++)
                 {
-                    for (int i = 0; i < guildDict.Count; i++)
-                    {
-                        DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + i, 0);
-                        GameManager.gameManager.guild.Add(0);
-                    }
-                    DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", 0);
-                    GameManager.gameManager.fame = 0;
-                });
-            });
-        }
+                    DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + i, 0);
+                    GameManager.gameManager.guild.Add(0);
+                }
+                DataManager .dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", 0);
+                GameManager.gameManager.fame = 0;
+            }
+        });
     }
     float GetFloatValue(Dictionary<string, object> _dict, string _field)
     {
@@ -329,11 +327,11 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     default:
                         range = EffectRange.Dot;
                         break;
-                    case "Cross":
-                        range = EffectRange.Cross;
+                    case "Row":
+                        range = EffectRange.Row;
                         break;
-                    case "Neighbors":
-                        range = EffectRange.Neighbors;
+                    case "All":
+                        range = EffectRange.All;
                         break;
                 }
             else
@@ -428,12 +426,11 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 new SkillEffect().
                 SetCount(count).
                 SetIsConst(isConst).
-                SetRange(range).
                 SetType(type).
                 SetValue(value).
-                SetCycle(cycle).
-                SetDelay(delay)
-                );
+                SetDelay(delay).
+                SetRange(range)
+                ) ;
         }
         return effects;
     }

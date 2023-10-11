@@ -13,6 +13,11 @@ public class FriendlyScript : CharacterBase
     public new string name;
     public List<TalentStruct> talents;
     public List<Image> skillImages = new();
+    RectTransform rectTransfrom;
+    private void Awake()
+    {
+        rectTransfrom = GetComponent<RectTransform>();
+    }
     public Dictionary<T_Type, float> talentEffects { get; private set; } = new()
     {
         { T_Type.AttAscend, 0f },
@@ -30,9 +35,9 @@ public class FriendlyScript : CharacterBase
         ability = _ability;
         resist = _resist;
     }
-    public void InitFriendly(List<Skill> _skills,List<TalentStruct> _talents, int _gridIndex, float _maxHp, float _hp, float _ability, float _resist, int _job)
+    public void InitFriendly( List<Skill> _skills,List<TalentStruct> _talents, ObjectGrid _grid, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _job)
     {
-        InitCharacter(_skills, GameManager.gameManager.FriendlyGrids[_gridIndex], _gridIndex, _maxHp, _hp, _ability, _resist);
+        InitCharacter(_skills, _maxHp, _hp, _ability, _resist, _speed);
         if (talents != null)
         {
             talents = _talents;
@@ -41,13 +46,15 @@ public class FriendlyScript : CharacterBase
         ability = _ability;
         job = _job;
         IsEnemy = false;
+        grid = _grid;
+        grid.owner = this;
     }
 
     public override void OnDead()
     {
         OnDead_Base();
         bool gameOverFlag = false;
-        foreach (var x in GameManager.gameManager.Friendlies)
+        foreach (var x in GameManager.Friendlies)
             if (!x.isDead)
                 gameOverFlag = true;
         if (!gameOverFlag)
