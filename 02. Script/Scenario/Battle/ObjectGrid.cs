@@ -1,3 +1,4 @@
+using EnumCollection;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,10 +8,13 @@ using static UnityEngine.EventSystems.EventTrigger;
 
 public class ObjectGrid : MonoBehaviour
 {
-    public ObjectThing owner = null;
+    public CharacterBase owner = null;
     public int index;
     public bool isEnemy;
     EventTrigger eventTrigger;
+    public delegate void PassiveEffectHandler(CharacterBase _target);
+    public PassiveEffectHandler EnterOnGrid;
+    public PassiveEffectHandler ExitOnGrid;
     public ObjectGrid SetClickEvent()
     {
         Entry downEntry = new();
@@ -108,13 +112,14 @@ public class ObjectGrid : MonoBehaviour
     internal void OnGridPointerDown()
     {
         if (!owner) return;
-        GameManager.battleScenario.isDragging = true;
+        
+        GameManager.battleScenario.OnGridPointerDown(this);
     }
 
     internal void OnGridPointerDrag(Vector2 _dragPosition)
     {
+        if (!GameManager.battleScenario.isInFriendly) return;
         if (!owner) return;
-        Debug.Log(_dragPosition);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
     GetComponent<RectTransform>(),
     _dragPosition,
@@ -136,10 +141,14 @@ public class ObjectGrid : MonoBehaviour
         if (!owner) return;
         if (!GameManager.battleScenario.isDragging) return;
         if (!GameManager.battleScenario.gridOnPointer || isEnemy != GameManager.battleScenario.gridOnPointer.isEnemy)
-            GameManager.battleScenario.MoveCharacterByGrid(this, this, true);
+            GameManager.battleScenario.MoveCharacterByGrid(this, this);
         else
-            GameManager.battleScenario.MoveCharacterByGrid(this, GameManager.battleScenario.gridOnPointer, true);
+        {
+
+            GameManager.battleScenario.MoveCharacterByGrid(this, GameManager.battleScenario.gridOnPointer);
+        }
         GameManager.battleScenario.gridOnPointer = null;
         GameManager.battleScenario.isDragging = false;
+        Time.timeScale = 1f;
     }
 }

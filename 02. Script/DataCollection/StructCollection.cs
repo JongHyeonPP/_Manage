@@ -1,5 +1,7 @@
 using EnumCollection;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace StructCollection
 {
@@ -22,9 +24,10 @@ namespace StructCollection
         public Dictionary<Language, string> name;
         public List<Dictionary<Language, string>> explain;
         public SkillCategori categori;
-        public float coolTime;
-        public bool isTargetEnemy;
+        public float cooltime = 3f;
+        public bool isTargetEnemy = false;
         public List<List<SkillEffect>> effects;
+        public bool isAnim;
         public SkillForm SetName(Dictionary<Language, string> _name)
         {
             name = _name;
@@ -40,19 +43,25 @@ namespace StructCollection
             categori = _categori;
             return this;
         }
-        public SkillForm SetCoolTime(float _coolTime)
+        public SkillForm SetCooltime(float _cooltime)
         {
-            coolTime = _coolTime;
+            cooltime = _cooltime;
             return this;
         }
-        public SkillForm SetIsSelf(bool _isSelf)
+        public SkillForm SetIsTargetEnemy(bool _isTargetEnemy)
         {
-            isTargetEnemy = _isSelf;
+            isTargetEnemy = _isTargetEnemy;
             return this;
         }
         public SkillForm SetEffects(List<List<SkillEffect>> _effects)
         {
             effects = _effects;
+            return this;
+        }
+
+        internal SkillForm SetIsAnim(bool _isAnim)
+        {
+            isAnim = _isAnim;
             return this;
         }
     }
@@ -61,51 +70,51 @@ namespace StructCollection
         public Dictionary<Language, string> name;
         public Dictionary<Language, string> explain;
         public SkillCategori categori;
-        public float coolTime;
+        public float cooltime;
         public List<SkillEffect> effects;
         public bool isTargetEnemy;
+        public bool isAnim;
         public Skill(SkillForm _skillForm, byte _level)//Skill
         {
             name = _skillForm.name;
-            explain = _skillForm.explain[_level];
+            if (_skillForm.explain != null)
+                explain = _skillForm.explain[_level];
             categori = _skillForm.categori;
-            coolTime = _skillForm.coolTime;
+            cooltime = _skillForm.cooltime;
             isTargetEnemy = _skillForm.isTargetEnemy;
             effects = new();
-            foreach (var x in _skillForm.effects[_level])
-            {
-                effects.Add(new SkillEffect().
-                    SetCount(x.count).
-                    SetIsConst(x.isConst).
-                    SetType(x.type).
-                    SetValue(x.value).
-                    SetDelay(x.delay)
-                    );
-            }
+            effects = _skillForm.effects[_level];
+            isAnim = _skillForm.isAnim;
         }
         public Skill(float _speed)//Default Attack
         {
             name = new() { {Language.En, "Default Attack" },{ Language.Ko, "기본 공격"} };
             explain = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
-            coolTime = 1 / _speed;
+            cooltime = 2 / _speed;
             isTargetEnemy = true;
+            isAnim = true;
             effects = new() { new SkillEffect().
                 SetType(EffectType.Damage).
                 SetCount(1).
                 SetIsConst(false).
                 SetValue(1f).
-                SetDelay(0f)
+                SetDelay(0.5f).
+                SetRange(EffectRange.Dot).
+                SetIsPassive(false).
+                SetVamp(0f)
             };
         }
     }
     public class SkillEffect
     {
-        public float value;
-        public int count;
+        public float value = 1f;
+        public int count = 1;
         public EffectType type;
-        public bool isConst;
-        public float delay;
-        public EffectRange range;
+        public bool isConst = false;
+        public float delay = 0f;
+        public EffectRange range = EffectRange.Dot;
+        public bool isPassive = false;
+        public float vamp = 0f;
         public SkillEffect SetValue(float _value)
         {
             value = _value;
@@ -136,53 +145,84 @@ namespace StructCollection
             range = _range;
             return this;
         }
-    }
-    public struct JobStruct
-    {
-        public string name;
-        public float hpCoef;
-        public float abilityCoef;
-        public JobStruct(string _name, float _hpCoef, float _abilityCoef)
+        public SkillEffect SetIsPassive(bool _isPassive)
         {
-            name = _name;
-            hpCoef = _hpCoef;
-            abilityCoef = _abilityCoef;
+            isPassive = _isPassive;
+            return this;
+        }
+        public SkillEffect SetVamp(float _vamp)
+        {
+            vamp = _vamp;
+            return this;
         }
     }
-    public struct EnemyStruct
+    public class JobClass
     {
-        public string name;
+        public JobType jobType = JobType.None;
+        public Dictionary<Language ,string> name = null;
+        public float hpCoef = 1f;
+        public float abilityCoef = 1f;
+        public float speedCoef = 1f;
+        public JobClass SetJobType(JobType _jobType)
+        {
+            jobType = _jobType;
+            return this;
+        }
+        public JobClass SetName(Dictionary<Language, string> _name)
+        {
+            name = _name;
+            return this;
+        }
+        public JobClass SetHpCoef(float _hpCoef)
+        {
+            hpCoef = _hpCoef;
+            return this;
+        }
+        public JobClass SetAbilityCoef(float _abilityCoef)
+        {
+            abilityCoef = _abilityCoef;
+            return this;
+        }
+        public JobClass SetSpeedCoef(float _speedCoef)
+        {
+            speedCoef = _speedCoef;
+            return this;
+        }
+    }
+    public class EnemyClass
+    {
+        public Dictionary<Language, string> name;
         public float ability;
         public float hp;
         public float resist;
         public List<Skill> skills;
         public float speed;
-        public EnemyStruct SetName(string _name)
+        public EnemyClass SetName(Dictionary<Language, string> _name)
         {
             name = _name;
             return this;
         }
-        public EnemyStruct SetAbility(float _ability)
+        public EnemyClass SetAbility(float _ability)
         {
             ability = _ability;
             return this;
         }
-        public EnemyStruct SetHp(float _hp)
+        public EnemyClass SetHp(float _hp)
         {
             hp = _hp;
             return this;
         }
-        public EnemyStruct SetResist(float _resist)
+        public EnemyClass SetResist(float _resist)
         {
             resist = _resist;
             return this;
         }
-        public EnemyStruct SetSkills(List<Skill> _skills)
+        public EnemyClass SetSkills(List<Skill> _skills)
         {
             skills = _skills;
             return this;
         }
-        public EnemyStruct SetSpeed(float _speed)
+        public EnemyClass SetSpeed(float _speed)
         {
             speed = _speed;
             return this;
@@ -264,63 +304,19 @@ namespace StructCollection
             value = _value;
             type = _type;
         }
-    }public struct TalentStruct
+    }
+    public struct TalentStruct
     {
         public int level;
         public Dictionary<Language, string> name;
         public Dictionary<Language, string> explain;
-        public List<T_Effect> effects;
-        public TalentStruct(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<T_Effect> _effects)
+        public List<SkillEffect> effects;
+        public TalentStruct(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<SkillEffect> _effects)
         {
             effects = _effects;
             name = _name;
             level = _level;
             explain = _explain;
-        }
-    }
-    public struct T_Effect
-    {
-        public float value;
-        public T_Type type;
-        public T_Effect(float _value, string _type)
-        {
-            value = _value;
-            switch (_type)
-            {
-                case "AttAscend":
-                    type = T_Type.AttAscend;
-                    break;
-                case "DefAscend":
-                    type = T_Type.DefAscend;
-                    break;
-                case "AttDescend":
-                    type = T_Type.AttDescend;
-                    break;
-                case "DefDescend":
-                    type = T_Type.DefDescend;
-                    break;
-                case "FameAscend":
-                    type = T_Type.FameAscend;
-                    break;
-                case "GoldAscend":
-                    type = T_Type.GoldAscend;
-                    break;
-                case "Critical":
-                    type = T_Type.Critical;
-                    break;
-                case "HealAscend":
-                    type = T_Type.HealAscend;
-                    break;
-                case "BuffAscend":
-                    type = T_Type.BuffAscend;
-                    break;
-                case "DebuffAscend":
-                    type = T_Type.DebuffAscend;
-                    break;
-                default:
-                    type = T_Type.None;
-                    break;
-            }
         }
     }
 }

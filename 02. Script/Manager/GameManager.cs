@@ -50,6 +50,8 @@ public class GameManager : MonoBehaviour
     public GameObject objectHpBar;
     #endregion
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
+    EventTrigger eventTriggerFriendly;
+    private readonly float gridCorrection = 20f;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -61,34 +63,13 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             uiCamera.SetActive(false);
             //Until Steam API
-            uid = "FMefxTlgP9aHsgfE0Grc";//다수
-            //uid = "KF5U1XMs5cy7n13dgKjF";//소수
+            //uid = "FMefxTlgP9aHsgfE0Grc";//다수
+            uid = "KF5U1XMs5cy7n13dgKjF";//소수
         }   
     }
     async void Start()
     {
         progressDoc = await DataManager.dataManager.GetField("Progress", Uid);
-    }
-    void Update()
-    {
-        if (!battleScenario||!battleScenario.rectFriendlyGroup) return;
-        // 마우스 위치를 가져옵니다.
-        Vector2 mousePosition = Input.mousePosition;
-
-        // 마우스 위치를 월드 좌표로 변환합니다.
-        Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, 0));
-
-        // 대상 Rect 안에 마우스가 있는지 확인합니다.
-        if (RectTransformUtility.RectangleContainsScreenPoint(battleScenario.rectFriendlyGroup, mousePosition, uiCamera.GetComponent<Camera>()))
-        {
-            // 대상 Rect 안에 마우스가 있는 경우
-            Debug.Log("마우스가 대상 Rect 안에 있습니다.");
-        }
-        else
-        {
-            // 대상 Rect 안에 마우스가 없는 경우
-            Debug.Log("마우스가 대상 Rect 밖에 있습니다.");
-        }
     }
     public async Task LoadUserDoc()
     {
@@ -110,8 +91,6 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         Debug.Log("GameOver");
-        foreach (var x in Friendlies)
-            x.StopAllCoroutines();
         foreach (var x in Enemies)
             x.StopAllCoroutines();
     }
@@ -139,11 +118,40 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(canvasGrid);
         canvasGrid.gameObject.SetActive(false);
         Transform panelFriendly = canvasGrid.GetChild(0);
-        
-        var groupFrinedly = panelFriendly.GetComponent<GridLayoutGroup>();
-        panelFriendly.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3, groupFrinedly.cellSize.y * 3);
+
+        GridLayoutGroup groupFrinedly = panelFriendly.GetComponent<GridLayoutGroup>();
+        panelFriendly.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3 + gridCorrection, groupFrinedly.cellSize.y * 3 + gridCorrection);
+        var trigger =  panelFriendly.gameObject.AddComponent<EventTrigger>();
+
+
+        Entry enterEntry = new();
+        trigger.triggers.Add(enterEntry);
+        enterEntry.eventID = EventTriggerType.PointerEnter;
+        enterEntry.callback.AddListener((data) =>
+        {
+            battleScenario.isInFriendly = true;
+        });
+        Entry exitEntry = new();
+        trigger.triggers.Add(exitEntry);
+        exitEntry.eventID = EventTriggerType.PointerExit;
+        exitEntry.callback.AddListener((data) =>
+        {
+            if (!battleScenario.isDragging) return;
+            battleScenario.isInFriendly = false;
+        });
+
+
         Transform panelEnemy = canvasGrid.GetChild(1);
 
+        eventTriggerFriendly = panelFriendly.gameObject.AddComponent<EventTrigger>();
+        Entry downEntry = new();
+        eventTriggerFriendly.triggers.Add(downEntry);
+        downEntry.eventID = EventTriggerType.PointerDown;
+        // Button 이벤트 추가
+        gameObject.AddComponent<Button>().onClick.AddListener(() =>
+        {
+            Debug.Log("Down");
+        });
 
 
         for (int i = 0; i < 9; i++)
@@ -158,7 +166,7 @@ public class GameManager : MonoBehaviour
             enemyGrid.isEnemy = true;
             enemyGrid.index = i;
             EnemyGrids.Add(enemyGrid);
-            enemyGrid.SetClickEvent();
+            enemyGrid.SetClickEvent().SetDownEvent().SetDragEvent().SetEnterEvent().SetExitEvent().SetUpEvent();
         }
     }
 
@@ -185,21 +193,54 @@ public class GameManager : MonoBehaviour
         {
             Dictionary<string, object> tempDict = snapShot.ToDictionary();
             int job = 0;
-            string jobString = "0";
+            string jobId = "0";
             int count = 0;
             List<Skill> skills = new();
-            float ability = GetFloatValue(tempDict, "Ability");
-            string hpValue = (string)tempDict["Hp"];
+            float ability;
+            string hpValue;
+            float resist;
+            float speed;
+            if (tempDict.ContainsKey("Ability"))
+            {
+                ability = GetFloatValue(tempDict, "Ability");
+            }
+            else
+            {
+                ability = 0;
+            }
+            if (tempDict.ContainsKey("Hp"))
+            {
+                hpValue = (string)tempDict["Hp"];
+            }
+            else
+            {
+                hpValue = "1/1";
+            }
             float hp = float.Parse(hpValue.Split('/')[0]);
             float maxHp = float.Parse(hpValue.Split('/')[1]);
-            float resist = GetFloatValue(tempDict, "Resist");
-            float speed = GetFloatValue(tempDict, "Speed");
+            if (tempDict.ContainsKey("Resist"))
+            {
+                resist = GetFloatValue(tempDict, "Resist");
+            }
+            else
+            {
+                resist = 0;
+            }
+            if (tempDict.ContainsKey("Speed"))
+            {
+                speed = GetFloatValue(tempDict, "Speed");
+            }
+            else
+            {
+                speed = 1f;
+            }
             for (int i = 0; i < 2; i++)
             {
                 if (tempDict.TryGetValue(string.Format("Skill_{0}", i), out object valueObj))
                 {
                     count++;
                     string skillID = ((string)valueObj).Split(":::")[0];
+                    if (skillID == string.Empty) continue;
                     switch (LoadManager.loadManager.skillsDict[skillID].categori)
                     {
                         case SkillCategori.Power:
@@ -216,25 +257,25 @@ public class GameManager : MonoBehaviour
             }
             if (count < 2)
                 job = 0;
-            jobString = AddZero(job);
+            jobId = AddZero(job);
             for (int i = 0; i < 2; i++)
             {
                 if (tempDict.TryGetValue(string.Format("Skill_{0}", i), out object valueObj))
                 {
-                    Skill localizedSkill = LocalizeSkill((string)valueObj);
+                    string valueStr = (string)valueObj;
+                    if (valueStr == string.Empty) continue;
+                    Skill localizedSkill = LocalizeSkill((valueStr));
                     foreach (var x0 in localizedSkill.effects)
                     {
                         SkillEffect effect = x0;
-                        if (jobString == "101")
-                        {
-                            Debug.Log("IsSelf 변수 만든 뒤 작업해야할 곳");
-                        }
                     }
                     skills.Add(localizedSkill);
                 }
             }
+            if (skills.Count < 2)
+                jobId = "000";
             ObjectGrid _grid = FriendlyGrids[(int)(long)tempDict["Index"]];
-            GameObject friendlyObject = InitCharacterObject(_grid, false, jobString);
+            GameObject friendlyObject = InitCharacterObject(_grid, false, jobId);
 
 
             FriendlyScript friendlyScript = friendlyObject.AddComponent<FriendlyScript>();
@@ -245,23 +286,33 @@ public class GameManager : MonoBehaviour
                 {
                     string talentStr = (string)talentObj;
                     TalentFormStruct talentForm = LoadManager.loadManager.talentDict[talentStr.Split(":::")[0]];
-                    List<T_Effect> effects = new();
+                    List<SkillEffect> effects = new();
                     string[] array = talentStr.Split(":::")[1].Split('/');
                     for (int i = 0; i < array.Length; i++)
                     {
-                        effects.Add(new(float.Parse(array[i]), talentForm.effects[i].type));
+                        //effects.Add(new(float.Parse(array[i]), talentForm.effects[i].type));
                     }
                     talents.Add(new(talentForm.name, talentForm.level, talentForm.explain, effects));
                 }
             }
-            friendlyScript.InitFriendly( skills, talents, _grid, maxHp, hp, ability, resist, speed, job );
+            friendlyScript.InitFriendly(LoadManager.loadManager.jobsDict[jobId], skills, talents, _grid, maxHp, hp, ability, resist, speed );
             Friendlies.Add(friendlyScript);
         }
     }
     public static Skill LocalizeSkill(string x1)//Skill_n/n 형태의 x1을 기반으로 LoadManager에 있는 EffectForm을 가진 SkillStruct 접근해서 Effect를 가진 SkillStruct를 리턴
     {
-        string skillID = x1.Split(":::")[0];
-        byte skillLevel = byte.Parse(x1.Split(":::")[1]);
+        string skillID;
+        byte skillLevel;
+        if (x1.Contains(":::"))
+        {
+            skillID = x1.Split(":::")[0];
+            skillLevel = byte.Parse(x1.Split(":::")[1]);
+        }
+        else
+        {
+            skillID = x1;
+            skillLevel = 0;
+        }
         SkillForm tempSkillForm = LoadManager.loadManager.skillsDict[skillID];
         return new Skill(tempSkillForm, skillLevel);
     }
@@ -276,7 +327,7 @@ public class GameManager : MonoBehaviour
         {
             Dictionary<string, object> tempDict = snapShot.ToDictionary();
             int index = (int)(long)tempDict["Index"];
-            EnemyStruct enemyStruct = LoadManager.loadManager.enemyiesDict[(string)tempDict["Id"]];
+            EnemyClass enemyStruct = LoadManager.loadManager.enemyiesDict[(string)tempDict["Id"]];
             ObjectGrid grid = EnemyGrids[index];
             GameObject enemyObject = InitCharacterObject(grid, true, (string)tempDict["Id"]);
             EnemyScript enemyScript = enemyObject.AddComponent<EnemyScript>();
@@ -290,7 +341,6 @@ public class GameManager : MonoBehaviour
     {
         string type = _isEnemy ? "Enemy" : "Friendly";
         GameObject characterObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/{0}/{0}_{1}", type, _characterId)));
-
 
         characterObject.transform.GetChild(0).localScale = Vector3.one * 70;
         characterObject.transform.SetParent(_grid.transform);
@@ -318,7 +368,7 @@ public class GameManager : MonoBehaviour
     }
     public static bool CalculateProbability(float _probability)
     {
-        return (float)Random.Range(0, int.MaxValue) % 100 / 100 <= Mathf.Clamp(_probability, 0f, 1f);
+        return Random.Range(0f, 1f) <= Mathf.Clamp(_probability, 0f, 1f);
     }
     public void FromCandidateToFriendly(List<RecruitCandidate> _candidates)
     {
@@ -329,7 +379,7 @@ public class GameManager : MonoBehaviour
             friendlyObject.transform.SetParent(FriendlyGrids[i + 3].transform);
             FriendlyScript friendlyScript = friendlyObject.gameObject.AddComponent<FriendlyScript>();
             Instantiate(objectHpBar, friendlyObject.transform);
-            friendlyScript.InitFriendly(new List<Skill>(), _candidates[i].info.talents, FriendlyGrids[i + 3], _candidates[i].info.hp, _candidates[i].info.hp, _candidates[i].info.ability, _candidates[i].info.ability,_candidates[i].info.speed , 0);
+            friendlyScript.InitFriendly(LoadManager.loadManager.jobsDict["000"], new List<Skill>(), _candidates[i].info.talents, FriendlyGrids[i + 3], _candidates[i].info.hp, _candidates[i].info.hp, _candidates[i].info.ability, _candidates[i].info.ability,_candidates[i].info.speed );
             Friendlies.Add(friendlyScript);
             friendlyObject.transform.localPosition = Vector3.zero;
             friendlyObject.transform.localScale = Vector3.one;

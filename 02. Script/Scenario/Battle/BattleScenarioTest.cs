@@ -32,28 +32,6 @@ public class BattleScenarioTest : MonoBehaviour
         Default, Bot, Move
     }
     public TestPattern testPattern = TestPattern.Default;
-    public void BattleInit()
-    {
-        List<CharacterBase> allCharacters = new();
-        allCharacters.AddRange(GameManager.Friendlies);
-        allCharacters.AddRange(GameManager.Enemies);
-        foreach (var x in allCharacters)
-        {
-            x.hp = x.maxHp;
-            x.CalculateHpImage();
-            x.StopAllCoroutines();
-            x.isCasting = false;
-            foreach (var stc in x.skillCors)
-            {
-                stc.isReady = false;
-                if (stc.imageSkill == null) continue;
-                Image imageCool = stc.imageSkill.transform.GetChild(0).GetComponent<Image>();
-                imageCool.fillAmount = 0f;
-            }
-        }
-        battleScenario.panelClear.SetActive(false);
-        battleScenario.battlePatern = BattlePatern.OnReady;
-    }
     public void BotTest()
     {
         SwitchTest(TestPattern.Bot);
@@ -141,7 +119,7 @@ public class BattleScenarioTest : MonoBehaviour
         else
         {
             FriendlyScript script = botObject.AddComponent<FriendlyScript>();
-            script.InitFriendly(null, null, _grid, 100f, 10f, 10f, 0f,1f ,0);
+            script.InitFriendly(LoadManager.loadManager.jobsDict["000"], null, null, _grid, 100f, 10f, 10f, 0f,1f);
             GameManager.Friendlies.Add(script);
             baseScript = script;
         }

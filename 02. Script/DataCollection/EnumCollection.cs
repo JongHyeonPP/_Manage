@@ -1,5 +1,9 @@
 namespace EnumCollection
 {
+    public enum JobType : byte
+    {
+        None, Tanker, Warrior, Ranger, Crusader, Thief, Witch
+    }
     public enum DataSection:byte
     {
         SoundSetting, Language
@@ -8,25 +12,26 @@ namespace EnumCollection
     {
         All, Sfx, Bgm
     }
-    public enum Job:byte
-    {
-        None, Witch, Thief, Crusader, Ranger, Warrior, Tanker
-    }
     public enum SkillTarget:byte
     {
         Target, Nontarget 
     }
     public enum EffectType:byte
     {
-        AttBuff, DefBuff, AttDebuff, DefDebuff,
-        AttUp, DefUp, AttDown, DefDown,
-        Bleed, BleedTransfer, Reflect, Paralyze, Heal, 
-        Damage, BarrierConv, Enchant, Repeat,
-        Armor, ArmorAtt, DamageShare, Ability
+        //발동류
+        Damage, Damage_P, Heal, Restoration, Armor, Bleed, AbilityVamp,
+        //효과류
+        AttAscend, DefAscend, HealAscend, BuffAscend, DebuffAscend, Reduce,
+        AttDescend,DefDescend, SpeedDescend,
+        Confuse, BleedTransfer, Reflect, Paralyze,  
+        BarrierConv, Enchant, Repeat,
+        DamageShare, AbilityAscend,
+        AbilityByDamage, Vamp, 
+        Critical,Revive
     }
     public enum EffectRange : byte
     {
-        Dot, Row, All
+        Dot, Row, Column, Behind, Front, Self
     }
     public enum SkillCategori : byte
     {
@@ -34,11 +39,7 @@ namespace EnumCollection
     }
     public enum BattlePatern : byte
     {
-        Default, OnReady, Pause, Done, 
-    }
-    public enum GridPatern:byte
-    {
-        Deactive, Interactable
+        Battle, OnReady, Pause, Done, 
     }
     public enum MapArea:byte
     {
@@ -55,11 +56,5 @@ namespace EnumCollection
     public enum Language:byte
     {
         Ko, En
-    }
-    public enum T_Type:byte
-    {
-        None, AttAscend, DefAscend, AttDescend, DefDescend,
-        FameAscend, GoldAscend, Critical, HealAscend,
-        BuffAscend, DebuffAscend
     }
 }

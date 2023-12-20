@@ -11,23 +11,29 @@ public class EnemyScript : CharacterBase
     public List<PriorProb> PriorProbs { get; private set; } = new();
     public void InitEnemy(List<Skill> _skills, ObjectGrid _grid, float _hp, float _ability, float _resist, float _speed)
     {
-        InitCharacter(_skills, _hp, _hp, _ability, _resist, _speed);
         PriorProbs.Add(new PriorProb(new Skill(_speed)));
         PriorProbs = PriorProbs.OrderBy(x => x.priority).ToList();
         IsEnemy = true;
         grid = _grid;
         grid.owner = this;
+        InitCharacter(_skills, _hp, _hp, _ability, _resist, _speed);
     }
 
     public override void OnDead()
     {
         OnDead_Base();
         bool gameOverFlag = false;
-        foreach (var x in GameManager.Enemies)
-            if (!x.isDead)
+        foreach (CharacterBase enemy in GameManager.Enemies)
+        {
+            if (!enemy.isDead)
                 gameOverFlag = true;
+        }
         if (!gameOverFlag)
             GameManager.battleScenario.StageClear();
+    }
+
+    public override void SetAnimParam()
+    {
     }
 
     public class PriorProb
@@ -46,7 +52,7 @@ public class EnemyScript : CharacterBase
             }
             foreach (SkillEffect effect in _skill.effects)
             {
-                if (effect.type >= EffectType.AttBuff)
+                if (effect.type >= EffectType.AttAscend)
                 {
                     if(priority>1)
                     priority = 1;

@@ -13,8 +13,7 @@ using UnityEngine.SceneManagement;
 
 public class BattleScenario : MonoBehaviour
 {
-    public delegate void RegularEffectHandler();
-    public RegularEffectHandler regularEffect;
+    public Action regularEffect;
     public BattleDifficulty battleDifficulty;
     CharacterBase focusedCharacter = null;
     public BattlePatern battlePatern;
@@ -23,7 +22,7 @@ public class BattleScenario : MonoBehaviour
     private List<ObjectGrid> friendlyGrids;
     private List<ObjectGrid> enemyGrids;
     public ObjectGrid gridOnPointer;
-    public ObjectThing dragedThing;
+    public ObjectGrid dragedGrid;
     public bool isDragging = false;
     #region UI
     public Transform canvasBattle;
@@ -38,6 +37,9 @@ public class BattleScenario : MonoBehaviour
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     private BattleScenarioTest battleScenarioTest;
     public RectTransform rectFriendlyGroup;
+    public bool isInFriendly;
+    public static List<EffectType> buffOrDebuff;
+    private Coroutine regularEffectCor;
     private void Awake()
     {
         friendlies = GameManager.Friendlies;
@@ -82,58 +84,22 @@ public class BattleScenario : MonoBehaviour
     {
         SetBattlePatern(BattlePatern.OnReady);
     }
-    public static int GetTargetIndex(Skill _skill)
-    {
-        //0은 아군에 대해서, 1은 적에 대해서, 2는 모두에 대해서 사용 가능
-        int targetIndex = -1;
-        foreach (var effect in _skill.effects)
-        {
-            if (effect.type == EffectType.Damage ||
-                        effect.type == EffectType.AttDebuff ||
-                        effect.type == EffectType.DefDebuff ||
-                        effect.type == EffectType.Paralyze ||
-                        effect.type == EffectType.Bleed ||
-                        effect.type == EffectType.ArmorAtt ||
-                        effect.type == EffectType.BleedTransfer
-                )
-            {
-                if (targetIndex == 0)
-                {
-                    targetIndex = 2;
-                    break;
-                }
-                else
-                    targetIndex = 1;
-            }
-            else
-            {
-                if (targetIndex == 1)
-                {
-                    targetIndex = 2;
-                    break;
-                }
-                else
-                    targetIndex = 0;
-            }
-        }
-        return targetIndex;
-    }
-
-
     public void OnGridPointerDown(ObjectGrid _grid)
     {
-        EventSystem.current.SetSelectedGameObject(null);
-        dragedThing = _grid.owner;
+        //EventSystem.current.SetSelectedGameObject(null);
+        GameManager.battleScenario.isDragging = true;
+        dragedGrid = _grid;
+        Time.timeScale = 0f;
     }
-    public void MoveCharacterByGrid(ObjectGrid _startGrid, ObjectGrid _targetGrid, bool _isInstant)
+    public void MoveCharacterByGrid(ObjectGrid _startGrid, ObjectGrid _targetGrid)
     {
-        ObjectThing targetCharacter = null;
+        CharacterBase targetCharacter = null;
         if (_targetGrid.owner)
             targetCharacter = _targetGrid.owner;
-        _startGrid.owner.MoveToTargetGrid(_targetGrid, _isInstant);
+        _startGrid.owner.MoveToTargetGrid(_targetGrid);
         if (targetCharacter)
         {
-            targetCharacter.MoveToTargetGrid(_startGrid, _isInstant);
+            targetCharacter.MoveToTargetGrid(_startGrid);
         }
         else
         {
@@ -158,23 +124,6 @@ public class BattleScenario : MonoBehaviour
             }
         }
     }
-    public void OnGridPointerExit() => gridOnPointer = null;
-
-    public void RefreshSkill()
-    {
-        if (battlePatern != BattlePatern.OnReady)
-        foreach (var x in enemies)
-        {
-            x.gridPatern = GridPatern.Deactive;
-        }
-        foreach (var x in friendlies)
-        {
-            x.gridPatern = GridPatern.Deactive;
-        }
-        if (focusedCharacter)
-            focusedCharacter.transform.GetChild(0).GetComponent<Animator>().updateMode = AnimatorUpdateMode.Normal;
-        focusedCharacter = null;
-    }
     public void RefreshGrid(bool _isEnemyGrid)
     {
         foreach (var x in _isEnemyGrid ? enemyGrids : friendlyGrids)
@@ -191,10 +140,9 @@ public class BattleScenario : MonoBehaviour
         {
             switch (battlePatern)
             {
-                case BattlePatern.Default:
+                case BattlePatern.Battle:
                     if (GameManager.IsPaused)
                     {
-                        RefreshSkill();
                         GameManager.IsPaused = false;
                     }
                     else
@@ -204,9 +152,8 @@ public class BattleScenario : MonoBehaviour
                     }
                     break;
                 case BattlePatern.Pause:
-                    RefreshSkill();
                     GameManager.IsPaused = false;
-                    battlePatern = BattlePatern.Default;
+                    battlePatern = BattlePatern.Battle;
                     break;
             }
         }
@@ -268,8 +215,8 @@ public class BattleScenario : MonoBehaviour
         if(battleScenarioTest)
             switch (battlePatern)
             {
-                case BattlePatern.Default:
-                    textBattlePatern.text = "Default";
+                case BattlePatern.Battle:
+                    textBattlePatern.text = "Battle";
                     break;
                 case BattlePatern.OnReady:
                     textBattlePatern.text = "OnReady";
@@ -298,8 +245,6 @@ public class BattleScenario : MonoBehaviour
         panelClear.SetActive(true);
         foreach (var x in friendlies)
             x.StopAllCoroutines();
-        foreach (var x in enemies)
-            x.StopAllCoroutines();
     }
     public void ToMap()
     {
@@ -308,31 +253,30 @@ public class BattleScenario : MonoBehaviour
             Destroy(x.gameObject);
         }
         enemies.Clear();
-        RefreshFriendlyStc();
+        foreach (var x in friendlies)
+        {
+            x.StopAllCoroutines();
+        }
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         SceneManager.LoadScene("Map");
-    }
-    private void RefreshFriendlyStc()
-    {
-        foreach (var friendly in friendlies)
-        {
-            friendly.isCasting = false;
-            foreach (var x in friendly.skillCors)
-            {
-                x.isReady = false;
-            }
-        }
     }
     public void StartBattle()
     {
         foreach (var x in friendlies)
         {
-            x.StartSkillCor();
+            x.FindNewTargetAlly();
+            x.FindNewTargetOpponent();
+            x.SetSkillsWithBattle();
+            x.SetAnimParam();
         }
-        //foreach (var x in enemies)
-        //{
-        //    x.StartSkillCor();
-        //}
+        foreach (var x in enemies)
+        {
+            x.FindNewTargetAlly();
+            x.FindNewTargetOpponent();
+            x.SetSkillsWithBattle();
+        }
         canvasBattle.GetChild(1).gameObject.SetActive(false);
+        regularEffectCor = StartCoroutine(ActiveRegualrEffect());
+        SetBattlePatern(BattlePatern.Battle);
     }
 }
