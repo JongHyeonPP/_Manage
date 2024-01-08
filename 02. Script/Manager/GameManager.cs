@@ -83,7 +83,16 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
+    public void GameOver()
+    {
+        Debug.Log("GameOver");
+        if(battleScenario)
+        battleScenario.characterUI.gameObject.SetActive(false);
+        foreach (var x in Friendlies)
+            x.StopAllCoroutines();
+        foreach (var x in Enemies)
+            x.StopAllCoroutines();
+    }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
         battleScenario = null;

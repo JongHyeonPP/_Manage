@@ -14,7 +14,7 @@ abstract public class CharacterBase : MonoBehaviour
     public float resist;
     public bool isMoved = false;
     public float armor = 0f;
-    public bool isDead { get; private set; }
+    public bool isDead { get; protected set; }
     public GameObject grid;
     public SkillTargetCor[] skillTargetCor;
     public int gridIndex;
@@ -27,6 +27,7 @@ abstract public class CharacterBase : MonoBehaviour
     internal bool isCasting = false;
     private readonly float ARRIVAL_TIME = 3f;
     private Coroutine moveCoroutine;
+    public bool IsEnemy { get; protected set; }
     protected void InitCharacter(List<Skill> _skills, GameObject _grid, int _gridIndex, float _maxHp, float _hp, float _ability, float _resist)
     {
         hpObject = Instantiate(GameManager.gameManager.objectHpBar, transform);
@@ -50,7 +51,7 @@ abstract public class CharacterBase : MonoBehaviour
                 if (i < _skills.Count)
                     skillTargetCor[i] = new(this, _skills[i]);
                 else
-                    skillTargetCor[i] = new(this, new Skill());
+                    skillTargetCor[i] = new(this, new Skill());//기본 공격
             }
         }
         CalculateHpImage();
@@ -121,7 +122,6 @@ abstract public class CharacterBase : MonoBehaviour
                     {
                         OnDead();
                     }
-
                     break;
                 case EffectType.Heal:
                     hp = Mathf.Min(hp + _value, maxHp);
@@ -134,7 +134,13 @@ abstract public class CharacterBase : MonoBehaviour
             yield return new WaitForSeconds(_delay);
         }
     }
-
+    protected void OnDead_Base()
+    {
+        Debug.Log(gameObject.name + " is Dead");
+        isDead = true;
+        GameManager.battleScenario.regularEffect -= ActiveRegularEffect;
+        StopAllCoroutines();
+    }
     public void MoveCharacter(int _targetGridIndex, bool _isEnemyGrid)
     {
         if (moveCoroutine != null)
@@ -209,7 +215,6 @@ abstract public class CharacterBase : MonoBehaviour
                     caster.StartCoroutine(SkillCoolDown());
                 }
                 yield return new WaitForSeconds(skill.coolTime);
-                Debug.Log("발동!");
 
                 float attBuffSum = 0f;
                 float abilitySum = caster.ability;
@@ -251,17 +256,12 @@ abstract public class CharacterBase : MonoBehaviour
                             }
                             break;
                     }
-                    if (effect.type == EffectType.ArmorAtt)
-                        value *= caster.armor;
-                    else
-                        value *= abilitySum;
-                    FriendlyScript friendlyCaster;
+                    FriendlyScript friendlyCaster = caster as FriendlyScript; ;
                     switch (effect.type)//Value 보정값 설정
                     {
                         case EffectType.ArmorAtt:
                         case EffectType.Damage:
                         case EffectType.Bleed:
-                                friendlyCaster = caster as FriendlyScript;
                             if (friendlyCaster)//아군이 발동한 경우
                             {
                                 value *= friendlyCaster.talentEffects[T_Type.AttAscend] + attBuffSum + 1;
@@ -271,11 +271,10 @@ abstract public class CharacterBase : MonoBehaviour
                                     value *= 2;
                                 }
                             }
-                            if (friendlyCaster.TotalEffects.TryGetValue(EffectType.Enchant, out float enchantValue))
+                            if (caster.TotalEffects.TryGetValue(EffectType.Enchant, out float enchantValue))
                                 value += enchantValue;
                             break;
                         case EffectType.Heal:
-                                friendlyCaster = caster as FriendlyScript;
                                 if (friendlyCaster)
                                 {
                                     value *= friendlyCaster.talentEffects[T_Type.HealAscend] + 1;
@@ -286,7 +285,6 @@ abstract public class CharacterBase : MonoBehaviour
                         case EffectType.DefBuff:
                         case EffectType.Enchant:
                             value = effect.isConst ? effect.value : effect.value * abilitySum;
-                            friendlyCaster = caster as FriendlyScript;
                             if (friendlyCaster)
                             {
                                 value *= friendlyCaster.talentEffects[T_Type.BuffAscend] + 1;
@@ -296,7 +294,6 @@ abstract public class CharacterBase : MonoBehaviour
                         case EffectType.AttDebuff:
                         case EffectType.DefDebuff:
                             value = effect.isConst ? effect.value : effect.value * abilitySum;
-                            friendlyCaster = caster as FriendlyScript;
                             if (friendlyCaster)
                             {
                                 value *= friendlyCaster.talentEffects[T_Type.DebuffAscend] + 1;
@@ -305,6 +302,10 @@ abstract public class CharacterBase : MonoBehaviour
                         default:
                             value = effect.isConst ? effect.value : effect.value * abilitySum;
                             break;
+                    }
+                    if (target.isDead)
+                    {
+                        target = FindProperTarget();
                     }
                     foreach (var x in GameManager.battleScenario.GetTargets(target.gridIndex, isTargetEnemy, effect))//타겟에게 스킬 적용
                     {
@@ -321,15 +322,84 @@ abstract public class CharacterBase : MonoBehaviour
         }
         public IEnumerator SkillCoolDown()
         {
-            var x = imageSkill.transform.GetChild(0).GetComponent<Image>();
-            x.fillAmount = 1f;
+            Image imageCool = imageSkill.transform.GetChild(0).GetComponent<Image>();
+            imageCool.fillAmount = 1f;
             while (true)
             {
                 yield return new WaitForSeconds(coolUpdateTime);
-                x.fillAmount -= coolUpdateTime / skill.coolTime;
-                if (x.fillAmount == 0)
+                imageCool.fillAmount -= coolUpdateTime / skill.coolTime;
+                if (imageCool.fillAmount == 0)
                     break;
             }
+        }
+
+        internal CharacterBase FindProperTarget()
+        {
+            List<CharacterBase> maxCharacters = new();
+            Dictionary<CharacterBase, float> targetPriority = new();
+            List<CharacterBase> targets = new();
+            int targetIndex = BattleScenario.GetTargetIndex(skill);
+
+            var enemyList = GameManager.gameManager.Enemies;
+            var friendlyList = GameManager.gameManager.Friendlies;
+
+            void AddValidTargets(List<CharacterBase> targetCollection)
+            {
+                foreach (var target in targetCollection)
+                {
+                    if (!target.isDead)
+                    {
+                        targets.Add(target);
+                    }
+                }
+            }
+
+            switch (targetIndex)
+            {
+                case 0:
+                    AddValidTargets(caster.IsEnemy ? enemyList : friendlyList);
+                    break;
+                case 1:
+                    AddValidTargets(caster.IsEnemy ? friendlyList : enemyList);
+                    break;
+                case 2:
+                    AddValidTargets(enemyList);
+                    AddValidTargets(friendlyList);
+                    break;
+            }
+            foreach (var x in targets)
+            {
+                targetPriority.Add(x, 0f);
+                //HP에 대한 우선도 연산
+                for (int i = 0; i < skill.effects.Count; i++)
+                {
+                    SkillEffect effect = skill.effects[i];
+                    bool hpProport = !(effect.type == EffectType.Damage
+                        || effect.type == EffectType.Heal
+                        || effect.type == EffectType.Armor);
+                    targetPriority[x] += (hpProport ? x.hp / x.maxHp : 1 - x.hp / x.maxHp)/skill.effects.Count;
+                    //Debug.Log("Hp 우선도 : " + targetPriority[x]);
+                }
+            }
+            //TargetColumn에 대한 연산
+
+            float maxValue = 0f;
+            foreach (var x in targetPriority.Keys)
+            {
+                if (targetPriority[x] > maxValue)
+                {
+                    maxCharacters.Clear();
+                    maxCharacters.Add(x);
+                    maxValue = targetPriority[x];
+                    Debug.Log("Max값 재설정");
+                }
+                else if(targetPriority[x] == maxValue)
+                {
+                    maxCharacters.Add(x);
+                    Debug.Log("Max값 추가");
+                }
+            }
+            return maxCharacters[Random.Range(0, maxCharacters.Count)];
         }
     }
 }

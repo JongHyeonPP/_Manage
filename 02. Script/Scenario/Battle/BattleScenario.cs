@@ -18,7 +18,7 @@ public class BattleScenario : MonoBehaviour
     public BattleDifficulty battleDifficulty;
     CharacterBase focusedCharacter = null;
     public BattlePatern battlePatern;
-    private bool onskill = true;
+    public bool onSkill = true;
     private List<CharacterBase> enemies;
     private List<CharacterBase> friendlies;
     private List<GameObject> friendlyGrids;
@@ -26,7 +26,8 @@ public class BattleScenario : MonoBehaviour
     public CharacterBase.SkillTargetCor SelectedStc { get; private set; }
     #region UI
     public Transform canvasBattle;
-    private Transform characterUI;
+    public GameObject characterUI;
+    public GameObject panelClear;
     private TMP_Text textBattlePatern;
     public static readonly Color defaultGridColor = new(1f, 1f, 1f, 0.4f);
     public static readonly Color opponentGridColor = Color.red;
@@ -44,13 +45,15 @@ public class BattleScenario : MonoBehaviour
         enemyGrids = GameManager.gameManager.EnemyGrids;
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
         textBattlePatern = canvasBattle.GetChild(0).GetComponent<TMP_Text>();
-        characterUI = canvasBattle.GetChild(1);
+        characterUI = canvasBattle.GetChild(1).gameObject;
+        panelClear = canvasBattle.GetChild(2).gameObject;
+        panelClear.SetActive(false);
         for (int i = 0; i < friendlies.Count; i++)
         {
             var friendly = friendlies[i] as FriendlyScript;
             for (int j = 0; j < friendly.skillTargetCor.Length; j++)
             {
-                Transform skillTransform = characterUI.GetChild(i).GetChild(j + 2);
+                Transform skillTransform = characterUI.transform.GetChild(i).GetChild(j + 2);
                 skillTransform.gameObject.SetActive(true);
                 var skillImage = skillTransform.GetComponent<Image>();
                 friendly.skillImages.Add(skillImage);
@@ -74,7 +77,7 @@ public class BattleScenario : MonoBehaviour
         SettingManager.onLanguageChange += LanguageChange;
         LanguageChange(GameManager.language);
 
-        SetBattlePatern(BattlePatern.OnReady);
+        
         foreach (var x in friendlies)
         {
             regularEffect += x.ActiveRegularEffect;
@@ -88,7 +91,10 @@ public class BattleScenario : MonoBehaviour
         ActiveCampByStc();
         battleScenarioTest = GetComponent<BattleScenarioTest>();
     }
-
+    private void Start()
+    {
+        SetBattlePatern(BattlePatern.OnReady);
+    }
     public void OnGridPointEnter(int _gridIndex, bool _isEnemyGrid)
     {
         CharacterBase character = GetCharacter(_gridIndex, _isEnemyGrid);
@@ -110,7 +116,7 @@ public class BattleScenario : MonoBehaviour
                     return;
             }
         }
-        if (onskill)
+        if (onSkill)
         {
             if (SelectedStc.skill.target == SkillTarget.Nontarget)
             {
@@ -132,7 +138,7 @@ public class BattleScenario : MonoBehaviour
         {
             grids[_gridIndex].GetComponent<Image>().color = defaultGridColor;
         }
-        if (onskill)
+        if (onSkill)
         {
             foreach (var x in grids)
             {
@@ -144,16 +150,35 @@ public class BattleScenario : MonoBehaviour
     {
         //0은 아군, 1은 적, 2는 둘 다 
 
+        short targetIndex =  GetTargetIndex(SelectedStc.skill);
+        if (targetIndex != 0)
+        {
+            foreach (var x in enemies)
+            {
+                x.gridPatern = GridPatern.Interactable;
+            }
+        }
+        if (targetIndex != 1)
+        {
+            foreach (var x in friendlies)
+            {
+                x.gridPatern = GridPatern.Interactable;
+            }
+        }
+    }
+    public static short GetTargetIndex(Skill _skill)
+    {
+        //0은 아군에 대해서, 1은 적에 대해서, 2는 모두에 대해서 사용 가능
         short targetIndex = -1;
-        foreach (var effect in SelectedStc.skill.effects)
+        foreach (var effect in _skill.effects)
         {
             if (effect.type == EffectType.Damage ||
-                effect.type == EffectType.AttDebuff ||
-                effect.type == EffectType.DefDebuff ||
-                effect.type == EffectType.Paralyze ||
-                effect.type == EffectType.Bleed ||
-                effect.type == EffectType.ArmorAtt ||
-                effect.type == EffectType.BleedTransfer
+                        effect.type == EffectType.AttDebuff ||
+                        effect.type == EffectType.DefDebuff ||
+                        effect.type == EffectType.Paralyze ||
+                        effect.type == EffectType.Bleed ||
+                        effect.type == EffectType.ArmorAtt ||
+                        effect.type == EffectType.BleedTransfer
                 )
             {
                 if (targetIndex == 0)
@@ -175,21 +200,10 @@ public class BattleScenario : MonoBehaviour
                     targetIndex = 0;
             }
         }
-        if (targetIndex != 0)
-        {
-            foreach (var x in enemies)
-            {
-                x.gridPatern = GridPatern.Interactable;
-            }
-        }
-        if (targetIndex != 1)
-        {
-            foreach (var x in friendlies)
-            {
-                x.gridPatern = GridPatern.Interactable;
-            }
-        }
+        return targetIndex;
     }
+
+
     public void OnCharacterGridClicked(int _gridIndex, bool _isEnemyGrid)
     {
         EventSystem.current.SetSelectedGameObject(null);
@@ -258,7 +272,7 @@ public class BattleScenario : MonoBehaviour
             case BattlePatern.Default:
                 RefreshSkill();
                 GameManager.IsPaused = false;
-                onskill = false;
+                onSkill = false;
                 break;
             case BattlePatern.OnReady:
                 SelectedStc.isReady = true;
@@ -266,19 +280,22 @@ public class BattleScenario : MonoBehaviour
                 SetNextStcIndex();
                 if (SelectedStc != null)
                 {
-                    ActiveCampByStc();
                     SetGridColorByStc(_gridIndex, _isEnemyGrid);
                 }
                 break;
             default:
                 RefreshSkill();
-                onskill = false;
+                onSkill = false;
                 break;
         }
     }
     public void SetGridColorByStc(int _gridIndex, bool _isEnemyGrid)
     {
-        if (SelectedStc == null || (SelectedStc.skill.isSelf && !(_gridIndex == focusedCharacter.gridIndex && !_isEnemyGrid))) return;
+        if (SelectedStc == null || (SelectedStc.skill.isSelf && !(_gridIndex == focusedCharacter.gridIndex && !_isEnemyGrid)))
+        {
+            RefreshGrid(_isEnemyGrid);
+            return;
+        }
         foreach (var x in SelectedStc.skill.effects)
         {
             foreach (var x0 in GetTargets(_gridIndex, _isEnemyGrid, x))
@@ -291,7 +308,7 @@ public class BattleScenario : MonoBehaviour
     public void RefreshSkill()
     {
         if (battlePatern != BattlePatern.OnReady)
-            onskill = false;
+            onSkill = false;
         foreach (var x in enemies)
         {
             x.gridPatern = GridPatern.Deactive;
@@ -463,7 +480,7 @@ public class BattleScenario : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(null);
         RefreshSkill();
         SetSelectedStc(_characterIndex, _skillIndex);
-        onskill = true;
+        onSkill = true;
         if (battlePatern == BattlePatern.Default)
             GameManager.IsPaused = true;
     }
@@ -476,7 +493,7 @@ public class BattleScenario : MonoBehaviour
         focusedCharacter.transform.GetChild(0).GetComponent<Animator>().updateMode = AnimatorUpdateMode.UnscaledTime;
         ActiveCampByStc();
     }
-    private void SetNextStcIndex()
+    public void SetNextStcIndex()
     {
         for (short i = 0; i < friendlies.Count; i++)
         {
@@ -487,12 +504,22 @@ public class BattleScenario : MonoBehaviour
                 if (x1 != null && x1.isReady == false)
                 {
                     SetSelectedStc(i, j);
+                    ActiveCampByStc();
                     return;
                 }
             }
         }
         //모든 스킬의 타겟이 배정된 이후, 전투 시작
         battlePatern = BattlePatern.Default;
+        foreach (var x in enemies)
+        {
+            foreach (var x0 in x.skillTargetCor)
+            {
+                x0.target = x0.FindProperTarget();
+                x0.StartSkillCoroutine();
+            }
+        }
+
         foreach (var x in friendlies)
         {
             foreach (var x0 in x.skillTargetCor)
@@ -500,18 +527,41 @@ public class BattleScenario : MonoBehaviour
                 x0.StartSkillCoroutine();
             }
         }
-        onskill = false;
+        onSkill = false;
     }
     private List<GameObject> GetCharacterGrids(bool _isEnemyGrid) => _isEnemyGrid ? enemyGrids : friendlyGrids;
-    public void GameOver()
-    {
-        Debug.Log("GameOver");
-        characterUI.gameObject.SetActive(false);
-    }
+
     public void StageClear()
     {
         Debug.Log("StageClear");
         battlePatern = BattlePatern.Done;
+        panelClear.SetActive(true);
+        characterUI.gameObject.SetActive(false);
+        foreach (var x in friendlies)
+            x.StopAllCoroutines();
+        foreach (var x in enemies)
+            x.StopAllCoroutines();
     }
-    public void ToMap() => SceneManager.LoadScene("Map");
+    public void ToMap()
+    {
+        foreach (var x in enemies)
+        {
+            Destroy(x.gameObject);
+        }
+        enemies.Clear();
+        RefreshFriendlyStc();
+        GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
+        SceneManager.LoadScene("Map");
+    }
+    private void RefreshFriendlyStc()
+    {
+        foreach (var friendly in friendlies)
+        {
+            friendly.isCasting = false;
+            foreach (var x in friendly.skillTargetCor)
+            {
+                x.isReady = false;
+            }
+        }
+    }
 }
