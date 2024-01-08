@@ -1,6 +1,7 @@
+using BattleCollection;
 using EnumCollection;
 using Firebase.Firestore;
-using StructCollection;
+using LobbyCollection;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -12,7 +13,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<string, SkillForm> skillsDict = new();//Key´Â DocumentÀÇ ID
     public Dictionary<string, JobClass> jobsDict = new();//Key´Â ½ºÅ³ÀÇ Index. Ex)200, 101
     public Dictionary<string, EnemyClass> enemyiesDict = new();//Key´Â DocumentÀÇ ID¸¦ int·Î parse
-    public Dictionary<string, GuildStruct> guildDict = new();
+    public Dictionary<string, GuildClass> guildDict = new();
     public Dictionary<string, TalentFormStruct> talentDict = new();
     private void Awake()
     {
@@ -29,12 +30,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     {
         if (!isInit)
         {
-            await InitSkill();
-            await InitJob();
-            await InitEnemy();
-            await InitGuild();
-            await InitTalent();
-            await InitUserDoc();
+            await Task.WhenAll(InitJob(),InitSkill(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc());
             Debug.Log("FireStoreLoaded");
             isInit = true;
         }
@@ -71,7 +67,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 List<List<SkillEffect>> effects;
             if (categori == SkillCategori.Enemy)//ÀûÀÇ ½ºÅ³
             {
-                List<SkillEffect> effect = LoadEffect("Effect", skillDict);
+                List<SkillEffect> effect = InitEffect("Effect", skillDict);
                 effects = new() { effect };
                 explains = null;
             }
@@ -95,11 +91,11 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
                 skillForm.SetName(name);
                 //Debug.Log("Skill Init : " + doc.Id + ", " + "Effect_0");
-                List<SkillEffect> effect0 = LoadEffect("Effect_0", skillDict);
+                List<SkillEffect> effect0 = InitEffect("Effect_0", skillDict);
                 //Debug.Log("Skill Init : " + doc.Id + ", " + "Effect_1");
-                List<SkillEffect> effect1 = LoadEffect("Effect_1", skillDict);
+                List<SkillEffect> effect1 = InitEffect("Effect_1", skillDict);
                 //Debug.Log("Skill Init : " + doc.Id + ", " + "Effect_2");
-                List<SkillEffect> effect2 = LoadEffect("Effect_2", skillDict);
+                List<SkillEffect> effect2 = InitEffect("Effect_2", skillDict);
                 skillForm.SetEffects(new() { effect0, effect1, effect2 });
                 explains = new();
                 foreach (var x0 in skillDict["Explain"] as List<object>)
@@ -144,7 +140,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 
             skillsDict.Add(doc.Id, skillForm);
             
-            List<SkillEffect> LoadEffect(string effectStr, Dictionary<string, object> _skillDict)
+            List<SkillEffect> InitEffect(string effectStr, Dictionary<string, object> _skillDict)
             {
                 List<SkillEffect> effects = new();
                 foreach (object docDict in _skillDict[effectStr] as List<object>)
@@ -159,13 +155,16 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     if (effectDict.TryGetValue("Count", out obj))
                         effect.SetCount((int)(long)obj);
                     //Range
-                    EffectRange range ;
+                    EffectRange range;
                     if (effectDict.TryGetValue("Range", out obj))
                     {
                         switch (obj)
                         {
                             default:
                                 range = EffectRange.Dot;
+                                break;
+                            case "Self":
+                                range = EffectRange.Self;
                                 break;
                             case "Row":
                                 range = EffectRange.Row;
@@ -174,7 +173,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                                 range = EffectRange.Column;
                                 break;
                             case "Behind":
-                                range = EffectRange.Behind;
+                                range = EffectRange.Back;
                                 break;
                             case "Front":
                                 range = EffectRange.Front;
@@ -187,82 +186,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         effect.SetIsConst((bool)effectDict["IsConst"]);
                     //Type
                     EffectType type;
-                    switch (effectDict["Type"])
-                    {
-                        case "AttAscend":
-                            type = EffectType.AttAscend;
-                            break;
-                        case "DefAscend":
-                            type = EffectType.DefAscend;
-                            break;
-                        case "AttDescend":
-                            type = EffectType.AttDescend;
-                            break;
-                        case "DefDescend":
-                            type = EffectType.DefDescend;
-                            break;
-                        case "SpeedDescend":
-                            type = EffectType.SpeedDescend;
-                            break;
-                        case "Bleed":
-                            type = EffectType.Bleed;
-                            break;
-                        case "Reflect":
-                            type = EffectType.Reflect;
-                            break;
-                        case "Paralyze":
-                            type = EffectType.Paralyze;
-                            break;
-                        case "Enchant":
-                            type = EffectType.Enchant;
-                            break;
-                        case "Repeat":
-                            type = EffectType.Repeat;
-                            break;
-                        case "Heal":
-                            type = EffectType.Heal;
-                            break;
-                        case "Restoration":
-                            type = EffectType.Restoration;
-                            break;
-                        case "Armor":
-                            type = EffectType.Armor;
-                            break;
-                        case "AbilityAscend":
-                            type = EffectType.AbilityAscend;
-                            break;
-                        case "BleedTransfer":
-                            type = EffectType.BleedTransfer;
-                            break;
-                        case "AbilityVamp":
-                            type = EffectType.AbilityVamp;
-                            break;
-                        case "AbilityByDamage":
-                            type = EffectType.AbilityByDamage;
-                            break;
-                        case "Vamp":
-                            type = EffectType.Vamp;
-                            break;
-                        case "Confuse":
-                            type = EffectType.Confuse;
-                            break;
-                        case "Damage":
-                            type = EffectType.Damage;
-                            break;
-                        case "Reduce":
-                            type = EffectType.Reduce;
-                            break;
-                        case "Damage_P":
-                            type = EffectType.Damage_P;
-                            break;
-                        case "Revive":
-                            type = EffectType.Revive;
-                            break;
-                        default:
-                            Debug.LogError("Init Effect By Default..." + effectDict["Type"]);
-                            type = EffectType.Damage;
-                            break;
-                    }
+                    type = ParseEffectType((string)effectDict["Type"]);
                     effect.SetType(type);
                     //Delay
                     if (effectDict.TryGetValue("Delay", out obj))
@@ -280,6 +204,115 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             }
         }
     }
+
+    private static EffectType ParseEffectType(string _typeName)
+    {
+        EffectType type;
+        switch (_typeName)
+        {
+            case "AttAscend":
+                type = EffectType.AttAscend;
+                break;
+            case "ResistAscend":
+                type = EffectType.ResistAscend;
+                break;
+            case "AttDescend":
+                type = EffectType.AttDescend;
+                break;
+            case "ResistDescend":
+                type = EffectType.ResistDescend;
+                break;
+            case "SpeedDescend":
+                type = EffectType.SpeedDescend;
+                break;
+            case "Bleed":
+                type = EffectType.Bleed;
+                break;
+            case "Reflect":
+                type = EffectType.Reflect;
+                break;
+            case "Paralyze":
+                type = EffectType.Paralyze;
+                break;
+            case "Enchant":
+                type = EffectType.Enchant;
+                break;
+            case "Repeat":
+                type = EffectType.Repeat;
+                break;
+            case "Heal":
+                type = EffectType.Heal;
+                break;
+            case "Restoration":
+                type = EffectType.Restoration;
+                break;
+            case "Armor":
+                type = EffectType.Armor;
+                break;
+            case "AbilityAscend":
+                type = EffectType.AbilityAscend;
+                break;
+            case "BleedTransfer":
+                type = EffectType.BleedTransfer;
+                break;
+            case "AbilityVamp":
+                type = EffectType.AbilityVamp;
+                break;
+            case "AbilityByDamage":
+                type = EffectType.ResistByDamage;
+                break;
+            case "Vamp":
+                type = EffectType.Vamp;
+                break;
+            case "Confuse":
+                type = EffectType.Confuse;
+                break;
+            case "Damage":
+                type = EffectType.Damage;
+                break;
+            case "Reduce":
+                type = EffectType.Reduce;
+                break;
+            case "Curse":
+                type = EffectType.Curse;
+                break;
+            case "Revive":
+                type = EffectType.Revive;
+                break;
+            case "ResistByDamage":
+                type = EffectType.ResistByDamage;
+                break;
+            case "Necro":
+                type = EffectType.Necro;
+                break;
+            case "GoldAscend":
+                type = EffectType.GoldAscend;
+                break;
+            case "FameAscend":
+                type = EffectType.FameAscend;
+                break;
+            case "Critical":
+                type = EffectType.Critical;
+                break;
+            case "BuffAscend":
+                type = EffectType.BuffAscend;
+                break;
+            case "DebuffAscend":
+                type = EffectType.DebuffAscend;
+                break;
+            case "HealAscend":
+                type = EffectType.HealAscend;
+                break;
+
+            default:
+                Debug.LogError("Init Effect By Default..." + _typeName);
+                type = EffectType.Damage;
+                break;
+        }
+
+        return type;
+    }
+
     private async Task InitJob()
     {
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Job");
@@ -389,10 +422,11 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
-            List<int> prices = new();
-            foreach (var x in dict["Price"] as List<object>)
+            List<GuildContent> guildContents = new();
+            foreach (object contentObj in dict["Content"] as List<object>)
             {
-                prices.Add((int)(long)x);
+                Dictionary<string, object> contentDict = contentObj as Dictionary<string, object>;
+                guildContents.Add(new((int)(long)contentDict["Price"], (int)(long)contentDict["Value"]));
             }
             Dictionary<Language, string> name = new();
             foreach (var x in dict["Name"] as Dictionary<string, object>)
@@ -420,7 +454,36 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         break;
                 }
             }
-            guildDict.Add(doc.Id, new GuildStruct(name[GameManager.language], prices, explain[GameManager.language]));
+            GuildEffectType type;
+            switch (dict["Type"])
+            {
+                default:
+                    Debug.LogError("InitDefault... " + dict["Type"]);
+                    type = GuildEffectType.AllocateNumberUp;
+                    break;
+                case "AllocateNumberUp":
+                    type = GuildEffectType.AllocateNumberUp;
+                    break;
+                case "AbilityUp":
+                    type = GuildEffectType.AbilityUp;
+                    break;
+                case "HpUp":
+                    type = GuildEffectType.HpUp;
+                    break;
+                case "ResistUp":
+                    type = GuildEffectType.ResistUp;
+                    break;
+                case "TalentLevelUp":
+                    type = GuildEffectType.TalentLevelUp;
+                    break;
+                case "TalentNumUp":
+                    type = GuildEffectType.TalentNumUp;
+                    break;
+                case "SpeedUp":
+                    type = GuildEffectType.SpeedUp;
+                    break;
+            }
+            guildDict.Add(doc.Id, new GuildClass(name, (int)(long)dict["Index"], guildContents, explain[GameManager.language], type));
         }
     }
     private async Task InitTalent()
@@ -456,17 +519,14 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
             }
             List<TalentEffectForm> effects = new();
-            int index = 0;
-            while(true)
             {
-                if (dict.TryGetValue("Effect_" + index, out object value))
+                List<object> effectList = dict["Effect"] as List<object>;
+                foreach (object x in effectList)
                 {
-                    Dictionary<string, object> effectDict = value as Dictionary<string, object>;
-                    effects.Add(new((string)effectDict["Value"],(string)effectDict["Type"]));
-                    index++;
+                    Dictionary<string, object> effectDict = x as Dictionary<string, object>;
+                    EffectType effectType = ParseEffectType((string)effectDict["Type"]);
+                    effects.Add(new((string)effectDict["Value"], effectType));
                 }
-                else
-                    break;
             }
             talentDict.Add(doc.Id, new TalentFormStruct(name, (int)(long)dict["Level"], explain, effects, (int)(long)dict["Order"]));
         }
@@ -487,10 +547,9 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 for (int i = 0; i < guildDict.Count; i++)
                 {
-                    DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + i, 0);
-                    GameManager.gameManager.guild.Add(0);
+                    DataManager.dataManager.SetDocumentData("Guild_" + i, 0, "User", GameManager.gameManager.Uid);
                 }
-                DataManager .dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", 0);
+                DataManager .dataManager.SetDocumentData( "Fame", 0, "User", GameManager.gameManager.Uid);
                 GameManager.gameManager.fame = 0;
             }
         });

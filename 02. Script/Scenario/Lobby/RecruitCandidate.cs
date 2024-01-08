@@ -1,7 +1,9 @@
-using StructCollection;
+using BattleCollection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using TMPro;
+using LobbyCollection;
+
 public class RecruitCandidate : MonoBehaviour
 {
 
@@ -9,7 +11,7 @@ public class RecruitCandidate : MonoBehaviour
     private Transform transformSelected;
     public GameObject objectButton;
     private GameObject friendlyObject;
-    public CandidateInfoStruct info;
+    public CandiInfo candiInfo;
     private void Awake()
     {
         objectButton = transform.GetChild(0).gameObject;

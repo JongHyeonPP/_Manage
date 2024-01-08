@@ -84,17 +84,36 @@ public class DataManager : MonoBehaviour
         }
     }
 
-    public async void SetDocumentData(string _collectionRef, string _documentId, string _field, object _value)
+    public async void SetDocumentData(string _field, object _value, string _collectionRef, string _documentId)
     {
-        DocumentReference documentRef = db.Collection(_collectionRef).Document(_documentId);
+        CollectionReference collectionRef = db.Collection(_collectionRef);
+        DocumentReference documentRef = collectionRef.Document(_documentId);
         Dictionary<string, object> dict = new Dictionary<string, object> { { _field, _value } };
         await documentRef.SetAsync(dict, SetOptions.MergeAll);
-    }   
-
-    public async void SetDocumentData(string _collectionRef, string _documentId, Dictionary<string, object> _dict)
+    }
+    public async Task<string> SetDocumentData(string _field, object _value, string _collectionRef)
     {
-        DocumentReference documentRef = db.Collection(_collectionRef).Document(_documentId);
+        CollectionReference collectionRef = db.Collection(_collectionRef);
+        DocumentReference documentRef = collectionRef.Document();
+        Dictionary<string, object> dict = new Dictionary<string, object> { { _field, _value } };
+        await documentRef.SetAsync(dict, SetOptions.MergeAll);
+        return documentRef.Id;
+    }
+    public async void SetDocumentData(Dictionary<string, object> _dict, string _collectionRef, string _documentId)
+    {
+        CollectionReference collectionRef = db.Collection(_collectionRef);
+
+        // _documentId가 null이면 Firestore에서 자동으로 문서 ID를 생성
+        DocumentReference documentRef = collectionRef.Document(_documentId);
+
         await documentRef.SetAsync(_dict, SetOptions.MergeAll);
+    }
+    public async Task<string> SetDocumentData(Dictionary<string, object> _dict, string _collectionRef)
+    {
+        CollectionReference collectionRef = db.Collection(_collectionRef);
+        DocumentReference documentRef = collectionRef.Document();
+        await documentRef.SetAsync(_dict, SetOptions.MergeAll);
+        return documentRef.Id;
     }
 
     public void SetConfigData(DataSection _section, string _key, object _value)
@@ -118,6 +137,17 @@ public class DataManager : MonoBehaviour
                 _dict.Add(_key, _value);
             WritePrivateProfileString(_sectionName, _key, _value.ToString(), path);
         }
+    }
+    public Dictionary<string, object> ConvertToObjDictionary<T>(Dictionary<string, T> sourceDictionary)
+    {
+        Dictionary<string, object> targetDictionary = new Dictionary<string, object>();
+
+        foreach (var kvp in sourceDictionary)
+        {
+            targetDictionary.Add(kvp.Key, kvp.Value);
+        }
+
+        return targetDictionary;
     }
 }
 internal class GameData

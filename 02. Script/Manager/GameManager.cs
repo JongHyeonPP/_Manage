@@ -1,12 +1,13 @@
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using BattleCollection;
 using EnumCollection;
-using StructCollection;
-using UnityEngine.UI;
 using Firebase.Firestore;
+using LobbyCollection;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using static UnityEngine.EventSystems.EventTrigger;
 
 public class GameManager : MonoBehaviour
@@ -27,31 +28,27 @@ public class GameManager : MonoBehaviour
     public float gold;
     public float fameAscend = 0f;
     public float goldAscend = 0f;
-    public List<int> guild = new();
-
+    public Dictionary<string, int> guildLevelDict = new();//DocId : Level
+    public Dictionary<GuildEffectType, float> guildValueDict = new();
     private static bool isPaused = false;
     public static bool IsPaused
     {
         get { return isPaused; }
         set { Time.timeScale = value ? 0 : 1; isPaused = value; }
     }
-
     public static BattleScenario battleScenario;
     public static LobbyScenario lobbyScenario;
 
     #region Battle
     [Header("Battle")]
     public Transform canvasGrid;
-    public static List<ObjectGrid> FriendlyGrids { get; private set; } = new();
-    public static List<ObjectGrid> EnemyGrids { get; private set; } = new();
+
     private GameObject scenarioObject;
-    public static List<CharacterBase> Friendlies { get; private set; } = new();
-    public static List<CharacterBase> Enemies { get; private set; } = new();
     public GameObject objectHpBar;
     #endregion
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
-    EventTrigger eventTriggerFriendly;
-    private readonly float gridCorrection = 20f;
+    EventTrigger eventTrigger;
+
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -63,36 +60,61 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             uiCamera.SetActive(false);
             //Until Steam API
-            //uid = "FMefxTlgP9aHsgfE0Grc";//다수
-            uid = "KF5U1XMs5cy7n13dgKjF";//소수
-        }   
+            uid = "FMefxTlgP9aHsgfE0Grc";
+            //uid = "KF5U1XMs5cy7n13dgKjF";
+        }
     }
     async void Start()
     {
         progressDoc = await DataManager.dataManager.GetField("Progress", Uid);
+        BattleScenario.friendlies = new();
+        BattleScenario.enemies = new();
     }
     public async Task LoadUserDoc()
     {
         userDoc = await DataManager.dataManager.GetField("User", Uid);
-
-        fame = GetFloatValue(userDoc, "Fame");
-        for (int i = 0; i < LoadManager.loadManager.guildDict.Count; i++)
+        Dictionary<string, object> guildDict;
+        if (userDoc.TryGetValue("Guild", out object guildObj))
         {
-            try
+            guildDict = guildObj as Dictionary<string, object>;
+        }
+        else
+        {
+            guildDict = new();
+        }
+        fame = GetFloatValue(userDoc, "Fame");
+        bool needToSet = false;
+        
+        foreach (KeyValuePair<string, GuildClass> kvp in LoadManager.loadManager.guildDict)
+        {
+            if (guildDict.TryGetValue(kvp.Key, out object userObj))
             {
-                guild.Add((int)(long)userDoc["Guild_" + i]);
+                int level = (int)(long)userObj;
+                guildLevelDict.Add(kvp.Key, level);
+                if (level != 0)
+                {
+                    GuildEffectType type = kvp.Value.type;
+                    if (!guildValueDict.ContainsKey(type))
+                    {
+
+                        guildValueDict.Add(type, kvp.Value.content[level - 1].value);//1 Level이면 0번 째 Value를 챙겨야 함
+                    }
+                    else
+                        guildValueDict[type] += kvp.Value.content[level - 1].value;
+                }
             }
-            catch
+            else
             {
-                DataManager.dataManager.SetDocumentData("User", Uid, "Guild_" + i, 0);
+                needToSet = true;
+                guildLevelDict.Add(kvp.Key, 0);
             }
         }
-    }
-    public void GameOver()
-    {
-        Debug.Log("GameOver");
-        foreach (var x in Enemies)
-            x.StopAllCoroutines();
+        if (needToSet)
+        {
+            Dictionary<string, object> objDict = DataManager.dataManager.ConvertToObjDictionary(guildLevelDict);
+            DataManager.dataManager.SetDocumentData("Guild", objDict, "User", Uid);
+        }
+        
     }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
@@ -107,6 +129,7 @@ public class GameManager : MonoBehaviour
                 break;
             case "Battle":
                 battleScenario = scenarioObject.GetComponent<BattleScenario>();
+                battleScenario.OnBattleLoaded();
                 break;
             case "Lobby":
                 lobbyScenario = scenarioObject.GetComponent<LobbyScenario>();
@@ -120,7 +143,7 @@ public class GameManager : MonoBehaviour
         Transform panelFriendly = canvasGrid.GetChild(0);
 
         GridLayoutGroup groupFrinedly = panelFriendly.GetComponent<GridLayoutGroup>();
-        panelFriendly.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3 + gridCorrection, groupFrinedly.cellSize.y * 3 + gridCorrection);
+        panelFriendly.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3 + BattleScenario.gridCorrection, groupFrinedly.cellSize.y * 3 + BattleScenario.gridCorrection);
         var trigger =  panelFriendly.gameObject.AddComponent<EventTrigger>();
 
 
@@ -143,9 +166,9 @@ public class GameManager : MonoBehaviour
 
         Transform panelEnemy = canvasGrid.GetChild(1);
 
-        eventTriggerFriendly = panelFriendly.gameObject.AddComponent<EventTrigger>();
+        eventTrigger = panelFriendly.gameObject.AddComponent<EventTrigger>();
         Entry downEntry = new();
-        eventTriggerFriendly.triggers.Add(downEntry);
+        eventTrigger.triggers.Add(downEntry);
         downEntry.eventID = EventTriggerType.PointerDown;
         // Button 이벤트 추가
         gameObject.AddComponent<Button>().onClick.AddListener(() =>
@@ -159,13 +182,13 @@ public class GameManager : MonoBehaviour
             ObjectGrid friendlyGrid = panelFriendly.GetChild(i).gameObject.AddComponent<ObjectGrid>();
             friendlyGrid.isEnemy = false;
             friendlyGrid.index = i;
-            FriendlyGrids.Add(friendlyGrid);
+            BattleScenario.FriendlyGrids.Add(friendlyGrid);
             friendlyGrid.SetClickEvent().SetDownEvent().SetDragEvent().SetEnterEvent().SetExitEvent().SetUpEvent();
 
             ObjectGrid enemyGrid = panelEnemy.GetChild(i).gameObject.AddComponent<ObjectGrid>();
             enemyGrid.isEnemy = true;
             enemyGrid.index = i;
-            EnemyGrids.Add(enemyGrid);
+            BattleScenario.EnemyGrids.Add(enemyGrid);
             enemyGrid.SetClickEvent().SetDownEvent().SetDragEvent().SetEnterEvent().SetExitEvent().SetUpEvent();
         }
     }
@@ -173,9 +196,11 @@ public class GameManager : MonoBehaviour
     public async void LoadGame()
     {
         seed = (int)(long)progressDoc["Seed"];
-        await LoadEnemy();
+        string sceneName = (string)progressDoc["Scene"];
         await LoadFriendly();
-        SceneManager.LoadScene((string)progressDoc["Scene"]);
+        if (sceneName == "Battle")
+            await LoadEnemy();
+        SceneManager.LoadScene(sceneName);
     }
     public void NewGame()
     {
@@ -184,11 +209,12 @@ public class GameManager : MonoBehaviour
     }
     private async Task LoadFriendly()
     {
-        foreach (var x in FriendlyGrids)
+        foreach (var x in BattleScenario.FriendlyGrids)
         {
             x.gameObject.SetActive(true);
         }
         List<DocumentSnapshot> friendlyDocs = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", gameManager.uid, "Friendlies"));
+        List<CharacterData> characterDataDict = new();
         foreach (DocumentSnapshot snapShot in friendlyDocs)
         {
             Dictionary<string, object> tempDict = snapShot.ToDictionary();
@@ -274,32 +300,18 @@ public class GameManager : MonoBehaviour
             }
             if (skills.Count < 2)
                 jobId = "000";
-            ObjectGrid _grid = FriendlyGrids[(int)(long)tempDict["Index"]];
+            ObjectGrid _grid = BattleScenario.FriendlyGrids[(int)(long)tempDict["Index"]];
             GameObject friendlyObject = InitCharacterObject(_grid, false, jobId);
 
-
+            CharacterData characterData = new(snapShot.Id, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], jobId, skills);
+            characterDataDict.Add(characterData);
             FriendlyScript friendlyScript = friendlyObject.AddComponent<FriendlyScript>();
-            List<TalentStruct> talents = new();
-            if (tempDict.ContainsKey("Talent"))
-            {
-                foreach (object talentObj in tempDict["Talent"] as List<object>)
-                {
-                    string talentStr = (string)talentObj;
-                    TalentFormStruct talentForm = LoadManager.loadManager.talentDict[talentStr.Split(":::")[0]];
-                    List<SkillEffect> effects = new();
-                    string[] array = talentStr.Split(":::")[1].Split('/');
-                    for (int i = 0; i < array.Length; i++)
-                    {
-                        //effects.Add(new(float.Parse(array[i]), talentForm.effects[i].type));
-                    }
-                    talents.Add(new(talentForm.name, talentForm.level, talentForm.explain, effects));
-                }
-            }
-            friendlyScript.InitFriendly(LoadManager.loadManager.jobsDict[jobId], skills, talents, _grid, maxHp, hp, ability, resist, speed );
-            Friendlies.Add(friendlyScript);
+            friendlyScript.InitFriendly(snapShot.Id);
+            BattleScenario.friendlies.Add(friendlyScript);
         }
+        CharacterManager.characterManager.SetCharacters(characterDataDict);
     }
-    public static Skill LocalizeSkill(string x1)//Skill_n/n 형태의 x1을 기반으로 LoadManager에 있는 EffectForm을 가진 SkillStruct 접근해서 Effect를 가진 SkillStruct를 리턴
+    public static Skill LocalizeSkill(string x1)//Skill_n/n 형태의 x1을 기반으로 LoadManager에 있는 EffectForm을 가진 SkillStruct 접근해서 Effect를 가진 Skill를 리턴
     {
         string skillID;
         byte skillLevel;
@@ -318,7 +330,7 @@ public class GameManager : MonoBehaviour
     }
     private async Task LoadEnemy()
     {
-        foreach (var x in EnemyGrids)
+        foreach (var x in BattleScenario.EnemyGrids)
         {
             x.gameObject.SetActive(true);
         }
@@ -327,13 +339,13 @@ public class GameManager : MonoBehaviour
         {
             Dictionary<string, object> tempDict = snapShot.ToDictionary();
             int index = (int)(long)tempDict["Index"];
-            EnemyClass enemyStruct = LoadManager.loadManager.enemyiesDict[(string)tempDict["Id"]];
-            ObjectGrid grid = EnemyGrids[index];
+            EnemyClass enemyClass = LoadManager.loadManager.enemyiesDict[(string)tempDict["Id"]];
+            ObjectGrid grid = BattleScenario.EnemyGrids[index];
             GameObject enemyObject = InitCharacterObject(grid, true, (string)tempDict["Id"]);
             EnemyScript enemyScript = enemyObject.AddComponent<EnemyScript>();
 
-            enemyScript.InitEnemy(enemyStruct.skills, grid, enemyStruct.hp, enemyStruct.ability, enemyStruct.resist, enemyStruct.speed);
-            Enemies.Add(enemyScript);
+            enemyScript.InitEnemy(enemyClass,  grid);
+            BattleScenario.enemies.Add(enemyScript);
         }
     }
 
@@ -370,21 +382,5 @@ public class GameManager : MonoBehaviour
     {
         return Random.Range(0f, 1f) <= Mathf.Clamp(_probability, 0f, 1f);
     }
-    public void FromCandidateToFriendly(List<RecruitCandidate> _candidates)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            GameObject friendlyObject = _candidates[i].transform.GetChild(1).gameObject;
-            Debug.Log(friendlyObject.gameObject.name);
-            friendlyObject.transform.SetParent(FriendlyGrids[i + 3].transform);
-            FriendlyScript friendlyScript = friendlyObject.gameObject.AddComponent<FriendlyScript>();
-            Instantiate(objectHpBar, friendlyObject.transform);
-            friendlyScript.InitFriendly(LoadManager.loadManager.jobsDict["000"], new List<Skill>(), _candidates[i].info.talents, FriendlyGrids[i + 3], _candidates[i].info.hp, _candidates[i].info.hp, _candidates[i].info.ability, _candidates[i].info.ability,_candidates[i].info.speed );
-            Friendlies.Add(friendlyScript);
-            friendlyObject.transform.localPosition = Vector3.zero;
-            friendlyObject.transform.localScale = Vector3.one;
-            friendlyObject.transform.GetChild(0).GetComponent<Animator>().enabled = true;
 
-        }
-    }
 }

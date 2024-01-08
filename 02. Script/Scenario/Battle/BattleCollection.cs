@@ -3,28 +3,15 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace StructCollection
+namespace BattleCollection
 {
-    public struct SettingStruct
-    {
-        public float allVolume;
-        public float sfxVolume;
-        public float bgmVolume;
-        public Language language;
-        public SettingStruct(float _allVolume, float _sfxVolume, float _bgmVolume, Language _language)
-        {
-            allVolume = _allVolume;
-            sfxVolume = _sfxVolume;
-            bgmVolume = _bgmVolume;
-            language = _language;
-        }
-    }
+
     public class SkillForm
     {
         public Dictionary<Language, string> name;
         public List<Dictionary<Language, string>> explain;
         public SkillCategori categori;
-        public float cooltime = 3f;
+        public float cooltime = 4f;
         public bool isTargetEnemy = false;
         public List<List<SkillEffect>> effects;
         public bool isAnim;
@@ -86,11 +73,11 @@ namespace StructCollection
             effects = _skillForm.effects[_level];
             isAnim = _skillForm.isAnim;
         }
-        public Skill(float _speed)//Default Attack
+        public Skill()//Default Attack
         {
             name = new() { {Language.En, "Default Attack" },{ Language.Ko, "기본 공격"} };
             explain = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
-            cooltime = 2 / _speed;
+            cooltime = 1.5f;
             isTargetEnemy = true;
             isAnim = true;
             effects = new() { new SkillEffect().
@@ -228,95 +215,5 @@ namespace StructCollection
             return this;
         }
     }
-    public struct GuildStruct
-    {
-        public string name;
-        public List<int> prices;
-        public string explain;
-        public GuildStruct(string _name, List<int> _prices, string _explain)
-        {
-            name = _name;
-            prices = _prices;
-            explain = _explain;
-        }
-    }
-    public struct CandidateInfoStruct
-    {
-        public string name;
-        public float ability;
-        public float hp;
-        public float resist;
-        public List<TalentStruct> talents;
-        public float speed;
-        public CandidateInfoStruct SetName(string _name)
-        {
-            name = _name;
-            return this;
-        }
-        public CandidateInfoStruct SetAbility(float _ability)
-        {
-            ability = _ability;
-            return this;
-        }
-        public CandidateInfoStruct SetHp(float _hp)
-        {
-            hp = _hp;
-            return this;
-        }
-        public CandidateInfoStruct SetResist(float _resist)
-        {
-            resist = _resist;
-            return this;
-        }
-        public CandidateInfoStruct SetTalent(List<TalentStruct> _talents)
-        {
-            talents = _talents;
-            return this;
-        }
-        public CandidateInfoStruct SetSpeed(float _speed)
-        {
-            speed = _speed;
-            return this;
-        }
-    }
-    public struct TalentFormStruct
-    {
-        public Dictionary<Language, string> name;
-        public Dictionary<Language, string> explain;
-        public int level;
-        public int order;
-        public List<TalentEffectForm> effects;
-        public TalentFormStruct(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<TalentEffectForm> _effects, int _order)
-        {
-            effects = _effects;
-            name = _name;
-            explain = _explain;
-            level = _level;
-            order = _order;
-        }
-    }
-    public struct TalentEffectForm
-    {
-        public string value;
-        public string type;
-        public TalentEffectForm(string _value, string _type)
-        {
-            value = _value;
-            type = _type;
-        }
-    }
-    public struct TalentStruct
-    {
-        public int level;
-        public Dictionary<Language, string> name;
-        public Dictionary<Language, string> explain;
-        public List<SkillEffect> effects;
-        public TalentStruct(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<SkillEffect> _effects)
-        {
-            effects = _effects;
-            name = _name;
-            level = _level;
-            explain = _explain;
-        }
-    }
+
 }

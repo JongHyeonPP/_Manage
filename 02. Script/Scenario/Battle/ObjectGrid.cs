@@ -103,6 +103,7 @@ public class ObjectGrid : MonoBehaviour
             OnGridPointerUp();
         });
         eventTrigger.triggers.Add(upEntry);
+        
         return this;
     }
     internal void OnGridClicked()
@@ -112,14 +113,19 @@ public class ObjectGrid : MonoBehaviour
     internal void OnGridPointerDown()
     {
         if (!owner) return;
-        
-        GameManager.battleScenario.OnGridPointerDown(this);
+        if (GameManager.battleScenario.battlePatern == BattlePatern.Battle)
+        {
+            if (GameManager.battleScenario.moveGauge < 10f) return;
+            GameManager.battleScenario.moveGauge = 0f;
+        }
+        GameManager.battleScenario.OnGridPointerDown();
     }
 
     internal void OnGridPointerDrag(Vector2 _dragPosition)
     {
         if (!GameManager.battleScenario.isInFriendly) return;
         if (!owner) return;
+        if (!GameManager.battleScenario.isDragging) return;//시간에 대한 조건
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
     GetComponent<RectTransform>(),
     _dragPosition,
@@ -138,17 +144,17 @@ public class ObjectGrid : MonoBehaviour
     internal void OnGridPointerExit() => GameManager.battleScenario.gridOnPointer = null;
     internal void OnGridPointerUp()
     {
+        EventSystem.current.SetSelectedGameObject(null);
         if (!owner) return;
         if (!GameManager.battleScenario.isDragging) return;
-        if (!GameManager.battleScenario.gridOnPointer || isEnemy != GameManager.battleScenario.gridOnPointer.isEnemy)
+        if (!GameManager.battleScenario.gridOnPointer || isEnemy != GameManager.battleScenario.gridOnPointer.isEnemy)//잘못된 위치에서 놨다면 돌아가도록
             GameManager.battleScenario.MoveCharacterByGrid(this, this);
         else
         {
-
             GameManager.battleScenario.MoveCharacterByGrid(this, GameManager.battleScenario.gridOnPointer);
         }
         GameManager.battleScenario.gridOnPointer = null;
         GameManager.battleScenario.isDragging = false;
-        Time.timeScale = 1f;
+        GameManager.IsPaused = false;
     }
 }

@@ -1,6 +1,6 @@
 using EnumCollection;
 using Firebase.Firestore;
-using StructCollection;
+using BattleCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,20 +15,16 @@ public class BattleScenario : MonoBehaviour
 {
     public Action regularEffect;
     public BattleDifficulty battleDifficulty;
-    CharacterBase focusedCharacter = null;
-    public BattlePatern battlePatern;
-    private List<CharacterBase> enemies;
-    private List<CharacterBase> friendlies;
-    private List<ObjectGrid> friendlyGrids;
-    private List<ObjectGrid> enemyGrids;
+    public static List<CharacterBase> enemies;
+    public static List<CharacterBase> friendlies;
+    private static List<ObjectGrid> friendlyGrids;
+    private static List<ObjectGrid> enemyGrids;
     public ObjectGrid gridOnPointer;
-    public ObjectGrid dragedGrid;
     public bool isDragging = false;
     #region UI
     public Transform canvasBattle;
     public Transform canvasTest;
     public GameObject panelClear;
-    private TMP_Text textBattlePatern;
     public static readonly Color defaultGridColor = new(1f, 1f, 1f, 0.4f);
     public static readonly Color enemyGridColor = Color.red;
     public static readonly Color friendlyColor = Color.blue;
@@ -39,15 +35,17 @@ public class BattleScenario : MonoBehaviour
     public RectTransform rectFriendlyGroup;
     public bool isInFriendly;
     public static List<EffectType> buffOrDebuff;
+    public BattlePatern battlePatern;
+    public float moveGauge;
     private Coroutine regularEffectCor;
+    public static List<ObjectGrid> FriendlyGrids { get; private set; } = new();
+    public static List<ObjectGrid> EnemyGrids { get; private set; } = new();
+    public static readonly float gridCorrection = 20f;
     private void Awake()
     {
-        friendlies = GameManager.Friendlies;
-        enemies = GameManager.Enemies;
-        friendlyGrids = GameManager.FriendlyGrids;
-        enemyGrids = GameManager.EnemyGrids;
+        friendlyGrids = FriendlyGrids;
+        enemyGrids = EnemyGrids;
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
-        textBattlePatern = canvasTest.GetChild(1).GetComponent<TMP_Text>();
         panelClear = canvasBattle.GetChild(0).gameObject;
         panelClear.SetActive(false);
         texts =
@@ -74,22 +72,16 @@ public class BattleScenario : MonoBehaviour
         {
             regularEffect += x.ActiveRegularEffect;
         }
-        focusedCharacter = friendlies[0];
         battleScenarioTest = GetComponent<BattleScenarioTest>();
         if (battleScenarioTest)
             canvasTest.gameObject.SetActive(true);
         rectFriendlyGroup = GameManager.gameManager.canvasGrid.GetChild(0).GetComponent<RectTransform>();
     }
-    private void Start()
+    public void OnGridPointerDown()
     {
-        SetBattlePatern(BattlePatern.OnReady);
-    }
-    public void OnGridPointerDown(ObjectGrid _grid)
-    {
-        //EventSystem.current.SetSelectedGameObject(null);
         GameManager.battleScenario.isDragging = true;
-        dragedGrid = _grid;
-        Time.timeScale = 0f;
+        GameManager.IsPaused = true;
+
     }
     public void MoveCharacterByGrid(ObjectGrid _startGrid, ObjectGrid _targetGrid)
     {
@@ -106,6 +98,27 @@ public class BattleScenario : MonoBehaviour
             _startGrid.owner = null;
         }
     }
+
+    internal void OnBattleLoaded()
+    {
+        List<CharacterData> characterDataList = CharacterManager.characterManager.GetChracters();
+        foreach (var x in friendlies)
+        {
+            CharacterData characterData = characterDataList.FirstOrDefault(item => item.docId == x.documentId);
+            x.maxHp = x.maxHpInBattle = characterData.maxHp;
+            x.Hp = characterData.hp;
+            x.ability = x.abilityInBattle = characterData.ability;
+            x.speed = x.speedInBattle = characterData.speed;
+            x.resist = x.resistInBattle = characterData.resist;
+            x.skills = characterData.skills;
+
+            x.grid = FriendlyGrids[characterData.index];
+            x.MoveToTargetGrid(x.grid, true);
+            x.grid.owner = x;
+        }
+        battlePatern = BattlePatern.OnReady;
+    }
+
     public void OnGridPointerEnter(ObjectGrid _grid)
     {
         Image gridImage = _grid.GetComponent<Image>();
@@ -138,24 +151,7 @@ public class BattleScenario : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            switch (battlePatern)
-            {
-                case BattlePatern.Battle:
-                    if (GameManager.IsPaused)
-                    {
-                        GameManager.IsPaused = false;
-                    }
-                    else
-                    {
-                        GameManager.IsPaused = true;
-                        battlePatern = BattlePatern.Pause;
-                    }
-                    break;
-                case BattlePatern.Pause:
-                    GameManager.IsPaused = false;
-                    battlePatern = BattlePatern.Battle;
-                    break;
-            }
+            GameManager.IsPaused = !GameManager.IsPaused;
         }
     }
     public bool IsTargetGrid(int _i, bool _isEnemyGrid)
@@ -208,27 +204,6 @@ public class BattleScenario : MonoBehaviour
             keyValue.Key.text = keyValue.Value[_language];
         }
     }
-
-    private void SetBattlePatern(BattlePatern _battlePatern)
-    {
-        battlePatern = _battlePatern;
-        if(battleScenarioTest)
-            switch (battlePatern)
-            {
-                case BattlePatern.Battle:
-                    textBattlePatern.text = "Battle";
-                    break;
-                case BattlePatern.OnReady:
-                    textBattlePatern.text = "OnReady";
-                    break;
-                case BattlePatern.Done:
-                    textBattlePatern.text = "Done";
-                    break;
-                case BattlePatern.Pause:
-                    textBattlePatern.text = "Pause";
-                    break;
-            }
-    }
     public IEnumerator ActiveRegualrEffect()
     {
         while (true)
@@ -241,42 +216,45 @@ public class BattleScenario : MonoBehaviour
     public void StageClear()
     {
         Debug.Log("StageClear");
-        battlePatern = BattlePatern.Done;
         panelClear.SetActive(true);
         foreach (var x in friendlies)
             x.StopAllCoroutines();
+        foreach (var x in enemies)
+        {
+            Destroy(x.gameObject, 1f);
+            Debug.Log("¾ö");
+        }
+        enemies.Clear();
     }
     public void ToMap()
     {
-        foreach (var x in enemies)
-        {
-            Destroy(x.gameObject);
-        }
-        enemies.Clear();
-        foreach (var x in friendlies)
-        {
-            x.StopAllCoroutines();
-        }
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         SceneManager.LoadScene("Map");
     }
+    private IEnumerator MoveGaugeCor()
+    {
+        while (true)
+        {
+            if (moveGauge < 10f)
+                moveGauge += 1f;
+            Debug.Log(moveGauge);
+            yield return new WaitForSeconds(1f);
+        }
+    }
     public void StartBattle()
     {
-        foreach (var x in friendlies)
-        {
-            x.FindNewTargetAlly();
-            x.FindNewTargetOpponent();
-            x.SetSkillsWithBattle();
-            x.SetAnimParam();
-        }
         foreach (var x in enemies)
         {
-            x.FindNewTargetAlly();
-            x.FindNewTargetOpponent();
-            x.SetSkillsWithBattle();
+            x.StartBattle();
+        }
+        foreach (var x in friendlies)
+        {
+            x.StartBattle();
         }
         canvasBattle.GetChild(1).gameObject.SetActive(false);
         regularEffectCor = StartCoroutine(ActiveRegualrEffect());
-        SetBattlePatern(BattlePatern.Battle);
+        battlePatern = BattlePatern.Battle;
+        StartCoroutine(MoveGaugeCor());
     }
+
 }

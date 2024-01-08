@@ -94,7 +94,7 @@ public class MapScenario : MonoBehaviour
         Dictionary<string, object> fieldDict = new();
         fieldDict.Add("History", values.history);
         fieldDict.Add("Scene", targetScene);
-        DataManager.dataManager.SetDocumentData("Progress", GameManager.gameManager.Uid, fieldDict);
+        DataManager.dataManager.SetDocumentData(fieldDict, "Progress", GameManager.gameManager.Uid);
     }
 }
 

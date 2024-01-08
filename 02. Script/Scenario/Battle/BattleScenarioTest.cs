@@ -20,10 +20,10 @@ public class BattleScenarioTest : MonoBehaviour
         for (int i = 0; i < 9; i++)
         {
             int index = i;
-            var friendlyGrid = GameManager.FriendlyGrids[i];
-            friendlyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(GameManager.FriendlyGrids[index], false));
-            var enemyGrid = GameManager.EnemyGrids[i];
-            enemyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(GameManager.EnemyGrids[index], true));
+            var friendlyGrid = BattleScenario.FriendlyGrids[i];
+            friendlyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(BattleScenario.FriendlyGrids[index], false));
+            var enemyGrid = BattleScenario.EnemyGrids[i];
+            enemyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(BattleScenario.EnemyGrids[index], true));
         }
 
     }
@@ -69,7 +69,6 @@ public class BattleScenarioTest : MonoBehaviour
                 case TestPattern.Bot:
                     if (_grid.owner == null)
                     {
-                        CreateBot(_grid, _isEnemyGrid);
                         _grid.GetComponent<Image>().color = BattleScenario.defaultGridColor;
                     }
                     RefreshTest();
@@ -103,32 +102,6 @@ public class BattleScenarioTest : MonoBehaviour
     {
         botText.text = "봇 생성";
         moveText.text = "캐릭터\n이동";
-    }
-
-    public void CreateBot(ObjectGrid _grid, bool _isEnemy)
-    {
-        GameObject botObject = GameManager.gameManager.InitCharacterObject(_grid, _isEnemy, "TestBot");
-        CharacterBase baseScript;
-        if (_isEnemy)
-        {
-            EnemyScript script = botObject.AddComponent<EnemyScript>();
-            script.InitEnemy(null, _grid, 100f, 10f, 0f, 1f);
-            GameManager.Enemies.Add(script);
-            baseScript = script;
-        }
-        else
-        {
-            FriendlyScript script = botObject.AddComponent<FriendlyScript>();
-            script.InitFriendly(LoadManager.loadManager.jobsDict["000"], null, null, _grid, 100f, 10f, 10f, 0f,1f);
-            GameManager.Friendlies.Add(script);
-            baseScript = script;
-        }
-        battleScenario.regularEffect += baseScript.ActiveRegularEffect;
-
-    }
-    public void GameOverTest()
-    {
-        GameManager.gameManager.GameOver();
     }
     public void StageClearTest()
     {
