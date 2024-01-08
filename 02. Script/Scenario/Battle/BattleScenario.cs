@@ -1,6 +1,6 @@
 using EnumCollection;
 using Firebase.Firestore;
-using StructCollection;
+using BattleCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,55 +13,41 @@ using UnityEngine.SceneManagement;
 
 public class BattleScenario : MonoBehaviour
 {
-    public delegate void RegularEffectHandler();
-    public RegularEffectHandler regularEffect;
+    public Action regularEffect;
     public BattleDifficulty battleDifficulty;
-    CharacterBase focusedCharacter = null;
-    public BattlePatern battlePatern;
-    public bool onSkill = true;
-    private List<CharacterBase> enemies;
-    private List<CharacterBase> friendlies;
-    private List<GameObject> friendlyGrids;
-    private List<GameObject> enemyGrids;
-    public CharacterBase.SkillTargetCor SelectedStc { get; private set; }
+    public static List<CharacterBase> enemies;
+    public static List<CharacterBase> friendlies;
+    private static List<ObjectGrid> friendlyGrids;
+    private static List<ObjectGrid> enemyGrids;
+    public ObjectGrid gridOnPointer;
+    public bool isDragging = false;
     #region UI
     public Transform canvasBattle;
-    public GameObject characterUI;
+    public Transform canvasTest;
     public GameObject panelClear;
-    private TMP_Text textBattlePatern;
     public static readonly Color defaultGridColor = new(1f, 1f, 1f, 0.4f);
-    public static readonly Color opponentGridColor = Color.red;
-    public static readonly Color allyGridColor = Color.blue;
+    public static readonly Color enemyGridColor = Color.red;
+    public static readonly Color friendlyColor = Color.blue;
     public static readonly Color TestColor = Color.green;
     #endregion
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     private BattleScenarioTest battleScenarioTest;
-
+    public RectTransform rectFriendlyGroup;
+    public bool isInFriendly;
+    public static List<EffectType> buffOrDebuff;
+    public BattlePatern battlePatern;
+    public float moveGauge;
+    private Coroutine regularEffectCor;
+    public static List<ObjectGrid> FriendlyGrids { get; private set; } = new();
+    public static List<ObjectGrid> EnemyGrids { get; private set; } = new();
+    public static readonly float gridCorrection = 20f;
     private void Awake()
     {
-        friendlies = GameManager.gameManager.Friendlies;
-        enemies = GameManager.gameManager.Enemies;
-        friendlyGrids = GameManager.gameManager.FriendlyGrids;
-        enemyGrids = GameManager.gameManager.EnemyGrids;
+        friendlyGrids = FriendlyGrids;
+        enemyGrids = EnemyGrids;
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
-        textBattlePatern = canvasBattle.GetChild(0).GetComponent<TMP_Text>();
-        characterUI = canvasBattle.GetChild(1).gameObject;
-        panelClear = canvasBattle.GetChild(2).gameObject;
+        panelClear = canvasBattle.GetChild(0).gameObject;
         panelClear.SetActive(false);
-        for (int i = 0; i < friendlies.Count; i++)
-        {
-            var friendly = friendlies[i] as FriendlyScript;
-            for (int j = 0; j < friendly.skillTargetCor.Length; j++)
-            {
-                Transform skillTransform = characterUI.transform.GetChild(i).GetChild(j + 2);
-                skillTransform.gameObject.SetActive(true);
-                var skillImage = skillTransform.GetComponent<Image>();
-                friendly.skillImages.Add(skillImage);
-                friendly.skillTargetCor[j].imageSkill = skillTransform.GetComponent<Image>();
-                skillTransform.GetChild(1).GetComponent<TMP_Text>().text = friendly.skillTargetCor[j].skill.name[GameManager.language];
-                skillTransform.GetChild(0).GetComponent<Image>().fillAmount = 0f;
-            }
-        }
         texts =
                 new()
                 {
@@ -86,243 +72,70 @@ public class BattleScenario : MonoBehaviour
         {
             regularEffect += x.ActiveRegularEffect;
         }
-        focusedCharacter = friendlies[0];
-        SetSelectedStc(0, 0);
-        ActiveCampByStc();
         battleScenarioTest = GetComponent<BattleScenarioTest>();
+        if (battleScenarioTest)
+            canvasTest.gameObject.SetActive(true);
+        rectFriendlyGroup = GameManager.gameManager.canvasGrid.GetChild(0).GetComponent<RectTransform>();
     }
-    private void Start()
+    public void OnGridPointerDown()
     {
-        SetBattlePatern(BattlePatern.OnReady);
+        GameManager.battleScenario.isDragging = true;
+        GameManager.IsPaused = true;
+
     }
-    public void OnGridPointEnter(int _gridIndex, bool _isEnemyGrid)
+    public void MoveCharacterByGrid(ObjectGrid _startGrid, ObjectGrid _targetGrid)
     {
-        CharacterBase character = GetCharacter(_gridIndex, _isEnemyGrid);
+        CharacterBase targetCharacter = null;
+        if (_targetGrid.owner)
+            targetCharacter = _targetGrid.owner;
+        _startGrid.owner.MoveToTargetGrid(_targetGrid);
+        if (targetCharacter)
+        {
+            targetCharacter.MoveToTargetGrid(_startGrid);
+        }
+        else
+        {
+            _startGrid.owner = null;
+        }
+    }
+
+    internal void OnBattleLoaded()
+    {
+        List<CharacterData> characterDataList = CharacterManager.characterManager.GetChracters();
+        foreach (var x in friendlies)
+        {
+            CharacterData characterData = characterDataList.FirstOrDefault(item => item.docId == x.documentId);
+            x.maxHp = x.maxHpInBattle = characterData.maxHp;
+            x.Hp = characterData.hp;
+            x.ability = x.abilityInBattle = characterData.ability;
+            x.speed = x.speedInBattle = characterData.speed;
+            x.resist = x.resistInBattle = characterData.resist;
+            x.skills = characterData.skills;
+
+            x.grid = FriendlyGrids[characterData.index];
+            x.MoveToTargetGrid(x.grid, true);
+            x.grid.owner = x;
+        }
+        battlePatern = BattlePatern.OnReady;
+    }
+
+    public void OnGridPointerEnter(ObjectGrid _grid)
+    {
+        Image gridImage = _grid.GetComponent<Image>();
         //봇 생성 모드라면
         if (battleScenarioTest)
         {
-            var grid = GetCharacterGrids(_isEnemyGrid)[_gridIndex];
             switch (battleScenarioTest.testPattern)
             {
                 case BattleScenarioTest.TestPattern.Bot:
-                    if (character == null)
-                        grid.GetComponent<Image>().color = TestColor;
+                    if (_grid.owner == null)
+                        gridImage.color = TestColor;
                     return;
                 case BattleScenarioTest.TestPattern.Move:
-                    if ((battleScenarioTest.moveTarget && character == null) || (!battleScenarioTest.moveTarget && character != null))
-                    {
-                        grid.GetComponent<Image>().color = TestColor;
-                    }
+                    gridImage.color = TestColor;
                     return;
             }
         }
-        if (onSkill)
-        {
-            if (SelectedStc.skill.target == SkillTarget.Nontarget)
-            {
-                foreach (var x in enemies)
-                {
-                    if (x.gridIndex == _gridIndex - 1 || x.gridIndex == _gridIndex - 2)
-                        return;
-                }
-            }
-            if (character == null || !(character.gridPatern == GridPatern.Interactable))
-                return;
-            SetGridColorByStc(_gridIndex, _isEnemyGrid);
-        }
-    }
-    public void OnGridPointExit(int _gridIndex, bool _isEnemyGrid)
-    {
-        var grids = GetCharacterGrids(_isEnemyGrid);
-        if (battleScenarioTest && battleScenarioTest.testPattern != BattleScenarioTest.TestPattern.Default)
-        {
-            grids[_gridIndex].GetComponent<Image>().color = defaultGridColor;
-        }
-        if (onSkill)
-        {
-            foreach (var x in grids)
-            {
-                x.GetComponent<Image>().color = defaultGridColor;
-            }
-        }
-    }
-    public void ActiveCampByStc()
-    {
-        //0은 아군, 1은 적, 2는 둘 다 
-
-        short targetIndex =  GetTargetIndex(SelectedStc.skill);
-        if (targetIndex != 0)
-        {
-            foreach (var x in enemies)
-            {
-                x.gridPatern = GridPatern.Interactable;
-            }
-        }
-        if (targetIndex != 1)
-        {
-            foreach (var x in friendlies)
-            {
-                x.gridPatern = GridPatern.Interactable;
-            }
-        }
-    }
-    public static short GetTargetIndex(Skill _skill)
-    {
-        //0은 아군에 대해서, 1은 적에 대해서, 2는 모두에 대해서 사용 가능
-        short targetIndex = -1;
-        foreach (var effect in _skill.effects)
-        {
-            if (effect.type == EffectType.Damage ||
-                        effect.type == EffectType.AttDebuff ||
-                        effect.type == EffectType.DefDebuff ||
-                        effect.type == EffectType.Paralyze ||
-                        effect.type == EffectType.Bleed ||
-                        effect.type == EffectType.ArmorAtt ||
-                        effect.type == EffectType.BleedTransfer
-                )
-            {
-                if (targetIndex == 0)
-                {
-                    targetIndex = 2;
-                    break;
-                }
-                else
-                    targetIndex = 1;
-            }
-            else
-            {
-                if (targetIndex == 1)
-                {
-                    targetIndex = 2;
-                    break;
-                }
-                else
-                    targetIndex = 0;
-            }
-        }
-        return targetIndex;
-    }
-
-
-    public void OnCharacterGridClicked(int _gridIndex, bool _isEnemyGrid)
-    {
-        EventSystem.current.SetSelectedGameObject(null);
-        var character = GetCharacter(_gridIndex, _isEnemyGrid);
-        //Test Logic
-        if (battleScenarioTest && battleScenarioTest.testPattern != BattleScenarioTest.TestPattern.Default)
-        {
-            switch (battleScenarioTest.testPattern)
-            {
-                case BattleScenarioTest.TestPattern.Bot:
-                    if (!character)
-                    {
-                        battleScenarioTest.CreateBot(_gridIndex, _isEnemyGrid);
-                        GetCharacterGrids(_isEnemyGrid)[_gridIndex].GetComponent<Image>().color = defaultGridColor;
-                    }
-                    battleScenarioTest.RefreshTest();
-                    RefreshGrid(_isEnemyGrid);
-                    SetGridColorByStc(_gridIndex, _isEnemyGrid);
-                    break;
-                case BattleScenarioTest.TestPattern.Move:
-                    if (battleScenarioTest.moveTarget)
-                    {
-                        if (battleScenarioTest.moveTarget.gridIndex == _gridIndex) return;
-                        if (character)//자리에 캐릭터가 있다면 위치 스왑
-                        {
-                            character.MoveCharacter(battleScenarioTest.moveTarget.gridIndex, _isEnemyGrid);
-                        }
-                        battleScenarioTest.moveTarget.MoveCharacter(_gridIndex, _isEnemyGrid);
-                        battleScenarioTest.RefreshTest();
-                        battleScenarioTest.moveTarget = null;
-                        battleScenarioTest.RefreshTest();
-                        SetGridColorByStc(_gridIndex, _isEnemyGrid);
-                    }
-                    else
-                    {
-                        battleScenarioTest.moveTarget = character;
-                        RefreshGrid(_isEnemyGrid);
-                    }
-                    break;
-            }
-            if (SelectedStc != null)
-            {
-                GameManager.battleScenario.ActiveCampByStc();
-            }
-
-            return;
-        }
-        //Default Logic
-        if (!character || character.gridPatern == GridPatern.Deactive) return;
-        //논타겟 연산
-        if (SelectedStc.skill.target == SkillTarget.Nontarget)
-        {
-            foreach (var x in enemies)
-            {
-                if (x.gridIndex == _gridIndex - 1 || x.gridIndex == _gridIndex - 2)
-                    return;
-            }
-        }
-        //IsSelf인데 자신을 타겟하지 않았으면 리턴
-        if (SelectedStc.skill.isSelf && !(_gridIndex == focusedCharacter.gridIndex && !_isEnemyGrid)) return;
-        SelectedStc.target = character;
-        SelectedStc.isTargetEnemy = _isEnemyGrid;
-        RefreshGrid(_isEnemyGrid);
-        switch (battlePatern)//후속 작업
-        {
-            case BattlePatern.Default:
-                RefreshSkill();
-                GameManager.IsPaused = false;
-                onSkill = false;
-                break;
-            case BattlePatern.OnReady:
-                SelectedStc.isReady = true;
-                RefreshSkill();
-                SetNextStcIndex();
-                if (SelectedStc != null)
-                {
-                    SetGridColorByStc(_gridIndex, _isEnemyGrid);
-                }
-                break;
-            default:
-                RefreshSkill();
-                onSkill = false;
-                break;
-        }
-    }
-    public void SetGridColorByStc(int _gridIndex, bool _isEnemyGrid)
-    {
-        if (SelectedStc == null || (SelectedStc.skill.isSelf && !(_gridIndex == focusedCharacter.gridIndex && !_isEnemyGrid)))
-        {
-            RefreshGrid(_isEnemyGrid);
-            return;
-        }
-        foreach (var x in SelectedStc.skill.effects)
-        {
-            foreach (var x0 in GetTargets(_gridIndex, _isEnemyGrid, x))
-            {
-                if (x0.gridPatern == GridPatern.Interactable)
-                    x0.grid.GetComponent<Image>().color = _isEnemyGrid ? opponentGridColor : allyGridColor;
-            }
-        }
-    }
-    public void RefreshSkill()
-    {
-        if (battlePatern != BattlePatern.OnReady)
-            onSkill = false;
-        foreach (var x in enemies)
-        {
-            x.gridPatern = GridPatern.Deactive;
-        }
-        foreach (var x in friendlies)
-        {
-            x.gridPatern = GridPatern.Deactive;
-        }
-        if (focusedCharacter)
-            focusedCharacter.transform.GetChild(0).GetComponent<Animator>().updateMode = AnimatorUpdateMode.Normal;
-        if (SelectedStc != null)
-            SelectedStc.imageSkill.color = Color.white;
-        SelectedStc = null;
-        focusedCharacter = null;
     }
     public void RefreshGrid(bool _isEnemyGrid)
     {
@@ -332,60 +145,13 @@ public class BattleScenario : MonoBehaviour
         }
     }
 
-    public List<CharacterBase> GetTargets(int _gridIndex, bool _isEnemyGrid, SkillEffect _effect)
-    {
-        List<CharacterBase> enemyOrFriendly = _isEnemyGrid ? enemies : friendlies;
-        List<CharacterBase> returnValue = new();
-        foreach (var character in enemyOrFriendly)
-        {
-            int absValue = Mathf.Abs(character.gridIndex - _gridIndex);
-            switch (_effect.range)
-            {
-                case EffectRange.Dot:
-                    if (character.gridIndex == _gridIndex)
-                    {
-                        returnValue.Add(character);
-                    }
-                    break;
-                case EffectRange.Cross:
-                    if (absValue == 3 || absValue == 1 || absValue == 0)
-                        returnValue.Add(character);
-                    break;
-                case EffectRange.Neighbors:
-                    if (absValue == 3 || absValue == 1)
-                        returnValue.Add(character);
-                    break;
-            }
-        }
-        return returnValue;
-    }
-
 
 
     private void Update()
     {
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            switch (battlePatern)
-            {
-                case BattlePatern.Default:
-                    if (GameManager.IsPaused)
-                    {
-                        RefreshSkill();
-                        GameManager.IsPaused = false;
-                    }
-                    else
-                    {
-                        GameManager.IsPaused = true;
-                        battlePatern = BattlePatern.Pause;
-                    }
-                    break;
-                case BattlePatern.Pause:
-                    RefreshSkill();
-                    GameManager.IsPaused = false;
-                    battlePatern = BattlePatern.Default;
-                    break;
-            }
+            GameManager.IsPaused = !GameManager.IsPaused;
         }
     }
     public bool IsTargetGrid(int _i, bool _isEnemyGrid)
@@ -395,14 +161,14 @@ public class BattleScenario : MonoBehaviour
         {
             foreach (EnemyScript x in enemies)
             {
-                indexes.Add(x.gridIndex);
+                indexes.Add(x.grid.index);
             }
         }
         else
         {
             foreach (FriendlyScript x in friendlies)
             {
-                indexes.Add(x.gridIndex);
+                indexes.Add(x.grid.index);
             }
         }
         if (_i % 3 != 0)
@@ -438,35 +204,6 @@ public class BattleScenario : MonoBehaviour
             keyValue.Key.text = keyValue.Value[_language];
         }
     }
-    private CharacterBase GetCharacter(int _gridIndex, bool _isEnemyGrid)
-    {
-        List<CharacterBase> enemyOrFrinedly = _isEnemyGrid ? enemies : friendlies;
-        foreach (var x in enemyOrFrinedly)
-        {
-            if (x.gridIndex == _gridIndex)
-                return x;
-        }
-        return null;
-    }
-    private void SetBattlePatern(BattlePatern _battlePatern)
-    {
-        battlePatern = _battlePatern;
-        switch (battlePatern)
-        {
-            case BattlePatern.Default:
-                textBattlePatern.text = "Default";
-                break;
-            case BattlePatern.OnReady:
-                textBattlePatern.text = "OnReady";
-                break;
-            case BattlePatern.Done:
-                textBattlePatern.text = "Done";
-                break;
-            case BattlePatern.Pause:
-                textBattlePatern.text = "Pause";
-                break;
-        }
-    }
     public IEnumerator ActiveRegualrEffect()
     {
         while (true)
@@ -475,93 +212,49 @@ public class BattleScenario : MonoBehaviour
             regularEffect();
         }
     }
-    public void OnSkillClicked(int _characterIndex, int _skillIndex)
-    {
-        EventSystem.current.SetSelectedGameObject(null);
-        RefreshSkill();
-        SetSelectedStc(_characterIndex, _skillIndex);
-        onSkill = true;
-        if (battlePatern == BattlePatern.Default)
-            GameManager.IsPaused = true;
-    }
-
-    private void SetSelectedStc(int _characterIndex, int _skillIndex)
-    {
-        focusedCharacter = friendlies[_characterIndex];
-        SelectedStc = focusedCharacter.skillTargetCor[_skillIndex];
-        SelectedStc.imageSkill.color = Color.red;
-        focusedCharacter.transform.GetChild(0).GetComponent<Animator>().updateMode = AnimatorUpdateMode.UnscaledTime;
-        ActiveCampByStc();
-    }
-    public void SetNextStcIndex()
-    {
-        for (short i = 0; i < friendlies.Count; i++)
-        {
-            if (friendlies[i].skillTargetCor == null) continue;
-            for (short j = 0; j < friendlies[i].skillTargetCor.Length; j++)
-            {
-                CharacterBase.SkillTargetCor x1 = friendlies[i].skillTargetCor[j];
-                if (x1 != null && x1.isReady == false)
-                {
-                    SetSelectedStc(i, j);
-                    ActiveCampByStc();
-                    return;
-                }
-            }
-        }
-        //모든 스킬의 타겟이 배정된 이후, 전투 시작
-        battlePatern = BattlePatern.Default;
-        foreach (var x in enemies)
-        {
-            foreach (var x0 in x.skillTargetCor)
-            {
-                x0.target = x0.FindProperTarget();
-                x0.StartSkillCoroutine();
-            }
-        }
-
-        foreach (var x in friendlies)
-        {
-            foreach (var x0 in x.skillTargetCor)
-            {
-                x0.StartSkillCoroutine();
-            }
-        }
-        onSkill = false;
-    }
-    private List<GameObject> GetCharacterGrids(bool _isEnemyGrid) => _isEnemyGrid ? enemyGrids : friendlyGrids;
 
     public void StageClear()
     {
         Debug.Log("StageClear");
-        battlePatern = BattlePatern.Done;
         panelClear.SetActive(true);
-        characterUI.gameObject.SetActive(false);
         foreach (var x in friendlies)
             x.StopAllCoroutines();
         foreach (var x in enemies)
-            x.StopAllCoroutines();
+        {
+            Destroy(x.gameObject, 1f);
+            Debug.Log("엄");
+        }
+        enemies.Clear();
     }
     public void ToMap()
     {
-        foreach (var x in enemies)
-        {
-            Destroy(x.gameObject);
-        }
-        enemies.Clear();
-        RefreshFriendlyStc();
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         SceneManager.LoadScene("Map");
     }
-    private void RefreshFriendlyStc()
+    private IEnumerator MoveGaugeCor()
     {
-        foreach (var friendly in friendlies)
+        while (true)
         {
-            friendly.isCasting = false;
-            foreach (var x in friendly.skillTargetCor)
-            {
-                x.isReady = false;
-            }
+            if (moveGauge < 10f)
+                moveGauge += 1f;
+            Debug.Log(moveGauge);
+            yield return new WaitForSeconds(1f);
         }
     }
+    public void StartBattle()
+    {
+        foreach (var x in enemies)
+        {
+            x.StartBattle();
+        }
+        foreach (var x in friendlies)
+        {
+            x.StartBattle();
+        }
+        canvasBattle.GetChild(1).gameObject.SetActive(false);
+        regularEffectCor = StartCoroutine(ActiveRegualrEffect());
+        battlePatern = BattlePatern.Battle;
+        StartCoroutine(MoveGaugeCor());
+    }
+
 }

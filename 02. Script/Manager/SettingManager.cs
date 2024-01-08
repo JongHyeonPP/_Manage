@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using EnumCollection;
 using System;
-using StructCollection;
+using BattleCollection;
 
 public class SettingManager : MonoBehaviour
 {
@@ -18,7 +18,6 @@ public class SettingManager : MonoBehaviour
     public TMP_Dropdown dropdownLanguage;
     public Toggle toggleFullScreen;
     public GameObject panelSetting;
-    public GameObject uiCamera;
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     TMP_Text 
         textResolution, 
@@ -40,8 +39,7 @@ public class SettingManager : MonoBehaviour
             settingClass = new SettingClass();
             settingManager = this;
             DontDestroyOnLoad(GameObject.FindWithTag("CANVASSETTING"));
-            DontDestroyOnLoad(uiCamera);
-            uiCamera.SetActive(false);
+
             panelSetting.SetActive(false);
             onLanguageChange += LanguageChange;
             //UI√ ±‚»≠
@@ -379,5 +377,20 @@ internal class SettingClass
             newSet = new();
         }
         panelSetting.SetActive(!panelSetting.activeSelf);
+    }
+}
+
+public struct SettingStruct
+{
+    public float allVolume;
+    public float sfxVolume;
+    public float bgmVolume;
+    public Language language;
+    public SettingStruct(float _allVolume, float _sfxVolume, float _bgmVolume, Language _language)
+    {
+        allVolume = _allVolume;
+        sfxVolume = _sfxVolume;
+        bgmVolume = _bgmVolume;
+        language = _language;
     }
 }
