@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using EnumCollection;
-using BattleCollection;
+using StructCollection;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
@@ -10,36 +10,33 @@ using System.Linq;
 abstract public class CharacterBase : MonoBehaviour
 {
     public JobClass job;
-    public string documentId;
-    public float maxHpInBattle;
     public float maxHp;
     [SerializeField] private float hp;
     public float Hp {
         get { return hp; }
         set
         {
-            hp = Mathf.Clamp(value, 0, maxHpInBattle);
-            float hpUpper = (hp + armor > maxHpInBattle) ? hp + armor : maxHpInBattle;
+            hp = value;
+            float hpUpper = (hp + armor > maxHp) ? hp + armor : maxHp;
             hpBar.fillAmount = hp / hpUpper;
             armorBar.fillAmount = (hp + armor) / hpUpper;
-            if (hp <= 0 && !isDead)
-                OnDead();
         }
     }
-    public float abilityInBattle;
     public float ability;
-    public float resistInBattle;
     public float resist;
-    public float speedInBattle;
     public float speed;
+    public bool isMoved = false;
     public float armor = 0f;
     public bool isDead { get; protected set; }
     public List<Skill> skills;
     private Skill defaultAttack;
+    public static readonly Color DEFAULTCOLOR = new(1f, 1f, 1f, 100f / 255f);
     public GameObject hpObject;
     public Image hpBar;
     public Image armorBar;
     public Dictionary<EffectType, float> TempEffects { get; private set; } = new();//전투동안 지속되는 효과
+    public Dictionary<EffectType, float> PermEffects { get; private set; } = new();//전투가 끝나도 유지되는 효과
+    public bool isBleedTransfer = false;
     public CharacterBase targetOpponent;
     public CharacterBase targetAlly;
     public bool IsEnemy { get; protected set; }
@@ -49,8 +46,7 @@ abstract public class CharacterBase : MonoBehaviour
     private List<EffectPassiveFormDot> passiveAtDotOpponent = new();
     private List<EffectPassiveFormDot> passiveAtDotAlly = new();
     protected Animator animator;
-    public Coroutine skillQueueCor;
-    public void InitCharacter()
+    protected void InitCharacter(List<Skill> _skills, float _maxHp, float _hp, float _ability, float _resist, float _speed)
     {
         hpObject = Instantiate(GameManager.gameManager.objectHpBar, transform);
         hpObject.transform.localScale = Vector3.one;
@@ -58,22 +54,27 @@ abstract public class CharacterBase : MonoBehaviour
 
         hpBar = transform.GetChild(1).GetChild(1).GetComponent<Image>();
         armorBar = transform.GetChild(1).GetChild(0).GetComponent<Image>();
+        ability = _ability;
+        maxHp = _maxHp;
+        Hp = _hp;
+        resist = _resist;
+        speed = _speed;
+        if (_skills != null)
+        {
+            skills = _skills;
+        }
         animator = transform.GetChild(0).GetComponent<Animator>();
-        defaultAttack = new Skill();
+        defaultAttack = new Skill(speed);
     }
     public abstract void SetAnimParam();
     public ObjectGrid grid;
     private Coroutine moveCoroutine;
     private readonly float ARRIVAL_TIME = 2f;
-    public void MoveToTargetGrid(ObjectGrid _grid, bool _isInstant = false)
+    public void MoveToTargetGrid(ObjectGrid _grid)
     {
-        bool isInstant;
-        if (!_isInstant)
-            isInstant = (grid == _grid) || GameManager.battleScenario.battlePatern == BattlePatern.OnReady;
-        else
-            isInstant = true;
+        bool isInstant = (grid == _grid) || GameManager.battleScenario.battlePatern == BattlePatern.OnReady;
         float distance = Mathf.Abs(grid.index / 3 - _grid.index / 3) + Mathf.Abs(grid.index % 3 - _grid.index % 3);
-
+        
         if (!grid.Equals(_grid))
         {
             if (grid.ExitOnGrid != null)
@@ -90,7 +91,7 @@ abstract public class CharacterBase : MonoBehaviour
 
             FindNewTargetAlly();
             FindNewTargetOpponent();
-
+            
             if (grid.EnterOnGrid != null)
             {
                 grid.EnterOnGrid(this);
@@ -99,11 +100,11 @@ abstract public class CharacterBase : MonoBehaviour
             {
                 passive.SetPassiveEffect();
             }
-            foreach (CharacterBase x in IsEnemy ? BattleScenario.friendlies : BattleScenario.enemies)
+            foreach (CharacterBase x in IsEnemy ? GameManager.Friendlies : GameManager.Enemies)
             {
                 x.FindNewTargetOpponent();
             }
-            foreach (CharacterBase x in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
+            foreach (CharacterBase x in IsEnemy ? GameManager.Enemies : GameManager.Friendlies)
             {
                 x.FindNewTargetAlly();
             }
@@ -157,15 +158,26 @@ abstract public class CharacterBase : MonoBehaviour
         {
             returnValue += value0;
         }
+        if (PermEffects.TryGetValue(_type, out float value1))
+        {
+            returnValue += value1;
+        }
         return returnValue;
     }
     public void ActiveRegularEffect()
     {
         Hp -= GetRegularValue(EffectType.Bleed);
+        Hp += GetRegularValue(EffectType.Heal);
+        Hp = Mathf.Clamp(Hp, 0, maxHp);
+        if (hp == 0)
+        {
+            OnDead();
+        }
     }
     void ApplyValue(float _value, EffectType _effectType)
     {
-        //Debug.Log(_effectType + " : " + _value);
+        if (this is EnemyScript)
+            Debug.Log(_effectType + " : " + _value);
         switch (_effectType)
         {
             default:
@@ -175,161 +187,89 @@ abstract public class CharacterBase : MonoBehaviour
                 }
                 TempEffects[_effectType] += _value;
                 break;
-            case EffectType.Necro:
-            case EffectType.BleedTransfer:
-                if (!TempEffects.ContainsKey(_effectType))
-                {
-                    TempEffects.Add(_effectType, new());
-                }
-                TempEffects[_effectType] = Mathf.Max(TempEffects[_effectType], _value);
-                break;
             case EffectType.Damage:
                 float temp = armor - _value;
                 if (temp < 0)
                 {
                     armor = 0f;
-                    Hp += temp;
+                    Hp = Mathf.Max(Hp + temp, 0);
                 }
                 else
                 {
                     armor = temp;
                 }
-                break;
-            case EffectType.Curse:
-                hp -= _value;
+
+                if (Hp == 0)
+                {
+                    OnDead();
+                }
                 break;
             case EffectType.Heal:
-                Debug.Log(_value + " : " + _effectType);
-                Hp = Mathf.Min(Hp + _value, maxHpInBattle);
+                Hp = Mathf.Min(Hp + _value, maxHp);
                 break;
             case EffectType.Armor:
                 armor += _value;
                 break;
             case EffectType.AbilityVamp:
-                abilityInBattle -= _value * abilityInBattle;
-                Debug.Log("피격자 : " + abilityInBattle);
+                ability -= _value * ability;
+                Debug.Log("피격자 : " + ability);
                 break;
             case EffectType.Restoration:
-                Hp += (maxHpInBattle - Hp) * _value;
+                Debug.Log("Restoration : " + (maxHp - hp) * _value);
+                Hp += (maxHp - hp) * _value;
                 break;
-            case EffectType.AbilityAscend:
-                abilityInBattle *= 1 + _value;
-                break;
-
-            case EffectType.ResistAscend:
-                resistInBattle += _value;
-                break;
-            case EffectType.ResistDescend:
-                resistInBattle -= _value;
-                break;
-            case EffectType.SpeedAscend:
-                speedInBattle *= 1 + _value;
-                break;
-            case EffectType.SpeedDescend:
-                speedInBattle *= Mathf.Max(1 - _value, 0.1f);
+            case EffectType.BleedTransfer:
+                isBleedTransfer = true;
                 break;
         }
     }
-    protected IEnumerator OnDead_Base()
+    protected void OnDead_Base()
     {
-        Debug.Log("OnDead");
-        animator.SetTrigger("Die");
-        isDead = true;
-        NewTargetForOther();
-        float bleedTransfer = GetRegularValue(EffectType.BleedTransfer);
-        if (bleedTransfer > 0)
+        if (isBleedTransfer)
         {
             List<CharacterBase> characters = new();
-            foreach (var character in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
+            foreach (var character in IsEnemy ? GameManager.Enemies : GameManager.Friendlies)
             {
                 if (character != this)
                     characters.Add(character);
             }
             CharacterBase target = characters[Random.Range(0, characters.Count)];
-            target.ApplyValue(GetRegularValue(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
+            target.ApplyValue(GetRegularValue(EffectType.Bleed), EffectType.Bleed);
             Debug.Log("BleedTransfer : " + target.grid.index);
         }
-
-
-
-        yield return new WaitForSeconds(2f);
-
-        foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
-        {
-            float value = ally.GetRegularValue(EffectType.Revive);
-            if (value > 0)
-            {
-                ally.TempEffects.Remove(EffectType.Revive);
-                ReviveMethod(value);
-                yield break;
-            }
-        }
-        float necro = GetRegularValue(EffectType.Necro);
-        if (necro > 0)
-        {
-            grid.owner = null;
-            List<ObjectGrid> gridCandiBase = IsEnemy ? BattleScenario.FriendlyGrids : BattleScenario.EnemyGrids;
-            List<ObjectGrid> gridCandi = gridCandiBase.Where(item => item.owner == null).ToList();
-            if (gridCandi.Count > 0)
-            {
-                (IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies).Remove(this);
-                (IsEnemy ? BattleScenario.friendlies : BattleScenario.enemies).Add(this);
-                ObjectGrid targetGrid = gridCandi[Random.Range(0, gridCandi.Count)];
-                MoveToTargetGrid(targetGrid, true);
-                IsEnemy = !IsEnemy;
-                foreach (EffectPassiveForm passive in passiveEffectsAtGrid)
-                {
-                    passive.UnsetPassiveEffect();
-                }
-                StopCoroutine(skillQueueCor);
-                skillQueueCor = StartCoroutine(new SkillActiveForm(this, defaultAttack).StartQueueCycle());
-                ReviveMethod(necro);
-                Vector3 temp = transform.GetChild(0).rotation.eulerAngles;
-                temp.y += 180f;
-                transform.GetChild(0).rotation = Quaternion.Euler(temp);
-                yield break;
-            }
-        }
+        Debug.Log(gameObject.name + " is Dead");
+        isDead = true;
+        GameManager.battleScenario.regularEffect -= ActiveRegularEffect;
         foreach (EffectPassiveForm passive in passiveEffectsAtGrid)
         {
             passive.UnsetPassiveEffect();
         }
-        gameObject.SetActive(false);
+        StopAllCoroutines();
+        StartCoroutine(DieCor());
 
-
-        void ReviveMethod(float value)
+        IEnumerator DieCor()
         {
-            animator.SetTrigger("Revive");
-            isDead = false;
-            maxHpInBattle = Hp = maxHpInBattle * value;
-            abilityInBattle = ability * value;
-            NewTargetForOther();
-            FindNewTargetAlly();
-            FindNewTargetOpponent();
-
+            animator.SetTrigger("Die");
+            yield return new WaitForSeconds(2f);
+            gameObject.SetActive(false);
         }
-        void NewTargetForOther()
+        foreach (CharacterBase x in IsEnemy ? GameManager.Enemies : GameManager.Friendlies)
         {
-            List<CharacterBase> enemiesBase = BattleScenario.enemies.Where(item => !item.isDead).ToList();
-            List<CharacterBase> friendliesBase = BattleScenario.friendlies.Where(item => !item.isDead).ToList();
-            foreach (CharacterBase x in IsEnemy ? enemiesBase : friendliesBase)
-            {
-                if (x != this)
-                    x.FindNewTargetAlly();
-            }
-            foreach (CharacterBase x in IsEnemy ? friendliesBase : enemiesBase)
-            {
-                x.FindNewTargetOpponent();
-            }
+            if (x != this)
+                x.FindNewTargetAlly();
+        }
+        foreach (CharacterBase x in IsEnemy ? GameManager.Friendlies : GameManager.Enemies)
+        {
+            x.FindNewTargetOpponent();
         }
     }
 
 
 
-    public IEnumerator SetSkillsWithBattle()
+    public void SetSkillsWithBattle()
     {
         List<Skill> skillsAndDa = new(skills);
-        skillsAndDa.Add(defaultAttack);//기본 공격
+        skillsAndDa.Add(defaultAttack);
         foreach (Skill skill in skillsAndDa)
         {
             SkillActiveForm skillActiveForm = null;
@@ -339,7 +279,7 @@ abstract public class CharacterBase : MonoBehaviour
                 {
                     float value = effect.value;
                     if (!effect.isConst)
-                        value *= abilityInBattle;
+                        value *= ability;
 
                     switch (effect.range)
                     {
@@ -352,12 +292,9 @@ abstract public class CharacterBase : MonoBehaviour
                             }
                             else//가장 가까운 아군
                             {
-                                if (targetAlly)
-                                {
-                                    EffectPassiveFormDot formDot = new(effect.type, value);
-                                    passiveAtDotAlly.Add(formDot);
-                                    formDot.ApplyEffect(targetAlly);
-                                }
+                                EffectPassiveFormDot formDot = new(effect.type, value);
+                                passiveAtDotAlly.Add(formDot);
+                                formDot.ApplyEffect(targetAlly);
                             }
                             break;
                         case EffectRange.Self:
@@ -374,7 +311,7 @@ abstract public class CharacterBase : MonoBehaviour
                 }
                 else//액티브 스킬
                 {
-                    if (skillActiveForm == null)
+                    if(skillActiveForm == null)
                     {
                         skillActiveForm = new SkillActiveForm(this, skill);
                     }
@@ -383,11 +320,10 @@ abstract public class CharacterBase : MonoBehaviour
             }
             if (skillActiveForm != null)
             {
-                skillQueueCor = StartCoroutine(skillActiveForm.StartQueueCycle());
+                StartCoroutine(skillActiveForm.StartQueueCycle());
             }
-            yield return null;
         }
-
+        
     }
     public void FindNewTargetOpponent()
     {
@@ -397,12 +333,9 @@ abstract public class CharacterBase : MonoBehaviour
         }
         List<CharacterBase> targetByColumn;
         int targetColumn;
-        List<CharacterBase> targetsBase = (IsEnemy ? BattleScenario.friendlies : BattleScenario.enemies).Where(item => !item.isDead).ToList();
+        List<CharacterBase> targetsBase = (IsEnemy ? GameManager.Friendlies : GameManager.Enemies).Where(item => !item.isDead).ToList();
         if (targetsBase.Count == 0)
-        {
-            targetOpponent = null;
             return;
-        }
         if (IsEnemy)
         {
             targetColumn = targetsBase.Max(item => item.grid.index % 3);
@@ -433,13 +366,10 @@ abstract public class CharacterBase : MonoBehaviour
         {
             passiveDot.DeapplyEffect(targetAlly);
         }
-        List<CharacterBase> targetsBase = (IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies).Where(item => !item.isDead).ToList();
-        targetsBase.Remove(this);
-        if (targetsBase.Count == 0)
-        {
-            targetAlly = null;
+        List<CharacterBase> targetsBase = (IsEnemy ? GameManager.Enemies : GameManager.Friendlies).Where(item => !item.isDead).ToList();
+        if (targetsBase.Count == 1)
             return;
-        }
+        targetsBase.Remove(this);
         int minDist = targetsBase.Min(item => GetDistance(grid.index, item.grid.index));
         List<CharacterBase> targetCandi = targetsBase.Where(item => GetDistance(grid.index, item.grid.index) == minDist).ToList();
         targetAlly = targetCandi[Random.Range(0, targetCandi.Count)];
@@ -450,14 +380,7 @@ abstract public class CharacterBase : MonoBehaviour
             return rowDist + ColumnDist;
         }
     }
-    public void StartBattle()
-    {
 
-        FindNewTargetAlly();
-        FindNewTargetOpponent();
-        SetAnimParam();
-        StartCoroutine(SetSkillsWithBattle());
-    }
 
 
 
@@ -543,11 +466,10 @@ abstract public class CharacterBase : MonoBehaviour
     {
         List<CharacterBase> targets = null;
         bool orderDir = _isTargetEnemy ^ _target.IsEnemy;
-        List<CharacterBase> targetsBase = (orderDir ? BattleScenario.enemies : BattleScenario.friendlies).Where(item => !item.isDead).ToList();
+        List<CharacterBase> targetsBase = (orderDir ? GameManager.Enemies : GameManager.Friendlies).Where(item => !item.isDead).ToList();
         switch (_range)
         {
             case EffectRange.Dot://가장 가까운 대상
-            case EffectRange.Self:
                 targets = new() { _target };
                 break;
             case EffectRange.Row:
@@ -556,7 +478,7 @@ abstract public class CharacterBase : MonoBehaviour
             case EffectRange.Column:
                 targets = targetsBase.Where(item => item.grid.index % 3 == _target.grid.index % 3).ToList();
                 break;
-            case EffectRange.Back:
+            case EffectRange.Behind:
                 if (orderDir)
                     targets = targetsBase.Where(item => item.grid.index % 3 > _target.grid.index % 3).ToList();
                 else
@@ -576,7 +498,7 @@ abstract public class CharacterBase : MonoBehaviour
     {
         List<ObjectGrid> targetGrids = null;
         bool orderDir = _isTargetEnemy ^ _target.IsEnemy;
-        List<ObjectGrid> gridsBase = (orderDir ? BattleScenario.EnemyGrids : BattleScenario.FriendlyGrids);
+        List<ObjectGrid> gridsBase = (orderDir ? GameManager.EnemyGrids : GameManager.FriendlyGrids);
         switch (_range)
         {
             case EffectRange.Row:
@@ -585,7 +507,7 @@ abstract public class CharacterBase : MonoBehaviour
             case EffectRange.Column:
                 targetGrids = gridsBase.Where(item => item.index % 3 == _target.grid.index % 3).ToList();
                 break;
-            case EffectRange.Back:
+            case EffectRange.Behind:
                 if (orderDir)
                     targetGrids = gridsBase.Where(item => item.index % 3 > _target.grid.index % 3).ToList();
                 else
@@ -619,11 +541,11 @@ abstract public class CharacterBase : MonoBehaviour
         }
         public IEnumerator StartQueueCycle()
         {
-            yield return new WaitForSeconds(skill.cooltime / caster.speedInBattle);
-            caster.skillQueue.Add(ActiveSkill());
-            if (caster.skillQueue.Count == 1)
+            yield return new WaitForSeconds(skill.cooltime / caster.speed);
+            if (caster.skillQueue.Count == 0)
                 caster.StartCoroutine(ActiveSkill());
-            
+            else
+                caster.skillQueue.Add(ActiveSkill());
         }
         public IEnumerator ActiveSkill()
         {
@@ -632,7 +554,7 @@ abstract public class CharacterBase : MonoBehaviour
             float confuseProb = caster.GetRegularValue(EffectType.Confuse);
             if (GameManager.CalculateProbability(confuseProb))
             {
-                List<CharacterBase> confusedTargetsBase = (caster.IsEnemy ^ skill.isTargetEnemy ? BattleScenario.friendlies : BattleScenario.enemies).Where(item => !item.isDead).ToList();
+                List<CharacterBase> confusedTargetsBase = (caster.IsEnemy ^ skill.isTargetEnemy ? GameManager.Friendlies : GameManager.Enemies).Where(item => !item.isDead).ToList();
                 confusedTarget = confusedTargetsBase[Random.Range(0, confusedTargetsBase.Count)];
             }
             else
@@ -640,68 +562,53 @@ abstract public class CharacterBase : MonoBehaviour
                 float paralyzeProb = caster.GetRegularValue(EffectType.Paralyze);
                 isParalyze = GameManager.CalculateProbability(paralyzeProb);
             }
-
-            if (!caster.isDead)
+            yield return new WaitForSeconds(skillCastTime);
+            if (!isParalyze)
             {
-                if (isParalyze)
+                if (skill.isAnim)
+                    SkillAnim();
+                
+                foreach (EffectActiveForm effectForm in actvieEffects)
                 {
-                    //마비마비맨
-                }
-                else
-                {
-                    float repeatValue = caster.GetRegularValue(EffectType.Repeat);
-                    for (int i = 0; i < ((repeatValue>0)?2:1); i++)
+                    CharacterBase effectTarget;
+                    switch (effectForm.effect.range)
                     {
-                        foreach (EffectActiveForm effectForm in actvieEffects)
-                        {
-                            CharacterBase effectTarget;
-                            switch (effectForm.effect.range)
-                            {
-                                case EffectRange.Self:
-                                    effectTarget = caster;
-                                    break;
-                                case EffectRange.Dot:
-                                    if (confusedTarget)
-                                        effectTarget = confusedTarget;
-                                    else
-                                        effectTarget = skill.isTargetEnemy ? caster.targetOpponent : caster.targetAlly;
-                                    break;
-                                default:
-                                    effectTarget = caster;
-                                    break;
-                            }
-                            if (effectTarget != null)
-                            {
-                                effectForm.ActiveEffect0nTarget(effectTarget, i == 1 ? repeatValue : 1f);
-                                if (skill.isAnim)
-                                {
-                                    SkillAnim();
-                                    yield return new WaitForSeconds(skillCastTime);
-                                }
-                            }
-                        }
+                        case EffectRange.Self:
+                            effectTarget = caster;
+                            break;
+                        case EffectRange.Dot:
+                            if (confusedTarget)
+                                effectTarget = confusedTarget;
+                            else
+                                effectTarget = skill.isTargetEnemy ? caster.targetOpponent : caster.targetAlly;
+                            break;
+                        default:
+                            effectTarget = caster;
+                            break;
                     }
+                    effectForm.ActiveEffect0nTarget(effectTarget);
+
                 }
             }
             //Next Skill
-            caster.skillQueue.RemoveAt(0);
             if (caster.skillQueue.Count > 0)
             {
+                caster.skillQueue.RemoveAt(0);
                 caster.StartCoroutine(caster.skillQueue[0]);
             }
-            yield return new WaitForSeconds(skill.cooltime / caster.speedInBattle);
-            caster.skillQueue.Add(ActiveSkill());
-            if (caster.skillQueue.Count == 1)
-            {
+            yield return new WaitForSeconds(skill.cooltime / caster.speed);
+            if (caster.skillQueue.Count == 0)
                 caster.StartCoroutine(ActiveSkill());
-            }
-               
+            else
+                caster.skillQueue.Add(ActiveSkill());
+            
+
 
             void SkillAnim()
             {
-                float minValue = 1.5f;
+                float minValue = 2;
                 float maxValue = 5;
-                caster.animator.SetFloat("AttackState", (skill.cooltime -minValue ) / (maxValue - minValue));
+                caster.animator.SetFloat("AttackState", (skill.cooltime -minValue ) / (maxValue - minValue));;
                 //caster.animator.SetFloat("NormalState", 0.5f);
                 //caster.animator.SetFloat("SkillState", 0.5f);
                 caster.animator.SetTrigger("Attack");
@@ -723,19 +630,19 @@ abstract public class CharacterBase : MonoBehaviour
             caster = _caster;
             isTargetEnemy = _isTargetEnemy;
         }
-        public void ActiveEffect0nTarget(CharacterBase _target, float _repeatValue = 1f)
+        public void ActiveEffect0nTarget(CharacterBase _target)
         {
             float calcValue = effect.value;
-            calcValue *= _repeatValue;
+            calcValue *= 1 + caster.GetRegularValue(EffectType.AbilityAscend);
             if (!effect.isConst)
-                calcValue *= caster.abilityInBattle;
+                calcValue *= caster.ability;
             List<CharacterBase> targets = GetTargetsByRange(effect.range, _target, isTargetEnemy);
             switch (effect.type)//Value 보정값 설정
             {
                 case EffectType.Damage:
                     calcValue += caster.GetRegularValue(EffectType.Enchant);
-                    float incrementValue = caster.GetRegularValue(EffectType.AttAscend)- caster.GetRegularValue(EffectType.AttDescend);
-                    calcValue *= Mathf.Max(1 + incrementValue, 0);
+                    calcValue *= 1 + caster.GetRegularValue(EffectType.AttAscend);
+                    calcValue *= 1 - caster.GetRegularValue(EffectType.AttDescend);
                     if (GameManager.CalculateProbability(caster.GetRegularValue(EffectType.Critical)))
                     {
                         //치명타 판정
@@ -751,32 +658,28 @@ abstract public class CharacterBase : MonoBehaviour
                     break;
 
                 case EffectType.AttAscend:
-                case EffectType.ResistAscend:
+                case EffectType.DefAscend:
                 case EffectType.Enchant:
                     calcValue *= 1 + caster.GetRegularValue(EffectType.BuffAscend);
                     break;
                 case EffectType.AttDescend:
-                case EffectType.ResistDescend:
+                case EffectType.DefDescend:
                     calcValue *= 1 + caster.GetRegularValue(EffectType.DebuffAscend);
                     break;
             }
-            float calcTemp = calcValue;
-
             if (targets != null)
             {
                 foreach (var target in targets)//타겟에게 스킬 적용
                 {
-                    calcValue = calcTemp;
+                    //여기서 Continue하면 될듯
                     switch (effect.type)
                     {
-                        case EffectType.Damage://타겟에 대한 보정값
-                            calcValue *= 1f / (1f + target.resistInBattle * 0.1f);
+                        case EffectType.Damage:
+                            float incrementValue = 0f;
+                            incrementValue -= target.GetRegularValue(EffectType.DefAscend);
+                            incrementValue += target.GetRegularValue(EffectType.DefDescend);
+                            calcValue *= 1 + incrementValue;
                             calcValue -= target.GetRegularValue(EffectType.Reduce);
-                            calcValue = Mathf.Max(calcValue, 0);
-                            break;
-                        case EffectType.Curse:
-                            //Debug.Log(calcValue + ", " + target.hp);
-                            calcValue *= target.hp;
                             break;
                     }
                     caster.StartCoroutine(RoopEffect(calcValue, target));
@@ -786,13 +689,13 @@ abstract public class CharacterBase : MonoBehaviour
 
         private IEnumerator RoopEffect(float calcValue, CharacterBase _target)
         {
-            
+
             for (int i = 0; i < effect.count; i++)
             {
                 //능력치 흡수
                 if (effect.type == EffectType.AbilityVamp)
                 {
-                    caster.abilityInBattle += _target.abilityInBattle * calcValue;
+                    caster.ability += _target.ability * calcValue;
                 }
 
                 _target.ApplyValue(calcValue, effect.type);//핵심
@@ -807,11 +710,11 @@ abstract public class CharacterBase : MonoBehaviour
                         caster.Hp += vampValue * calcValue;
                     }
                     //흡수되는 능력치
-                    if (_target.GetRegularValue(EffectType.ResistByDamage) > 0)
+                    if (_target.GetRegularValue(EffectType.AbilityByDamage) > 0)
                     {
-                        float resistValue = caster.resistInBattle * _target.GetRegularValue(EffectType.ResistByDamage);
-                        caster.resistInBattle -= resistValue;
-                        _target.resistInBattle += resistValue;
+                        float abilityValue = caster.ability * _target.GetRegularValue(EffectType.AbilityByDamage);
+                        caster.ability -= abilityValue;
+                        _target.ability += abilityValue;
                     }
                     if (_target.GetRegularValue(EffectType.Reflect) > 0)
                     {

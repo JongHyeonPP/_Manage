@@ -18,7 +18,6 @@ public class SettingManager : MonoBehaviour
     public TMP_Dropdown dropdownLanguage;
     public Toggle toggleFullScreen;
     public GameObject panelSetting;
-    public GameObject uiCamera;
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     TMP_Text 
         textResolution, 
@@ -40,8 +39,7 @@ public class SettingManager : MonoBehaviour
             settingClass = new SettingClass();
             settingManager = this;
             DontDestroyOnLoad(GameObject.FindWithTag("CANVASSETTING"));
-            DontDestroyOnLoad(uiCamera);
-            uiCamera.SetActive(false);
+
             panelSetting.SetActive(false);
             onLanguageChange += LanguageChange;
             //UI√ ±‚»≠

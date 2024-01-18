@@ -1,6 +1,8 @@
+using Firebase.Firestore;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static GUI_MapScenario;
@@ -79,7 +81,7 @@ public class MapScenario : MonoBehaviour
         Vector3 desV3 = _cs.ProgressMap(index,ref task);
 
  
-        task += () => SceneChange("_Backup0719");
+        task += () =>  SceneChange("_Backup0719");
 
         _mapGUI.moveCamFunc(desV3, task);
     }
@@ -87,8 +89,12 @@ public class MapScenario : MonoBehaviour
     public void SceneChange(string targetScene)
     {
         isAction = false;
-        SceneManager.LoadScene("CJH_Map");
-        //ms.gameObject.SetActive(false);
+        ms.gameObject.SetActive(false);
+        SceneManager.LoadScene(targetScene);
+        Dictionary<string, object> fieldDict = new();
+        fieldDict.Add("History", values.history);
+        fieldDict.Add("Scene", targetScene);
+        DataManager.dataManager.SetDocumentData("Progress", GameManager.gameManager.Uid, fieldDict);
     }
 }
 

@@ -175,56 +175,61 @@ public class LobbyScenario : MonoBehaviour
 
     private void AllocateCandidate()
     {
-        List<int> indexList = new();
-        for (int i = 0; i < GameManager.gameManager.guild[0] + 3; i++)
-        {
-            GameObject candidateObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/RecruitCandidate"));
-            RecruitCandidate candidate = candidateObject.GetComponent<RecruitCandidate>();
-            candidates.Add(candidate);
-            candidateObject.transform.SetParent(panelRecruit.transform.GetChild(0));
-            candidateObject.transform.localScale = Vector3.one;
-            candidateObject.transform.localPosition = new Vector3(candidateObject.transform.localPosition.x, candidateObject.transform.localPosition.y, 0);
-            int temp;
-            while (true)
-            {
-                temp = Random.Range(0, candidateNames.Length);
-                if (indexList.Contains(temp)) continue;
-                indexList.Add(temp);
-                break;
-            }
-            string name = candidateNames[temp];
-            float ability = Random.Range(defaultAbility, (int)(defaultAbility * 1.5f + 1 + GameManager.gameManager.guild[1]));
-            float hp = Random.Range(defaultHp, (int)(defaultHp * 1.5f + 1 + GameManager.gameManager.guild[2] * 10));
-            float resist = Random.Range(defaultResist, (int)(defaultResist * 1.5f + 1 + GameManager.gameManager.guild[2]));
-            List<TalentStruct> talents = new();
-            int startIndex = Random.Range(0, 2);
-            List<int> dupList = new();
-            for (int j = startIndex; j < Random.Range(1, GameManager.gameManager.guild[4]+ 2); j++)
-            {
-                int talentId = Random.Range(0, LoadManager.loadManager.talentDict.Count);
-                TalentFormStruct baseTalentForm = LoadManager.loadManager.talentDict[talentId.ToString()];
+        //List<int> indexList = new();
+        //for (int i = 0; i < GameManager.gameManager.guild[0] + 3; i++)
+        //{
+        //    GameObject candidateObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/RecruitCandidate"));
+        //    RecruitCandidate candidate = candidateObject.GetComponent<RecruitCandidate>();
+        //    candidates.Add(candidate);
+        //    candidateObject.transform.SetParent(panelRecruit.transform.GetChild(0));
+        //    candidateObject.transform.localScale = Vector3.one;
+        //    candidateObject.transform.localPosition = new Vector3(candidateObject.transform.localPosition.x, candidateObject.transform.localPosition.y, 0);
+        //    int temp;
+        //    while (true)
+        //    {
+        //        temp = Random.Range(0, candidateNames.Length);
+        //        if (indexList.Contains(temp)) continue;
+        //        indexList.Add(temp);
+        //        break;
+        //    }
+        //    string name = candidateNames[temp];
+        //    float ability = Random.Range(defaultAbility, (int)(defaultAbility * 1.5f + 1 + GameManager.gameManager.guild[1]));
+        //    float hp = Random.Range(defaultHp, (int)(defaultHp * 1.5f + 1 + GameManager.gameManager.guild[2] * 10));
+        //    float resist = Random.Range(defaultResist, (int)(defaultResist * 1.5f + 1 + GameManager.gameManager.guild[2]));
+        //    List<TalentStruct> talents = new();
+        //    int startIndex = Random.Range(0, 2);
+        //    List<int> dupList = new();
+        //    for (int j = startIndex; j < Random.Range(1, GameManager.gameManager.guild[4]+ 2); j++)
+        //    {
+        //        int talentId = Random.Range(0, LoadManager.loadManager.talentDict.Count);
+        //        TalentFormStruct baseTalentForm = LoadManager.loadManager.talentDict[talentId.ToString()];
 
-                while (dupList.Contains(talentId))
-                {
-                    talentId = Random.Range(0, LoadManager.loadManager.talentDict.Count);
-                }
-                dupList.Add(talentId);
+        //        while (dupList.Contains(talentId))
+        //        {
+        //            talentId = Random.Range(0, LoadManager.loadManager.talentDict.Count);
+        //        }
+        //        dupList.Add(talentId);
                 
-                List<T_Effect> effects = new();
-                int talentValue = Random.Range(0, baseTalentForm.level + 1);
-                foreach (var x in baseTalentForm.effects)
-                {
-                    string[] valueArray = x.value.Split('/');
-                    float value = float.Parse(valueArray[talentValue]);
-                    effects.Add(new T_Effect(value, x.type));
-                }
-                talents.Add(new(baseTalentForm.name,baseTalentForm.level, baseTalentForm.explain, effects));
-            }
-            if(talents.Count==0)
-            talents.Add(noTalent);
-            candidate.info = new(name, ability, hp, resist, talents);
-        }
-        SettingManager.onLanguageChange += LanguageChange1;
+        //        List<T_Effect> effects = new();
+        //        int talentValue = Random.Range(0, baseTalentForm.level + 1);
+        //        foreach (var x in baseTalentForm.effects)
+        //        {
+        //            string[] valueArray = x.value.Split('/');
+        //            float value = float.Parse(valueArray[talentValue]);
+        //            effects.Add(new T_Effect(value, x.type));
+        //        }
+        //        talents.Add(new(baseTalentForm.name,baseTalentForm.level, baseTalentForm.explain, effects));
+        //    }
+        //    if(talents.Count==0)
+        //    talents.Add(noTalent);
+        //    candidate.info = new CandidateInfoStruct().
+        //        SetName(name).
+        //        SetAbility(ability).
+        //        SetHp(hp).
+        //        SetResist(resist).
+        //        SetTalent(talents);
+        //}
+        //SettingManager.onLanguageChange += LanguageChange1;
     }
 
     public void RecruitBtnClicked()
@@ -290,12 +295,9 @@ public class LobbyScenario : MonoBehaviour
         DocumentReference docRef = FirebaseFirestore.DefaultInstance.Collection("User").Document(GameManager.gameManager.Uid);
         FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
         {
-            return Transaction.GetSnapshotAsync(docRef).ContinueWith((snapshotTast) =>
-            {
-                DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + _index, _value);
-                DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", GameManager.gameManager.fame);
-            });
-
+            DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + _index, _value);
+            DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", GameManager.gameManager.fame);
+            return System.Threading.Tasks.Task.CompletedTask;
         });
     }
     public void OnCandidateClicked(RecruitCandidate _clickedCandidate)

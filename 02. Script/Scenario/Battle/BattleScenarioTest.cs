@@ -10,33 +10,28 @@ public class BattleScenarioTest : MonoBehaviour
     public Transform canvasTest;
     private TMP_Text botText;
     private TMP_Text moveText;
-    public CharacterBase moveTarget;
+    public int moveTargetIndex;
     private BattleScenario battleScenario;
     private void Start()
     {
         botText = canvasTest.GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
         moveText = canvasTest.GetChild(0).GetChild(2).GetChild(0).GetComponent<TMP_Text>();
         battleScenario = GameManager.battleScenario;
+        for (int i = 0; i < 9; i++)
+        {
+            int index = i;
+            var friendlyGrid = GameManager.FriendlyGrids[i];
+            friendlyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(GameManager.FriendlyGrids[index], false));
+            var enemyGrid = GameManager.EnemyGrids[i];
+            enemyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(GameManager.EnemyGrids[index], true));
+        }
+
     }
     public enum TestPattern
     {
         Default, Bot, Move
     }
     public TestPattern testPattern = TestPattern.Default;
-    public void BattleInit()
-    {
-        foreach (FriendlyScript x in GameManager.gameManager.Friendlies)
-        {
-            x.hp = x.maxHp;
-            x.CalculateHpImage();
-        }
-        foreach (EnemyScript x in GameManager.gameManager.Enemies)
-        {
-            x.hp = x.maxHp;
-            x.CalculateHpImage();
-        }
-        battleScenario.battlePatern = BattlePatern.Pause;
-    }
     public void BotTest()
     {
         SwitchTest(TestPattern.Bot);
@@ -44,7 +39,7 @@ public class BattleScenarioTest : MonoBehaviour
 
     private void SwitchTest(TestPattern _testPatern)
     {
-        moveTarget = null;
+        moveTargetIndex = -1;
         RefreshTest_Text();
         if (testPattern == _testPatern)
         {
@@ -65,7 +60,34 @@ public class BattleScenarioTest : MonoBehaviour
             
         }
     }
-
+    private void OnCharacterGridClicked(ObjectGrid _grid, bool _isEnemyGrid)
+    {
+        if (testPattern != TestPattern.Default)
+        {
+            switch (testPattern)
+            {
+                case TestPattern.Bot:
+                    if (_grid.owner == null)
+                    {
+                        CreateBot(_grid, _isEnemyGrid);
+                        _grid.GetComponent<Image>().color = BattleScenario.defaultGridColor;
+                    }
+                    RefreshTest();
+                    break;
+                case TestPattern.Move:
+                    if (moveTargetIndex > -1)
+                    {
+                        //battleScenario.MoveCharacter(moveTargetIndex, _gridIndex, _isEnemyGrid, false);
+                    }
+                    else
+                    {
+                    }
+                    break;
+            }
+            battleScenario.RefreshGrid(_isEnemyGrid);
+            return;
+        }
+    }
     public void MoveTest()
     {
         SwitchTest(TestPattern.Move);
@@ -73,7 +95,7 @@ public class BattleScenarioTest : MonoBehaviour
     public void RefreshTest()
     {
         testPattern = TestPattern.Default;
-        moveTarget = null;
+        moveTargetIndex = -1;
         RefreshTest_Text();
     }
 
@@ -83,22 +105,22 @@ public class BattleScenarioTest : MonoBehaviour
         moveText.text = "캐릭터\n이동";
     }
 
-    public void CreateBot(int _gridIndex, bool _isEnemy)
+    public void CreateBot(ObjectGrid _grid, bool _isEnemy)
     {
-        GameObject botObject = GameManager.gameManager.InitCharacterObject(_gridIndex, _isEnemy, "TestBot");
+        GameObject botObject = GameManager.gameManager.InitCharacterObject(_grid, _isEnemy, "TestBot");
         CharacterBase baseScript;
         if (_isEnemy)
         {
             EnemyScript script = botObject.AddComponent<EnemyScript>();
-            script.InitEnemy(null, _gridIndex, 100f, 10f, 0f);
-            GameManager.gameManager.Enemies.Add(script);
+            script.InitEnemy(null, _grid, 100f, 10f, 0f, 1f);
+            GameManager.Enemies.Add(script);
             baseScript = script;
         }
         else
         {
             FriendlyScript script = botObject.AddComponent<FriendlyScript>();
-            script.InitFriendly(null, null, _gridIndex, 100f, 10f, 10f, 0f, 0);
-            GameManager.gameManager.Friendlies.Add(script);
+            script.InitFriendly(LoadManager.loadManager.jobsDict["000"], null, null, _grid, 100f, 10f, 10f, 0f,1f);
+            GameManager.Friendlies.Add(script);
             baseScript = script;
         }
         battleScenario.regularEffect += baseScript.ActiveRegularEffect;
@@ -106,7 +128,7 @@ public class BattleScenarioTest : MonoBehaviour
     }
     public void GameOverTest()
     {
-        battleScenario.GameOver();
+        GameManager.gameManager.GameOver();
     }
     public void StageClearTest()
     {
