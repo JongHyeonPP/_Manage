@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+<<<<<<< HEAD
 using UnityEngine.VFX.Utility;
+=======
+>>>>>>> origin/main
 
 public class SlashCtrl : MonoBehaviour
 {

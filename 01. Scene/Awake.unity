@@ -6072,6 +6072,7 @@ GameObject:
   - component: {fileID: 1498113264}
   - component: {fileID: 1498113265}
   - component: {fileID: 1498113266}
+  - component: {fileID: 1498113267}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -6131,9 +6132,10 @@ MonoBehaviour:
   gold: 0
   fameAscend: 0
   goldAscend: 0
-  guild: 
   canvasGrid: {fileID: 343697493}
   objectHpBar: {fileID: 8140889713543450273, guid: 70d1de57891f6dc48b8ee0488198b84c, type: 3}
+  nodeLevel: 0
+  stage: 
 --- !u!4 &1498113263
 Transform:
   m_ObjectHideFlags: 0
@@ -6267,6 +6269,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe16b4dfee6d42142bbbb1957583714d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1498113267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498113259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 151688b466e09ac4c9572ba9f39a4260, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1510473594

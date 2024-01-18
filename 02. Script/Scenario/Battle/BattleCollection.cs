@@ -52,6 +52,7 @@ namespace BattleCollection
             return this;
         }
     }
+    [Serializable]
     public class Skill
     {
         public Dictionary<Language, string> name;
@@ -75,7 +76,7 @@ namespace BattleCollection
         }
         public Skill()//Default Attack
         {
-            name = new() { {Language.En, "Default Attack" },{ Language.Ko, "기본 공격"} };
+            name = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
             explain = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
             cooltime = 1.5f;
             isTargetEnemy = true;
@@ -146,7 +147,7 @@ namespace BattleCollection
     public class JobClass
     {
         public JobType jobType = JobType.None;
-        public Dictionary<Language ,string> name = null;
+        public Dictionary<Language, string> name = null;
         public float hpCoef = 1f;
         public float abilityCoef = 1f;
         public float speedCoef = 1f;
@@ -212,6 +213,21 @@ namespace BattleCollection
         public EnemyClass SetSpeed(float _speed)
         {
             speed = _speed;
+            return this;
+        }
+    }
+    public class EnemyCase
+    {
+        public List<Tuple<string, int>> enemies;//id, index
+        public List<int> levelRange;
+        public EnemyCase SetEnemies(List<Tuple<string, int>> _enemies)
+        {
+            enemies = _enemies;
+            return this;
+        }
+        public EnemyCase SetLevelRange(List<int> _levelRange)
+        {
+            levelRange = _levelRange;
             return this;
         }
     }
