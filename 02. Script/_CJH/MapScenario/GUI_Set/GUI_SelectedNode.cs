@@ -11,10 +11,10 @@ public class GUI_SelectedNode : MonoBehaviour
     public List<NodeScriptPerLevel> _eventObjectList = new();
     public GUI_MapScenario values;
     public GUI_MapNodeInfo NodeInfoGUI;
-    [SerializeField] internal List<HighLightGUI> myList;
+    [SerializeField] internal List<SpriteRenderer> myList;
     [SerializeField] internal State_NodeBtn state = new();
 
-    public Material HighLightMaterial, subHighLightMaterial;
+    public Color HighLightMaterial, subHighLightMaterial, DefaultMaterial;
     public MapScenario.OnClickFunc _decideSelected_Func; // Progress 
     public float power; public float timer;
     
@@ -78,7 +78,7 @@ public class GUI_SelectedNode : MonoBehaviour
         state.selectedNode = -1;
         for (int i = 0; i < myList.Count; i++)
         {
-            myList[i].SetDefault();
+            myList[i].color = DefaultMaterial;
         }
         myList.Clear();
 
@@ -92,27 +92,30 @@ public class GUI_SelectedNode : MonoBehaviour
      
         for (int i = 0; i < myList.Count; i++)
         {
-            myList[i].SetDefault();
+            myList[i].color = DefaultMaterial;
         }
         myList.Clear();
-        StartCoroutine(HighLightWave());
+
+        setHighLight();
 
         if (true)
         {
-            Debug.Log("Select Event");
             this.getNodeData_ByIndex(input);
         }
 
+        //StartCoroutine(HighLightWave());
 
 
         return;
 
         IEnumerator HighLightWave()
         {
+            /*
+
             state.StopGetInput();
             for (int i = 0; i < materials.Count; i++)
             {
-                myList.Add(new HighLightGUI(materials[i], HighLightMaterial));
+                ; // myList.Add(new HighLightGUI(materials[i], HighLightMaterial));
             }
 
             state.selectedNode = input;
@@ -132,32 +135,20 @@ public class GUI_SelectedNode : MonoBehaviour
             HighLightMaterial.SetFloat("_Lighting", 1);
 
             state.StartGetInput();
+            */
             yield return null;
         }
-    }
-}
 
-[Serializable]
-internal class HighLightGUI
-{
-    [SerializeField] SpriteRenderer changedSpriteRenderer;
-    [SerializeField] Material originMaterial;
+        void setHighLight()
+        {
+            for (int i = 0; i < materials.Count; i++)
+            {
+                myList.Add(materials[i]);
+                materials[i].color = HighLightMaterial;
+            }
 
-    internal HighLightGUI(SpriteRenderer render,Material highlightMaterial)
-    {
-        changedSpriteRenderer = render;
-        originMaterial = changedSpriteRenderer.material;
-        changedSpriteRenderer.material = highlightMaterial;
-    }
-
-    internal void SetDefault()
-    {
-        changedSpriteRenderer.material = originMaterial;
-    }
-
-    internal void SetMaterial(Material input)
-    {
-        changedSpriteRenderer.material = input;
+            return;
+        }
     }
 }
 

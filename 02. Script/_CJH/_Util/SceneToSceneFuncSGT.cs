@@ -49,8 +49,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
         }
         if (Instance.gameObject.activeSelf == false)
             Instance.gameObject.SetActive(true);
-        else
-            Debug.Log("????");
+
         Instance._ArriveScene_Map(_returnFunc);
     }
 
@@ -58,8 +57,6 @@ public class SceneToSceneFuncSGT : MonoBehaviour
     {
         if (Instance.gameObject.activeSelf == false)
             Instance.gameObject.SetActive(true);
-        else
-            Debug.Log("????");
 
         Instance._ExitScene_Map(_returnFunc);
     }

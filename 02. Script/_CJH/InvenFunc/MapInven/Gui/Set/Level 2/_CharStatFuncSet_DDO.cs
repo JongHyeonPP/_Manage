@@ -26,10 +26,10 @@ public static class _CharStatFuncSet_DDO
 
         if (true)
         {
-            int charStat = (int)CJH_GUI_CharData.getSGT().GetChracters()[targetEquip.charIndex].ability;
+            int charStat = 10;//(int)CJH_GUI_CharData.getSGT().GetChracters()[targetEquip.charIndex].ability;
             int itemStat = target.itemData[2];
 
-            Debug.Log("Need \"ability\" above " + itemStat + ", char stat is "+charStat);
+            //Debug.Log("Need \"ability\" above " + itemStat + ", char stat is "+charStat);
             if(charStat < itemStat)
                 return false;
         }

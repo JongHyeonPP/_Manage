@@ -16,6 +16,7 @@ public class EventSC_Shop : MonoBehaviour
         SceneToSceneFuncSGT.InitSingleton(ref _SGT.STS);
         SceneToSceneFuncSGT.ArriveScene_Map();
         _UTIL.invenSC.setGUI_bySGT();
+
         // inven input
         if (true)
         {

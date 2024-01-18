@@ -18,7 +18,7 @@ public class InvenSC_Map : MonoBehaviour
 
     private void Start()
     {
-        //setCharData_DEBUG();
+        setCharData_DEBUG();
         setGUI_bySGT();
 
         void setCharData_DEBUG()
@@ -71,7 +71,6 @@ public class InvenSC_Map : MonoBehaviour
         {
             GUI_ItemUnit sad = invenData_SGT.spriteDataSet.GetGUI_byItemData(ItemList_Data[i].itemData, invenGUI_Manager._InsTrans);
             SlotGUI_InvenSlot temp = invenGUI_Manager.GetSlotGUI_byAddr(ItemList_Data[i].invenAddr);
-
             temp.SetGUI_byItemGUI(sad);
             temp.SetItemData_byData(ItemList_Data[i]);
         }

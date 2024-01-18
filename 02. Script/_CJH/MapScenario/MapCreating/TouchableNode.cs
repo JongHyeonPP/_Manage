@@ -8,7 +8,7 @@ public class TouchableNode : MonoBehaviour
 {
     public BoxCollider2D coll;
     MapScenario.OnClickFunc onClick;
-    int index;
+    public int index;
 
 
 

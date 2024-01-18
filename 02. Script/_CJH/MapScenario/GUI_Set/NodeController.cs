@@ -11,7 +11,9 @@ public class NodeController : MonoBehaviour
     public List<GameObject> objList_Silhouette;
     public List<GameObject> objList_MyRoad;
 
-
+    public ParticleSystem _ps1;
+    public ParticleSystem _ps2;
+    public Color _color;
     public void SetSprite()
     {
         EventNode.sprite = detail;
@@ -25,6 +27,12 @@ public class NodeController : MonoBehaviour
 
     public List<GameObject> objList_Detailed;
 
+    public void ActiveFocsed()
+    {
+        var temp = _ps1.main;
+        temp.startColor = _color;
+        transform.name = "Focused";
+    }
 
     public void ActiveDetailed()
     {
@@ -41,6 +49,14 @@ public class NodeController : MonoBehaviour
         {
             objList_Detailed[i].SetActive(true);
         }
+
+        _ps1.Stop(true);
+        _ps1.Clear(true);
+
+        uint temp = (uint)Random.Range(0, 1000);
+        _ps1.randomSeed = temp;
+        _ps2.randomSeed = temp;
+        _ps1.Play();
     }
 
     public void TurnOffFunc()

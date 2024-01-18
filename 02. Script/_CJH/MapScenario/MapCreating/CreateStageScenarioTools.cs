@@ -35,11 +35,16 @@ internal static class CreateStageScenarioTools
 
     internal static void SettingNextDestination(this List<TouchableNode> currSelectable, CreateMap createBackGroundSector, CreateFloatingNode createNodeSector, MapScenario.OnClickFunc onClick)
     {
+        if (currSelectable.Count == 0)
+            createBackGroundSector.eventObjectList[0].nodeList[0].ActiveFocsed();
+
         for (int i = 0; i < currSelectable.Count; i++)
         {
             Transform targetTrans = currSelectable[i].transform;
             if(targetTrans != createBackGroundSector.GetFocusTransform())
                 targetTrans.GetComponent<NodeController>().TurnOffFunc();
+            else
+                targetTrans.GetComponent<NodeController>().ActiveFocsed();
 
             currSelectable[i].Destroy();
         }

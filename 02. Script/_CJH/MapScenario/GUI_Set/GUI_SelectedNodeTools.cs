@@ -186,7 +186,7 @@ internal static class GUI_SelectedNodeTools
     {
         obj._eventObjectList = obj.adress.eventObjectList;
         List<NodeScriptPerLevel> data = obj._eventObjectList;
-        data[0].nodeList[0].myPoint.material = obj.subHighLightMaterial;
+        data[0].nodeList[0].myPoint.color = obj.subHighLightMaterial;
 
         return;
     }
@@ -195,10 +195,9 @@ internal static class GUI_SelectedNodeTools
     {
         obj.state.selectedNode = -1;
 
-
         for (int i = 0; i < obj.myList.Count; i++)
         {
-            obj.myList[i].SetMaterial(obj.subHighLightMaterial);
+            obj.myList[i].color = (obj.subHighLightMaterial);
         }
         
         obj.myList.Clear();

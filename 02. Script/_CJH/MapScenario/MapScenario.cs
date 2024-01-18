@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.Windows;
 using static GUI_MapScenario;
 
 public class MapScenario : MonoBehaviour
@@ -127,8 +124,15 @@ public class MapScenario : MonoBehaviour
         if (true)
         {
             task += SceneChange;
-            Debug.Log("MoveScene by MapSC");
-            _SGT.mapDATA.CurrMS._UTIL.ALS.LoadScene_Asyc("Shop"); //history.GetNextScene()  Shop
+            //Debug.Log("MoveScene by MapSC");
+
+            var temp = SGT_GUI_ItemData.GetCharInvenSGT(1);
+            for (int i = 0; i < temp.Count; i++)
+            {
+                Debug.Log(i + " - " + temp[i]);
+            }
+            string dstSceneName = GameManager.gameManager.GetSceneName_byEventIndex(_SC.cs.GetIndex_atCurrFocusing());
+            _SGT.mapDATA.CurrMS._UTIL.ALS.LoadScene_Asyc(dstSceneName); //history.GetNextScene()  Shop
             _SC.mapGUI.moveCamFunc(desV3, task);
         }
     }

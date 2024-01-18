@@ -13,6 +13,7 @@ public interface IDragDropObj : IBeginDragHandler, IEndDragHandler, IDragHandler
     iRoot_DDO_Manager GetDDO_Manager();
 
     bool IsInteractable_byGetRBD(iRoot_DDO_Manager _inven, IResponedByDrop target);
+    
     void InteractDDO_byGetRBD(IResponedByDrop target);
 
     void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
@@ -24,7 +25,6 @@ public interface IDragDropObj : IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         if (GetTransform_ItemGUI() == false)
         {
-            Debug.Log("null dragging");
             return;
         }
         else

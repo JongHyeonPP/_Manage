@@ -18,8 +18,6 @@ public class CreateMap : MonoBehaviour
 
 
     //debug
-
-
     public void InitSettingEventPos_Root(EventNodeDataToPlace treeData)
     {
         NodeScriptPerLevel rootLevel = eventObjectList.tryAddLevel(0);

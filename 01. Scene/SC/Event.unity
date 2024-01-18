@@ -3031,6 +3031,7 @@ MonoBehaviour:
   timer_ShowPrice: 0.15
   currCoef: 0.2
   priceCoef: 0.2
+  delayTime: 0
 --- !u!1 &318271288
 GameObject:
   m_ObjectHideFlags: 0
@@ -5316,7 +5317,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EventSysyemObj: {fileID: 295452962}
-  cam: {fileID: 1698044416}
   _ArriveMaterial_Map: {fileID: 2100000, guid: cc22496f3705b1f48814f85160a53a64, type: 2}
   _ExitMaterial_Map: {fileID: 2100000, guid: 8bc19e315859f924d94ef3cf2e0843bf, type: 2}
   _ClosedSceneObj_Map: {fileID: 2113406316}
@@ -5324,6 +5324,8 @@ MonoBehaviour:
   _ExitObj_Map: {fileID: 1421446633}
   reachTime: 0.3
   timer: 0
+  myChild_toActive: {fileID: 0}
+  _myCamera: {fileID: 0}
 --- !u!4 &607107766
 Transform:
   m_ObjectHideFlags: 0
@@ -11371,16 +11373,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bb2fa6365af7364489adbcb53aabfc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataList:
-  - index: 0
-    name: Apple
-    stat: {x: 0, y: 6, z: 9}
-  - index: 1
-    name: Banana
-    stat: {x: 1, y: 9, z: 3}
-  - index: 2
-    name: Cookie
-    stat: {x: 2, y: 3, z: 6}
 --- !u!4 &1266866482
 Transform:
   m_ObjectHideFlags: 0
@@ -14537,10 +14529,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 226f43363d4b2c84eae8ae7611119bf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _inputM: {fileID: 1718804659}
-  m_inven: {fileID: 2776946777341179656}
-  InfoBox: {fileID: 1117141340}
-  _invenSC: {fileID: 1965995787}
+  _REF:
+    Input_M: {fileID: 1718804659}
+    Inven_M: {fileID: 2776946777341179656}
+    RBD_Info: {fileID: 1117141340}
+    InvenSC: {fileID: 1965995787}
+    GoldEFF: {fileID: 0}
   _AboveOfAll: {fileID: 1810959311}
 --- !u!1 &1795455426
 GameObject:

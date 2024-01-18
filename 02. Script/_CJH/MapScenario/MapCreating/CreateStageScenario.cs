@@ -29,7 +29,6 @@ public class CreateStageScenario : MonoBehaviour
         BuildLeaf_byInit();
 
         currSelectable.SettingNextDestination(createBackGroundSector, createNodeSector, onClick);
-
         this.SetVisualObject();
     }
 
@@ -52,6 +51,7 @@ public class CreateStageScenario : MonoBehaviour
             BuildLeaf_byHistory(history[i], 
                 (createNodeSector.createNodeValues.maxLevel - i == 2)); // 보스 판단 
         }
+
 
         currSelectable.SettingNextDestination(createBackGroundSector, createNodeSector, onClick);
         this.SetVisualObject();
@@ -131,6 +131,12 @@ public class CreateStageScenario : MonoBehaviour
             createBackGroundSector.InitSettingEventPos(treeData, input,ref task);
 
         task += () => createBackGroundSector.FillEnv();
+    }
+
+    public int GetIndex_atCurrFocusing()
+    {
+        Vector2Int temp = createBackGroundSector.focusingNode;
+        return createBackGroundSector.eventObjectList[temp.x].eventIndex[temp.y];
     }
 }
 

@@ -1,12 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 
 public class SGT_GUI_ItemData : MonoBehaviour
 {
     private static SGT_GUI_ItemData dataSGT;
-    public int currGold = 12;
+    public int currGold;
     public List<ItemUnit> itemUnits = new();
     [SerializeField] internal List<UnitDataTable_toGUI> spriteDataSet = new();
 
@@ -38,6 +39,45 @@ public class SGT_GUI_ItemData : MonoBehaviour
     static public SGT_GUI_ItemData GetSGT()
     {
         return dataSGT;
+    }
+
+    static internal List<string> GetCharInvenSGT(int _CharIndex)
+    {
+        List<ItemUnit> _itemUnits = dataSGT.itemUnits;
+        List<string> charEquipped= new();
+        for (int i = 0; i < _itemUnits.Count; i++)
+        {
+            if (_itemUnits[i].invenAddr[0] == _CharIndex)
+            {
+                string ItemCode = ConvString_toString(_itemUnits[i].itemData);
+                charEquipped.Add(ItemCode);
+            }
+        }
+
+        return charEquipped;
+        
+
+        string ConvString_toString(List<int> target)
+        {
+            string rtnStr = "";
+
+            switch (target[1])
+            {
+                case 0:
+                    rtnStr += "Power_";
+                    break;
+                case 1:
+                    rtnStr += "Sustain_";
+                    break;
+                case 2:
+                    rtnStr += "Util_";
+                    break;
+                default:
+                    break;
+            }
+            rtnStr += target[2];
+            return rtnStr;
+        }
     }
 }
 
