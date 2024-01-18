@@ -118,7 +118,7 @@ public class MapScenario : MonoBehaviour
             task += SceneChange;
             task += () => _SGT.mapDATA.gameObject.SetActive(false);
             Debug.Log("MoveScene by MapSC");
-            _SGT.mapDATA.CurrMS._UTIL.ALS.LoadScene_Asyc("Stage0"); //history.GetNextScene()  Shop
+            _SGT.mapDATA.CurrMS._UTIL.ALS.LoadScene_Asyc("Battle"); //history.GetNextScene()  Shop
             _SC.mapGUI.moveCamFunc(desV3, task);
         }
     }

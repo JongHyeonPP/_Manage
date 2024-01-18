@@ -107,4 +107,8 @@ public class BattleScenarioTest : MonoBehaviour
     {
         battleScenario.StageClear();
     }
+    public void GameOverTest()
+    {
+        GameManager.gameManager.GameOver();
+    }
 }

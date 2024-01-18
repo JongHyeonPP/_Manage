@@ -33,7 +33,7 @@ abstract public class CharacterBase : MonoBehaviour
     public float speedInBattle;
     public float speed;
     public float armor = 0f;
-    public bool isDead { get; protected set; }
+    public bool isDead;
     public List<Skill> skills;
     private Skill defaultAttack;
     public GameObject hpObject;
@@ -165,7 +165,6 @@ abstract public class CharacterBase : MonoBehaviour
     }
     void ApplyValue(float _value, EffectType _effectType)
     {
-        //Debug.Log(_effectType + " : " + _value);
         switch (_effectType)
         {
             default:
@@ -452,23 +451,11 @@ abstract public class CharacterBase : MonoBehaviour
     }
     public void StartBattle()
     {
-
         FindNewTargetAlly();
         FindNewTargetOpponent();
         SetAnimParam();
         StartCoroutine(SetSkillsWithBattle());
     }
-
-
-
-
-
-
-
-
-
-
-
     public class EffectPassiveFormDot
     {
         EffectType type;
@@ -794,7 +781,6 @@ abstract public class CharacterBase : MonoBehaviour
                 {
                     caster.abilityInBattle += _target.abilityInBattle * calcValue;
                 }
-
                 _target.ApplyValue(calcValue, effect.type);//핵심
 
                 //대미지 후속작업

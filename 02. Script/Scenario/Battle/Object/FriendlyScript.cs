@@ -20,7 +20,7 @@ public class FriendlyScript : CharacterBase
         IsEnemy = false;
         documentId = _documentId;
     }
-    [ContextMenu("MyMethod")]
+    [ContextMenu("Dead")]
     public override void OnDead()
     {
         StartCoroutine(OnDead_Base());
@@ -30,7 +30,7 @@ public class FriendlyScript : CharacterBase
                 gameOverFlag = true;
         if (!gameOverFlag)
         {
-            Debug.Log("게임오버");
+            GameManager.gameManager.GameOver();
         }
 
     }

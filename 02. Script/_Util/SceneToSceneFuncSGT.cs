@@ -10,7 +10,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
     public static SceneToSceneFuncSGT Instance = null;
     public Camera cam;
     public Material _ArriveMaterial_Map, _ExitMaterial_Map;
-    public GameObject _ClosedSceneObj_Map, _ArriveObj_Map, _ExitObj_Map;    
+    public GameObject _ClosedSceneObj_Map, _ArriveObj_Map, _ExitObj_Map;
     public float reachTime = 0;
     public float timer = 0;
 
@@ -29,6 +29,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
                 return;
 
             GameObject temp = target.gameObject;
+            Instance.gameObject.SetActive(true);
             target = Instance;
             Destroy(temp);
         }
@@ -45,7 +46,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
         {
             Debug.Log("Tlqkf null"); return;
         }
-        
+
         Instance._ArriveScene_Map(_returnFunc);
     }
 
@@ -63,11 +64,12 @@ public class SceneToSceneFuncSGT : MonoBehaviour
     {
         if (_returnFunc == null)
         {
-            _returnFunc = () => {;};
+            _returnFunc = () => {; };
         }
 
-        returnFunc = () => EventSysyemObj.SetActive(true);
         returnFunc = _returnFunc;
+        returnFunc = () => EventSysyemObj.SetActive(true);
+
         StartCoroutine(ArriveSceneCor());
 
         IEnumerator ArriveSceneCor()
@@ -76,7 +78,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
             while (true)
             {
                 timer += Time.deltaTime;
-                if (timer > (reachTime/2))
+                if (timer > (reachTime / 2))
                     break;
 
                 yield return new WaitForSeconds(0.02f);
@@ -117,7 +119,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
             _returnFunc = () => {; };
         }
         returnFunc = _returnFunc;
-
+        returnFunc = () => Instance.gameObject.SetActive(false);
         StartCoroutine(ExitSceneCor());
 
         IEnumerator ExitSceneCor()
@@ -153,7 +155,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
     }
 
 
-
+    /*
     static public void ArriveScene_Debug()
     {
         if (Instance == null)
@@ -187,5 +189,5 @@ public class SceneToSceneFuncSGT : MonoBehaviour
         _ClosedSceneObj_Map.SetActive(true);
 
         EventSysyemObj.SetActive(false);
-    }
+    }*/
 }

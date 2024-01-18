@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 public class BattleScenario : MonoBehaviour
 {
@@ -76,6 +77,13 @@ public class BattleScenario : MonoBehaviour
         if (battleScenarioTest)
             canvasTest.gameObject.SetActive(true);
         rectFriendlyGroup = GameManager.gameManager.canvasGrid.GetChild(0).GetComponent<RectTransform>();
+        GameManager.gameManager.uiCamera.SetActive(true);
+        FriendlyDataInit();
+        if (enemies.Count == 0)
+        {
+            MakeEnemies(GameManager.gameManager.nodeLevel);
+            GameManager.gameManager.InitSeed();
+        }
     }
     public void OnGridPointerDown()
     {
@@ -99,9 +107,9 @@ public class BattleScenario : MonoBehaviour
         }
     }
 
-    internal void OnBattleLoaded()
+    internal void FriendlyDataInit()
     {
-        List<CharacterData> characterDataList = CharacterManager.characterManager.GetChracters();
+        List<CharacterData> characterDataList = CharacterManager.characterManager.GetCharacters();
         foreach (var x in friendlies)
         {
             CharacterData characterData = characterDataList.FirstOrDefault(item => item.docId == x.documentId);
@@ -110,7 +118,13 @@ public class BattleScenario : MonoBehaviour
             x.ability = x.abilityInBattle = characterData.ability;
             x.speed = x.speedInBattle = characterData.speed;
             x.resist = x.resistInBattle = characterData.resist;
-            x.skills = characterData.skills;
+            x.skills = new();
+            foreach (string skillName in characterData.skillNames)
+            {
+                if (skillName.Length > 0)
+                    x.skills.Add(GameManager.LocalizeSkill(skillName));
+            }
+            
 
             x.grid = FriendlyGrids[characterData.index];
             x.MoveToTargetGrid(x.grid, true);
@@ -217,27 +231,56 @@ public class BattleScenario : MonoBehaviour
     {
         Debug.Log("StageClear");
         panelClear.SetActive(true);
-        foreach (var x in friendlies)
-            x.StopAllCoroutines();
-        foreach (var x in enemies)
+        StartCoroutine(StopCoroutineInSecond());
+        List<CharacterData> characters = CharacterManager.characterManager.GetCharacters();
+        foreach (CharacterData x in characters)
+        {
+            x.hp = friendlies.Where(item => item.documentId == x.docId).FirstOrDefault().Hp;
+        }
+        foreach (CharacterBase x in friendlies)
+        {
+            x.gameObject.SetActive(true);
+            if (x.Hp == 0)
+            {
+                x.Hp = 1f;
+                x.gameObject.SetActive(true);
+                x.isDead = false;
+            }
+        }
+        foreach (CharacterBase x in enemies)
         {
             Destroy(x.gameObject, 1f);
-            Debug.Log("¾ö");
         }
-        enemies.Clear();
+        FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+        {
+            foreach (CharacterBase x in friendlies)
+            {
+                DataManager.dataManager.SetDocumentData("Hp", string.Format("{0}/{1}", x.Hp, x.maxHp), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"), x.documentId);
+            }
+            DataManager.dataManager.SetDocumentData("Scene", "Stage0", "Progress", GameManager.gameManager.Uid);
+            return Task.CompletedTask;
+        });
+        ClearEnemy();
+
+        IEnumerator StopCoroutineInSecond()
+        {
+            yield return new WaitForSeconds(1f);
+            foreach (var x in friendlies)
+                x.StopAllCoroutines();
+        }
     }
     public void ToMap()
     {
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-        SceneManager.LoadScene("Map");
+        SceneManager.LoadScene("Stage0");
     }
     private IEnumerator MoveGaugeCor()
     {
+        moveGauge = 10f;
         while (true)
         {
             if (moveGauge < 10f)
                 moveGauge += 1f;
-            Debug.Log(moveGauge);
             yield return new WaitForSeconds(1f);
         }
     }
@@ -256,5 +299,55 @@ public class BattleScenario : MonoBehaviour
         battlePatern = BattlePatern.Battle;
         StartCoroutine(MoveGaugeCor());
     }
+    private void MakeEnemies(int _nodeLevel)
+    {
+        var values = LoadManager.loadManager.enemyCaseDict;
+        List<KeyValuePair<string, EnemyCase>> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel)).ToList();
+        KeyValuePair<string, EnemyCase> selectedCase = ableCases[UnityEngine.Random.Range(0, ableCases.Count)];
+        foreach (Tuple<string, int> tuple in selectedCase.Value.enemies)
+        {
+            EnemyClass enemyClass = LoadManager.loadManager.enemyiesDict[tuple.Item1];
+            ObjectGrid grid = EnemyGrids[tuple.Item2];
+            GameObject enemyObject = GameManager.gameManager.InitCharacterObject(grid, true, tuple.Item1);
+            EnemyScript enemyScript = enemyObject.AddComponent<EnemyScript>();
 
+            enemyScript.InitEnemy(enemyClass, grid);
+            enemies.Add(enemyScript);
+        }
+        DataManager.dataManager.SetDocumentData("EnemyCase", selectedCase.Key, "Progress", GameManager.gameManager.Uid);
+    }
+    public static void ClearEnemy()
+    {
+        foreach (var x in enemies)
+        {
+            Destroy(x.gameObject);
+        }
+        enemies.Clear();
+        DataManager.dataManager.SetDocumentData("EnemyCase", FieldValue.Delete, "Progress", GameManager.gameManager.Uid);
+    }
+    public static async void ClearFriendly()
+    {
+        foreach (var x in friendlies)
+        {
+            Destroy(x.gameObject);
+        }
+        friendlies.Clear();
+        string collectionRef = "Progress/" + GameManager.gameManager.Uid + "/Friendlies";
+        List<DocumentSnapshot> result = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"));
+        foreach (DocumentSnapshot doc in result)
+        {
+            await doc.Reference.DeleteAsync();
+        }
+    }
+    public void DestoyByDocId(string _docId)
+    {
+        CharacterBase x = friendlies.Where(item => item.documentId == _docId).FirstOrDefault();
+        friendlies.Remove(x);
+        Destroy(x.gameObject);
+    }
+    [ContextMenu("ChangeTest")]
+    public void ChangeTest()
+    {
+        CharacterManager.characterManager.GetCharacter(0).ChangeSkill(1, "Sustain_0");
+    }
 }

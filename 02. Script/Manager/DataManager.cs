@@ -71,7 +71,7 @@ public class DataManager : MonoBehaviour
         }
     }
 
-    public async Task<object> GetFieldData(string _collectionRef, string _documentId, string _field)
+    public async Task<object> GetFieldData(string _field, string _collectionRef, string _documentId)
     {
         Dictionary<string, object> documentData = await GetField(_collectionRef, _documentId);
         if (documentData.TryGetValue(_field, out object value))

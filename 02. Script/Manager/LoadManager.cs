@@ -15,6 +15,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<string, EnemyClass> enemyiesDict = new();//Key´Â DocumentÀÇ ID¸¦ int·Î parse
     public Dictionary<string, GuildClass> guildDict = new();
     public Dictionary<string, TalentFormStruct> talentDict = new();
+    public Dictionary<string, EnemyCase> enemyCaseDict = new();
     private void Awake()
     {
         if (!loadManager)
@@ -30,7 +31,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     {
         if (!isInit)
         {
-            await Task.WhenAll(InitJob(),InitSkill(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc());
+            await InitSkill();
+            await Task.WhenAll(InitJob(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc(), InitEnemyCase());
             Debug.Log("FireStoreLoaded");
             isInit = true;
         }
@@ -69,7 +71,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 List<SkillEffect> effect = InitEffect("Effect", skillDict);
                 effects = new() { effect };
-                explains = null;
+                skillForm.SetEffects(effects);
+               explains = null;
             }
             else//¾Æ±º Ä³¸¯ÅÍ°¡ »ç¿ëÇÏ´Â ½ºÅ³
             {
@@ -115,29 +118,28 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     }
                     explains.Add(temp);
                 }
-                skillForm.SetExplain(explains);
-                object obj;
-                //CoolTime
-                if (skillDict.TryGetValue("Cooltime", out obj))
-                    skillForm.SetCooltime(GetFloatValue(obj));
-                //IsTargetEnemy
-                bool isTargetEnemy;
-                if (skillDict.TryGetValue("IsTargetEnemy", out obj))
-                    isTargetEnemy = (bool)obj;
-                else
-                    isTargetEnemy = true;
-                skillForm.SetIsTargetEnemy(isTargetEnemy);
-                //IsAnim
-                bool isAnim;
-                if (skillDict.TryGetValue("IsAnim", out obj))
-                    isAnim = (bool)obj;
-                else
-                    isAnim = true;
-                skillForm.SetIsAnim(isAnim);
+                skillForm.SetExplain(explains);    
             }
-            
+            object obj;
+            //CoolTime
+            if (skillDict.TryGetValue("Cooltime", out obj))
+                skillForm.SetCooltime(GetFloatValue(obj));
+            //IsTargetEnemy
+            bool isTargetEnemy;
+            if (skillDict.TryGetValue("IsTargetEnemy", out obj))
+                isTargetEnemy = (bool)obj;
+            else
+                isTargetEnemy = true;
+            skillForm.SetIsTargetEnemy(isTargetEnemy);
+            //IsAnim
+            bool isAnim;
+            if (skillDict.TryGetValue("IsAnim", out obj))
+                isAnim = (bool)obj;
+            else
+                isAnim = true;
+            skillForm.SetIsAnim(isAnim);
 
-                
+
             skillsDict.Add(doc.Id, skillForm);
             
             List<SkillEffect> InitEffect(string effectStr, Dictionary<string, object> _skillDict)
@@ -373,9 +375,9 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     private async Task InitEnemy()
     {
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Enemy");
-        EnemyClass enemyClass = new EnemyClass();
         foreach (DocumentSnapshot doc in documents)
         {
+            EnemyClass enemyClass = new EnemyClass();
             Dictionary<string, object> dict = doc.ToDictionary();
             object obj;
             //Name
@@ -412,7 +414,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 enemyClass.SetSpeed(GetFloatValue(obj));
             }
-
             enemyiesDict.Add(doc.Id, enemyClass);
         }
     }
@@ -553,6 +554,34 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 GameManager.gameManager.fame = 0;
             }
         });
+    }
+    private async Task InitEnemyCase()
+    {
+        List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("EnemyCase");
+        foreach (DocumentSnapshot doc in documents)
+        {
+            EnemyCase enemyCase = new EnemyCase();
+            Dictionary<string, object> dict = doc.ToDictionary();
+            //Enemies
+            List<System.Tuple<string, int>> enemyTuples = new();
+            List<object> enemies = dict["Enemies"] as List<object>;
+            foreach (object enemyObj in enemies)
+            {
+                Dictionary<string, object> enemy = enemyObj as Dictionary<string, object>;
+                string id = (string)enemy["Id"];
+                int index = (int)(long)enemy["Index"];
+                enemyTuples.Add(new(id, index));
+            }
+            enemyCase.SetEnemies(enemyTuples);
+            //LevelRange
+            List<int> levelRange = new();
+            foreach (var x in dict["LevelRange"] as List<object>)
+            {
+                levelRange.Add((int)(long)x);
+            }
+            enemyCase.SetLevelRange(levelRange);
+            enemyCaseDict.Add(doc.Id, enemyCase);
+        }
     }
     float GetFloatValue(object _obj)
     {

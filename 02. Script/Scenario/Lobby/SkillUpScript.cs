@@ -29,11 +29,15 @@ public class SkillUpScript : MonoBehaviour
         if (GameManager.gameManager.fame >= price)
         {
             GameManager.gameManager.fame -= price;
+            if (!GameManager.gameManager.guildValueDict.ContainsKey(guildClass.type))
+            {
+                GameManager.gameManager.guildValueDict.Add(guildClass.type, 0);
+            }
+            GameManager.gameManager.guildValueDict[guildClass.type] += guildClass.content[level].value;
             if (level > 0)
             {
                 GameManager.gameManager.guildValueDict[guildClass.type] -= guildClass.content[level-1].value;
             }
-            //GameManager.gameManager.guildValueDict[guildClass.type] += guildClass.content[level].value;
             GameManager.gameManager.guildLevelDict[docId] = ++level;
             textLevel.text = level.ToString();
             GameManager.lobbyScenario.GuildSet();

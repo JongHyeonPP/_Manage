@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
     }
     public static BattleScenario battleScenario;
     public static LobbyScenario lobbyScenario;
+    public static StartScenario startScenario;
 
     #region Battle
     [Header("Battle")]
@@ -48,9 +49,11 @@ public class GameManager : MonoBehaviour
     #endregion
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
     EventTrigger eventTrigger;
-
+    public int nodeLevel = 0;
+    public string scene; 
     void Awake()//매니저 세팅은 Awake
     {
+
         if (!gameManager)
         {
             gameManager = this;
@@ -60,13 +63,17 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             uiCamera.SetActive(false);
             //Until Steam API
-            uid = "FMefxTlgP9aHsgfE0Grc";
-            //uid = "KF5U1XMs5cy7n13dgKjF";
+            //uid = "FMefxTlgP9aHsgfE0Grc";
+            uid = "KF5U1XMs5cy7n13dgKjF";
         }
     }
     async void Start()
     {
         progressDoc = await DataManager.dataManager.GetField("Progress", Uid);
+        if (progressDoc != null)
+        {
+            startScenario.ActiveLoadBtn(true);
+        }
         BattleScenario.friendlies = new();
         BattleScenario.enemies = new();
     }
@@ -120,21 +127,32 @@ public class GameManager : MonoBehaviour
     {
         battleScenario = null;
         lobbyScenario = null;
+        startScenario = null;
         scenarioObject = GameObject.FindWithTag("SCENARIO");
-        uiCamera.SetActive(_arg0.name == "Battle");
+
+
         switch (_arg0.name)
         {
             case "Awake":
                 SceneManager.LoadScene("Start");
                 break;
+            case "Start":
+                startScenario = scenarioObject.GetComponent<StartScenario>();
+                    startScenario.ActiveLoadBtn(false);
+                break;
             case "Battle":
                 battleScenario = scenarioObject.GetComponent<BattleScenario>();
-                battleScenario.OnBattleLoaded();
+                DataManager.dataManager.SetDocumentData("Scene", "Battle", "Progress", Uid);
                 break;
             case "Lobby":
                 lobbyScenario = scenarioObject.GetComponent<LobbyScenario>();
+                DataManager.dataManager.SetDocumentData("Scene", "Lobby", "Progress", Uid);
+                break;
+            case "Stage0":
+                DataManager.dataManager.SetDocumentData("Scene", "Stage0", "Progress", Uid);
                 break;
         }
+        //Skill currentSkill = CharacterManager.characterManager.GetCharacter(0).ChangeSkill(0, 스킬);
     }
     private void InitGrids()
     {
@@ -196,16 +214,27 @@ public class GameManager : MonoBehaviour
     public async void LoadGame()
     {
         seed = (int)(long)progressDoc["Seed"];
-        string sceneName = (string)progressDoc["Scene"];
+        Random.InitState(seed);
+        scene = (string)progressDoc["Scene"];
+        nodeLevel = (int)(long)progressDoc["NodeLevel"];
         await LoadFriendly();
-        if (sceneName == "Battle")
-            await LoadEnemy();
-        SceneManager.LoadScene(sceneName);
+        if (scene == "Battle")
+            await LoadEnemy((string)progressDoc["EnemyCase"]);
+        SceneManager.LoadScene(scene);
     }
     public void NewGame()
     {
-        seed = Random.Range(0, int.MaxValue);
-        Random.InitState(seed);
+        //temp
+        nodeLevel = 0;
+        Dictionary<string, object> dict = new();
+        dict.Add("Seed", seed);
+        dict.Add("NodeLevel", nodeLevel);
+        FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+        {
+            InitSeed();
+            DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
+            return Task.CompletedTask;
+        });
     }
     private async Task LoadFriendly()
     {
@@ -218,10 +247,6 @@ public class GameManager : MonoBehaviour
         foreach (DocumentSnapshot snapShot in friendlyDocs)
         {
             Dictionary<string, object> tempDict = snapShot.ToDictionary();
-            int job = 0;
-            string jobId = "0";
-            int count = 0;
-            List<Skill> skills = new();
             float ability;
             string hpValue;
             float resist;
@@ -260,57 +285,62 @@ public class GameManager : MonoBehaviour
             {
                 speed = 1f;
             }
+            string[] skillNames = new string[2];
             for (int i = 0; i < 2; i++)
             {
                 if (tempDict.TryGetValue(string.Format("Skill_{0}", i), out object valueObj))
                 {
-                    count++;
-                    string skillID = ((string)valueObj).Split(":::")[0];
-                    if (skillID == string.Empty) continue;
-                    switch (LoadManager.loadManager.skillsDict[skillID].categori)
-                    {
-                        case SkillCategori.Power:
-                            job += 100;
-                            break;
-                        case SkillCategori.Sustain:
-                            job += 10;
-                            break;
-                        case SkillCategori.Util:
-                            job += 1;
-                            break;
-                    }
+                    skillNames[i] =((string)valueObj);
                 }
             }
-            if (count < 2)
-                job = 0;
-            jobId = AddZero(job);
-            for (int i = 0; i < 2; i++)
-            {
-                if (tempDict.TryGetValue(string.Format("Skill_{0}", i), out object valueObj))
-                {
-                    string valueStr = (string)valueObj;
-                    if (valueStr == string.Empty) continue;
-                    Skill localizedSkill = LocalizeSkill((valueStr));
-                    foreach (var x0 in localizedSkill.effects)
-                    {
-                        SkillEffect effect = x0;
-                    }
-                    skills.Add(localizedSkill);
-                }
-            }
-            if (skills.Count < 2)
-                jobId = "000";
-            ObjectGrid _grid = BattleScenario.FriendlyGrids[(int)(long)tempDict["Index"]];
-            GameObject friendlyObject = InitCharacterObject(_grid, false, jobId);
 
-            CharacterData characterData = new(snapShot.Id, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], jobId, skills);
+            ObjectGrid _grid = BattleScenario.FriendlyGrids[(int)(long)tempDict["Index"]];
+            InitFriendlyObject(snapShot.Id, skillNames, _grid);
+
+            CharacterData characterData = new(snapShot.Id, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], skillNames);
             characterDataDict.Add(characterData);
-            FriendlyScript friendlyScript = friendlyObject.AddComponent<FriendlyScript>();
-            friendlyScript.InitFriendly(snapShot.Id);
-            BattleScenario.friendlies.Add(friendlyScript);
+
         }
         CharacterManager.characterManager.SetCharacters(characterDataDict);
     }
+    public string GetJobId(string[] _skillNames)
+    {
+        int job = 0;
+        int num = 0;
+        foreach (var x in _skillNames)
+        {
+            switch (x.Split("_")[0])
+            {
+                case "Power":
+                    job += 100;
+                    num++;
+                    break;
+                case "Sustain":
+                    job += 10;
+                    num++;
+                    break;
+                case "Util":
+                    job += 1;
+                    num++;
+                    break;
+            }
+        }
+        if (num == 2)
+        {
+            return AddZero(job);
+        }
+        else
+            return "000";
+    }
+    public void InitFriendlyObject(string _docId, string[] _skillNames, ObjectGrid _grid)
+    {
+        string jobId = GetJobId(_skillNames);
+        GameObject friendlyObject = InitCharacterObject(_grid, false, jobId);
+        FriendlyScript friendlyScript = friendlyObject.AddComponent<FriendlyScript>();
+        friendlyScript.InitFriendly(_docId);
+        BattleScenario.friendlies.Add(friendlyScript);
+    }
+
     public static Skill LocalizeSkill(string x1)//Skill_n/n 형태의 x1을 기반으로 LoadManager에 있는 EffectForm을 가진 SkillStruct 접근해서 Effect를 가진 Skill를 리턴
     {
         string skillID;
@@ -328,20 +358,21 @@ public class GameManager : MonoBehaviour
         SkillForm tempSkillForm = LoadManager.loadManager.skillsDict[skillID];
         return new Skill(tempSkillForm, skillLevel);
     }
-    private async Task LoadEnemy()
+    private async Task LoadEnemy(string _enemyCase)
     {
         foreach (var x in BattleScenario.EnemyGrids)
         {
             x.gameObject.SetActive(true);
         }
-        List<DocumentSnapshot> enemyDocs = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", gameManager.Uid, "Enemies"));
-        foreach (DocumentSnapshot snapShot in enemyDocs)
+        object enemyObj = await DataManager.dataManager.GetFieldData("Enemies","EnemyCase", _enemyCase);
+        foreach (object obj in enemyObj as List<object>)
         {
-            Dictionary<string, object> tempDict = snapShot.ToDictionary();
-            int index = (int)(long)tempDict["Index"];
-            EnemyClass enemyClass = LoadManager.loadManager.enemyiesDict[(string)tempDict["Id"]];
+            Dictionary<string, object> enemy = obj as Dictionary<string, object>;
+            int index = (int)(long)enemy["Index"];
+            string id = (string)enemy["Id"];
+            EnemyClass enemyClass = LoadManager.loadManager.enemyiesDict[id];
             ObjectGrid grid = BattleScenario.EnemyGrids[index];
-            GameObject enemyObject = InitCharacterObject(grid, true, (string)tempDict["Id"]);
+            GameObject enemyObject = InitCharacterObject(grid, true, id);
             EnemyScript enemyScript = enemyObject.AddComponent<EnemyScript>();
 
             enemyScript.InitEnemy(enemyClass,  grid);
@@ -382,5 +413,26 @@ public class GameManager : MonoBehaviour
     {
         return Random.Range(0f, 1f) <= Mathf.Clamp(_probability, 0f, 1f);
     }
-
+    public async void GameOver()
+    {
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        {
+            BattleScenario.ClearEnemy();
+            BattleScenario.ClearFriendly();
+            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
+            documentRef.DeleteAsync();
+        });
+        canvasGrid.gameObject.SetActive(false);
+        uiCamera.SetActive(false);
+        scene = null;
+        SceneManager.LoadScene("Start");
+        progressDoc = null;
+    }
+    public void InitSeed()
+    {
+        seed = (int)System.DateTime.Now.Ticks;
+        Random.InitState(seed);
+        DataManager.dataManager.SetDocumentData("Seed", seed, "Progress", Uid);
+        Debug.Log("Seed : " + seed);
+    }
 }
