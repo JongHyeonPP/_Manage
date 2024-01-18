@@ -81,6 +81,7 @@ namespace LobbyCollection
             type = _type;
         }
     }
+    [System.Serializable]
     public class CandiInfo
     {
         public float hp;

@@ -4,8 +4,9 @@ using Firebase.Firestore;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using EnumCollection;
-using StructCollection;
 using UnityEngine.UI;
+using LobbyCollection;
+using System.Threading.Tasks;
 
 public class LobbyScenario : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class LobbyScenario : MonoBehaviour
     private readonly int defaultAbility = 8;
     private readonly int defaultHp = 100;
     private readonly int defaultResist = 0;
+    private readonly int defaultSpeed = 1; 
     private GameObject departNpc;
     private GameObject recruitNpc;
     private GameObject upgradeNpc;
@@ -76,21 +78,16 @@ public class LobbyScenario : MonoBehaviour
         departNpc.SetActive(false);
         recruitNpc.SetActive(false);
         upgradeNpc.SetActive(true);
-        talentExplain = panelInfo.transform.GetChild(2).GetChild(1).gameObject;
-        talentExplain.SetActive(false);
-        textUpgrageNpc = upgradeNpc.transform.GetChild(1).GetComponent<TMP_Text>();
-        textDepartNpc = departNpc.transform.GetChild(1).GetComponent<TMP_Text>();
-        textRecruitNpc = recruitNpc.transform.GetChild(1).GetComponent<TMP_Text>();
-        textDepart = canvasSelect.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textDepartYes = canvasSelect.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textDepartNo = canvasSelect.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<TMP_Text>();
-        textFame = canvasSelect.transform.GetChild(3).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
-        textAbility = canvasSelect.transform.GetChild(2).GetChild(2).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textResist= canvasSelect.transform.GetChild(2).GetChild(2).GetChild(1).GetChild(2).GetComponent<TMP_Text>();
+        SetText();
         for (int i = 0; i < 3; i++)
         {
             talentObjects[i] = panelInfo.transform.GetChild(2).GetChild(0).GetChild(i).gameObject;
             talentObjects[i].SetActive(false);
+        }
+        foreach (KeyValuePair<string, GuildClass> x in LoadManager.loadManager.guildDict)
+        {
+            SkillUpScript skillupScript = panelUpgrade.transform.GetChild(1).GetChild(x.Value.index).gameObject.AddComponent<SkillUpScript>();
+            skillupScript.InitSkillUpScript(x.Key);
         }
         texts =
                 new()
@@ -170,66 +167,79 @@ public class LobbyScenario : MonoBehaviour
                 };
         SettingManager.onLanguageChange += LanguageChange0;
         LanguageChange0(GameManager.language);
-        
+
+        void SetText()
+        {
+            talentExplain = panelInfo.transform.GetChild(2).GetChild(1).gameObject;
+            talentExplain.SetActive(false);
+            textUpgrageNpc = upgradeNpc.transform.GetChild(1).GetComponent<TMP_Text>();
+            textDepartNpc = departNpc.transform.GetChild(1).GetComponent<TMP_Text>();
+            textRecruitNpc = recruitNpc.transform.GetChild(1).GetComponent<TMP_Text>();
+            textDepart = canvasSelect.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+            textDepartYes = canvasSelect.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+            textDepartNo = canvasSelect.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<TMP_Text>();
+            textFame = canvasSelect.transform.GetChild(3).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+            textAbility = canvasSelect.transform.GetChild(2).GetChild(2).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+            textResist = canvasSelect.transform.GetChild(2).GetChild(2).GetChild(1).GetChild(2).GetComponent<TMP_Text>();
+        }
     }
 
     private void AllocateCandidate()
     {
-        //List<int> indexList = new();
-        //for (int i = 0; i < GameManager.gameManager.guild[0] + 3; i++)
-        //{
-        //    GameObject candidateObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/RecruitCandidate"));
-        //    RecruitCandidate candidate = candidateObject.GetComponent<RecruitCandidate>();
-        //    candidates.Add(candidate);
-        //    candidateObject.transform.SetParent(panelRecruit.transform.GetChild(0));
-        //    candidateObject.transform.localScale = Vector3.one;
-        //    candidateObject.transform.localPosition = new Vector3(candidateObject.transform.localPosition.x, candidateObject.transform.localPosition.y, 0);
-        //    int temp;
-        //    while (true)
-        //    {
-        //        temp = Random.Range(0, candidateNames.Length);
-        //        if (indexList.Contains(temp)) continue;
-        //        indexList.Add(temp);
-        //        break;
-        //    }
-        //    string name = candidateNames[temp];
-        //    float ability = Random.Range(defaultAbility, (int)(defaultAbility * 1.5f + 1 + GameManager.gameManager.guild[1]));
-        //    float hp = Random.Range(defaultHp, (int)(defaultHp * 1.5f + 1 + GameManager.gameManager.guild[2] * 10));
-        //    float resist = Random.Range(defaultResist, (int)(defaultResist * 1.5f + 1 + GameManager.gameManager.guild[2]));
-        //    List<TalentStruct> talents = new();
-        //    int startIndex = Random.Range(0, 2);
-        //    List<int> dupList = new();
-        //    for (int j = startIndex; j < Random.Range(1, GameManager.gameManager.guild[4]+ 2); j++)
-        //    {
-        //        int talentId = Random.Range(0, LoadManager.loadManager.talentDict.Count);
-        //        TalentFormStruct baseTalentForm = LoadManager.loadManager.talentDict[talentId.ToString()];
+        List<int> indexList = new();
+        GameManager.gameManager.guildValueDict.TryGetValue(GuildEffectType.AllocateNumberUp, out float numUp);
+        for (int i = 0; i < numUp + 3; i++)
+        {
+            GameObject candidateObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/RecruitCandidate"));
+            RecruitCandidate candidate = candidateObject.GetComponent<RecruitCandidate>();
+            candidates.Add(candidate);
+            candidateObject.transform.SetParent(panelRecruit.transform.GetChild(0));
+            candidateObject.transform.localScale = Vector3.one;
+            candidateObject.transform.localPosition = new Vector3(candidateObject.transform.localPosition.x, candidateObject.transform.localPosition.y, 0);
+            int temp;
+            while (true)
+            {
+                temp = Random.Range(0, candidateNames.Length);
+                if (indexList.Contains(temp)) continue;
+                indexList.Add(temp);
+                break;
+            }
+            string name = candidateNames[temp];
+            float ability = GetTalentRange(defaultAbility, GuildEffectType.AbilityUp);
+            float hp = GetTalentRange(defaultHp, GuildEffectType.HpUp);
+            float resist = GetTalentRange(defaultResist, GuildEffectType.ResistUp);
+            float speed = GetTalentRange(defaultSpeed, GuildEffectType.SpeedUp);
+            List<TalentStruct> talents = new();
+            List<string> talentIds = new List<string>(LoadManager.loadManager.talentDict.Keys);
+            GameManager.gameManager.guildValueDict.TryGetValue(GuildEffectType.TalentNumUp, out float talentNumUp);
+            int range = Random.Range(0, (int)talentNumUp + 1);
+            for (int j = 0; j < range; j++)
+            {
+                string talentId = talentIds[Random.Range(0, talentIds.Count)];
+                talentIds.Remove(talentId);
+                TalentFormStruct baseTalentForm = LoadManager.loadManager.talentDict[talentId];
 
-        //        while (dupList.Contains(talentId))
-        //        {
-        //            talentId = Random.Range(0, LoadManager.loadManager.talentDict.Count);
-        //        }
-        //        dupList.Add(talentId);
-                
-        //        List<T_Effect> effects = new();
-        //        int talentValue = Random.Range(0, baseTalentForm.level + 1);
-        //        foreach (var x in baseTalentForm.effects)
-        //        {
-        //            string[] valueArray = x.value.Split('/');
-        //            float value = float.Parse(valueArray[talentValue]);
-        //            effects.Add(new T_Effect(value, x.type));
-        //        }
-        //        talents.Add(new(baseTalentForm.name,baseTalentForm.level, baseTalentForm.explain, effects));
-        //    }
-        //    if(talents.Count==0)
-        //    talents.Add(noTalent);
-        //    candidate.info = new CandidateInfoStruct().
-        //        SetName(name).
-        //        SetAbility(ability).
-        //        SetHp(hp).
-        //        SetResist(resist).
-        //        SetTalent(talents);
-        //}
-        //SettingManager.onLanguageChange += LanguageChange1;
+                List<TalentEffect> effects = new();
+                int talentValue = Random.Range(0, baseTalentForm.level + 1);
+                foreach (var x in baseTalentForm.effects)
+                {
+                    string[] valueArray = x.value.Split('/');
+                    float value = float.Parse(valueArray[talentValue]);
+                    effects.Add(new TalentEffect(value, x.type));
+                }
+                talents.Add(new(baseTalentForm.name, baseTalentForm.level, baseTalentForm.explain, effects));
+            }
+            if (talents.Count == 0)
+                talents.Add(noTalent);
+            candidate.candiInfo = new CandiInfo(hp, ability, resist, speed, name, talents);
+        }
+        SettingManager.onLanguageChange += LanguageChange1;
+
+        float GetTalentRange(int _defaultValue, GuildEffectType _guildEffect)
+        {
+            GameManager.gameManager.guildValueDict.TryGetValue(_guildEffect, out float _value);
+            return Random.Range(_defaultValue, (float)(_defaultValue * 1.5f + 1 + _value));
+        }
     }
 
     public void RecruitBtnClicked()
@@ -255,7 +265,7 @@ public class LobbyScenario : MonoBehaviour
     {
         _speech.SetActive(false);
     }
-    public void DepartSelect(bool _depart)
+    public async void DepartSelect(bool _depart)
     {
         switch (_depart)
         {
@@ -266,8 +276,8 @@ public class LobbyScenario : MonoBehaviour
                 }
                 else
                 {
-                    GameManager.gameManager.FromCandidateToFriendly(selected);
-                    SceneManager.LoadScene("Map");
+                    await FromCandidateToFriendly(selected);
+                    SceneManager.LoadScene("Stage0");
                 }
                 break;
             case false:
@@ -289,15 +299,15 @@ public class LobbyScenario : MonoBehaviour
         panelRayBlock.SetActive(false);
 
     }
-    public void GuildSet(int _index, int _value)
+    public void GuildSet()
     {
         panelUpgrade.transform.GetChild(0).GetChild(1).GetComponent<TMP_Text>().text = string.Format("{0}", GameManager.gameManager.fame);
         DocumentReference docRef = FirebaseFirestore.DefaultInstance.Collection("User").Document(GameManager.gameManager.Uid);
         FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
         {
-            DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Guild_" + _index, _value);
-            DataManager.dataManager.SetDocumentData("User", GameManager.gameManager.Uid, "Fame", GameManager.gameManager.fame);
-            return System.Threading.Tasks.Task.CompletedTask;
+            DataManager.dataManager.SetDocumentData( "Guild", DataManager.dataManager.ConvertToObjDictionary(GameManager.gameManager.guildLevelDict), "User", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData( "Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.Uid);
+            return Task.CompletedTask;
         });
     }
     public void OnCandidateClicked(RecruitCandidate _clickedCandidate)
@@ -305,21 +315,22 @@ public class LobbyScenario : MonoBehaviour
         if(focusedCandidate)
         focusedCandidate.transform.GetChild(1).GetChild(0).GetComponent<Animator>().enabled = false;
         focusedCandidate = _clickedCandidate;
-        for (int i = 0; i < focusedCandidate.info.talents.Count; i++)
+        for (int i = 0; i < focusedCandidate.candiInfo.talents.Count; i++)
         {
             talentObjects[i].SetActive(true);
-            talentObjects[i].GetComponent<Image>().color = GameManager.talentColors[focusedCandidate.info.talents[i].level];
-            talentObjects[i].transform.GetChild(0).GetComponent<TMP_Text>().text = focusedCandidate.info.talents[i].name[GameManager.language];
+            talentObjects[i].GetComponent<Image>().color = GameManager.talentColors[focusedCandidate.candiInfo.talents[i].level];
+            talentObjects[i].transform.GetChild(0).GetComponent<TMP_Text>().text = focusedCandidate.candiInfo.talents[i].name[GameManager.language];
         }
-        for (int i = focusedCandidate.info.talents.Count; i < 3; i++)
+        for (int i = focusedCandidate.candiInfo.talents.Count; i < 3; i++)
         {
             talentObjects[i].SetActive(false);
         }
-        panelInfo.transform.GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.info.name;
-        panelInfo.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.info.ability.ToString();
-        panelInfo.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.info.hp.ToString();
-        panelInfo.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.info.resist.ToString();
-
+        //선택된 후보 능력치 표시
+        panelInfo.transform.GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.candiInfo.name;
+        panelInfo.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.candiInfo.ability.ToString("F0");
+        panelInfo.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.candiInfo.hp.ToString("F0");
+        panelInfo.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.candiInfo.resist.ToString("F1");
+        panelInfo.transform.GetChild(1).GetChild(3).GetChild(0).GetComponent<TMP_Text>().text = _clickedCandidate.candiInfo.speed.ToString("F1");
         panelRecruit.transform.GetChild(2).GetChild(1).GetChild(0).GetComponent<TMP_Text>().text = texts[textAbility][GameManager.language];
         panelRecruit.transform.GetChild(2).GetChild(1).GetChild(2).GetComponent<TMP_Text>().text = texts[textResist][GameManager.language];
         foreach (var x in candidates)
@@ -343,6 +354,7 @@ public class LobbyScenario : MonoBehaviour
             panelInfo.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = "-";
             panelInfo.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>().text = "-";
             panelInfo.transform.GetChild(1).GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = "-";
+            panelInfo.transform.GetChild(1).GetChild(3).GetChild(0).GetComponent<TMP_Text>().text = "-";
             x.objectButton.SetActive(false);
         }
     }
@@ -355,9 +367,9 @@ public class LobbyScenario : MonoBehaviour
     }
     private void LanguageChange1(Language _language)
     {
-        for (int i = 0; i < focusedCandidate.info.talents.Count; i++)
+        for (int i = 0; i < focusedCandidate.candiInfo.talents.Count; i++)
         {
-            TalentStruct talent = focusedCandidate.info.talents[i];
+            TalentStruct talent = focusedCandidate.candiInfo.talents[i];
             talentObjects[i].transform.GetChild(0).GetComponent<TMP_Text>().text = talent.name[_language];
         }
     }
@@ -372,7 +384,7 @@ public class LobbyScenario : MonoBehaviour
     public void EnterTalentObject(int _index)
     {
         talentExplain.SetActive(true);
-        TalentStruct talent = focusedCandidate.info.talents[_index];
+        TalentStruct talent = focusedCandidate.candiInfo.talents[_index];
         if (talent.effects == null)
         {
             talentExplain.transform.GetChild(0).GetComponent<TMP_Text>().text = talent.explain[GameManager.language];
@@ -399,5 +411,38 @@ public class LobbyScenario : MonoBehaviour
     public void ExitTalentObject()
     {
         talentExplain.SetActive(false);
+    }
+    public async Task FromCandidateToFriendly(List<RecruitCandidate> _candidates)
+    {
+        List<RecruitCandidate> candidates = new(_candidates);
+        List<CharacterData> characterDataList = new();
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject friendlyObject = candidates[i].transform.GetChild(1).gameObject;
+            int gridIndex = i + 3;
+            friendlyObject.transform.SetParent(BattleScenario.FriendlyGrids[gridIndex].transform);
+            FriendlyScript friendlyScript = friendlyObject.gameObject.AddComponent<FriendlyScript>();
+            Dictionary<string, object> characterField = new();
+            characterField.Add("Ability", candidates[i].candiInfo.ability);
+            characterField.Add("Hp", candidates[i].candiInfo.hp + "/" + candidates[i].candiInfo.hp);
+            characterField.Add("Index", gridIndex);
+            characterField.Add("Resist", candidates[i].candiInfo.resist);
+            characterField.Add("Skill_0", string.Empty);
+            characterField.Add("Skill_1", string.Empty);
+            characterField.Add("Speed", candidates[i].candiInfo.speed);
+            string docId = await DataManager.dataManager.SetDocumentData(characterField, string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"));
+            
+            friendlyScript.InitFriendly(docId);
+            characterDataList.Add(new CharacterData(docId, candidates[i].candiInfo.hp, candidates[i].candiInfo.hp, candidates[i].candiInfo.ability, candidates[i].candiInfo.resist, candidates[i].candiInfo.speed,gridIndex, new string[2]));
+            
+            BattleScenario.friendlies.Add(friendlyScript);
+            friendlyObject.transform.localPosition = Vector3.zero;
+            friendlyObject.transform.localScale = Vector3.one;
+            friendlyObject.transform.GetChild(0).GetComponent<Animator>().enabled = true;
+
+        }
+        CharacterManager.characterManager.SetCharacters(characterDataList);
+        candidates.Clear();
+        selected.Clear();
     }
 }

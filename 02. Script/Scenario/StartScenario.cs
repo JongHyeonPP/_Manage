@@ -1,8 +1,11 @@
 using EnumCollection;
+using Firebase.Firestore;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class StartScenario : MonoBehaviour
 {
@@ -56,21 +59,24 @@ public class StartScenario : MonoBehaviour
                             { Language.Ko, "게임 종료" },
                             { Language.En, "Exit" }
                         }
-                    },{
+                    },
+                    {
                         textEasy,
                         new()
                         {
                             { Language.Ko, "쉬움" },
                             { Language.En, "Easy" }
                         }
-                    },{
+                    },
+                    {
                         textNormal,
                         new()
                         {
                             { Language.Ko, "보통" },
                             { Language.En, "Normal" }
                         }
-                    },{
+                    },
+                    {
                         textHard,
                         new()
                         {
@@ -86,8 +92,19 @@ public class StartScenario : MonoBehaviour
     {
         panelDifficultySelect.gameObject.SetActive(true);
     }
-    public void DifficultySelect(int i)
+    public async void DifficultySelect(int i)
     {
+        //New Game
+        List<DocumentSnapshot> restDoc = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"));
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async Transaction =>
+        {
+            GameManager.gameManager.NewGame();
+            foreach (DocumentSnapshot x in restDoc)
+            {
+                x.Reference.DeleteAsync();
+            }
+            return Task.CompletedTask;
+        });
         GameManager.gameManager.difficulty = (Difficulty)i;
         SceneManager.LoadScene("Lobby");
     }
@@ -110,4 +127,5 @@ public class StartScenario : MonoBehaviour
             keyValue.Key.text = keyValue.Value[_language];
         }
     }
+    public void ActiveLoadBtn(bool _isActive) => canvasStart.GetChild(0).GetChild(1).GetComponent<Button>().enabled = _isActive;
 }

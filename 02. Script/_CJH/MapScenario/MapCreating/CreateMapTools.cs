@@ -170,10 +170,21 @@ internal static class CreateMapTools
                     //dir += size;
                     dir += GetRandomPointInCircle(new Vector2(values.coefX, values.coefY));
 
+<<<<<<<< HEAD:02. Script/_CJH/MapScenario/MapCreating/CreateMapTools.cs
                     InstantSprite(Object.Instantiate(values.bgPrefabList_new[0].GetGameObj_byRandom()).transform, dir);
+========
+                    InstantSprite(Object.Instantiate(values.bgPrefabList[index]).transform, dir);
+>>>>>>>> origin/main:02. Script/_CJH/MapScenario/GUI_Set/MapCreating/CreateMapTools.cs
                 }
             }
+            /*
+            //( -1, 1 ) -> ( -1 , 1 )
+            Vector2 retouchV2(Vector2 inputV2)
+            {
+                inputV2.x = retouch(inputV2.x);
+                inputV2.y = retouch(inputV2.y);
 
+<<<<<<<< HEAD:02. Script/_CJH/MapScenario/MapCreating/CreateMapTools.cs
             /*
             //( -1, 1 ) -> ( -1 , 1 )
             Vector2 retouchV2(Vector2 inputV2)
@@ -183,6 +194,10 @@ internal static class CreateMapTools
 
                 return inputV2*values.coef_Outline;
 
+========
+                return inputV2*values.coef_Outline;
+
+>>>>>>>> origin/main:02. Script/_CJH/MapScenario/GUI_Set/MapCreating/CreateMapTools.cs
                 float retouch(float input)
                 {
                     return input;
@@ -240,7 +255,11 @@ internal static class CreateMapTools
                     //dir += size;
                     dir += GetRandomPointInCircle(new Vector2(values.coefX, values.coefY)) * 2;
 
+<<<<<<<< HEAD:02. Script/_CJH/MapScenario/MapCreating/CreateMapTools.cs
                     InstantSprite(Object.Instantiate(values.bgPrefabList_new[0].GetGameObj_byRandom()).transform, dir);
+========
+                    InstantSprite(Object.Instantiate(values.bgPrefabList[index]).transform, dir);
+>>>>>>>> origin/main:02. Script/_CJH/MapScenario/GUI_Set/MapCreating/CreateMapTools.cs
                 }
             }
         }
@@ -359,6 +378,11 @@ internal static class CreateMapTools
                         newDict.Add(kv.Key, kv.Value);
                         newList_DEBUG.Add(new Vector2Int(kv.Key, kv.Value));
                     }
+<<<<<<<< HEAD:02. Script/_CJH/MapScenario/MapCreating/CreateMapTools.cs
+========
+                    else
+                        Debug.Log("Cut Value - " + kv.Key);
+>>>>>>>> origin/main:02. Script/_CJH/MapScenario/GUI_Set/MapCreating/CreateMapTools.cs
                 }
 
                 cm._value.currIncountState = newDict;
@@ -514,7 +538,11 @@ internal static class CreateMapTools
 
     internal static void SetTerrain(this List<NodeScriptPerLevel> _data, Vector2Int _src, Vector2Int _dst)
     {
+<<<<<<<< HEAD:02. Script/_CJH/MapScenario/MapCreating/CreateMapTools.cs
         //Debug.Log("SetTerrain");
+========
+        Debug.Log("SetTerrain");
+>>>>>>>> origin/main:02. Script/_CJH/MapScenario/GUI_Set/MapCreating/CreateMapTools.cs
 
         Vector3 _srcTerrain = _data[_src.x].nodeTerrainData[_src.y];
         Vector3 _dstTerrain = _data[_dst.x].nodeTerrainData[_dst.y];
