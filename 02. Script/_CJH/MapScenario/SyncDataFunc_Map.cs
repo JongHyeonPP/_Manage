@@ -5,11 +5,11 @@ static public class SyncDataFunc_Map
     static public void SetMapData_History(this GameManager gameManager, string _history)
     {
         int _nodeLevel = _history.Split('/').Length - 1;
-
+        /*
         if (gameManager != null)
             gameManager.history = _history;
         else
-            Debug.Log(_nodeLevel +"_ "+ _history + " <<< Try to Set History");
+            Debug.Log(_nodeLevel +"_ "+ _history + " <<< Try to Set History");*/
         //DataManager.dataManager.SetDocumentData("NodeLevel", 노드레벨값, "Progress", GameManager.gameManager.Uid);
 
         gameManager.SetMapData_NodeLevel(_nodeLevel);

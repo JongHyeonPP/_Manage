@@ -131,15 +131,12 @@ public class CreateStageScenario : MonoBehaviour
             createBackGroundSector.InitSettingEventPos(treeData, input,ref task);
 
         task += () => createBackGroundSector.FillEnv();
-<<<<<<<< HEAD:02. Script/_CJH/MapScenario/MapCreating/CreateStageScenario.cs
     }
 
     public int GetIndex_atCurrFocusing()
     {
         Vector2Int temp = createBackGroundSector.focusingNode;
         return createBackGroundSector.eventObjectList[temp.x].eventIndex[temp.y];
-========
->>>>>>>> origin/main:02. Script/_CJH/MapScenario/GUI_Set/MapCreating/CreateStageScenario.cs
     }
 }
 

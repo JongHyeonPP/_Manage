@@ -12,8 +12,6 @@ public class TouchableNode : MonoBehaviour
 
 
 
-
-
     public void Setting(int _index, MapScenario.OnClickFunc _onClick)
     {
         coll = transform.AddComponent<BoxCollider2D>();

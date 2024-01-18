@@ -43,11 +43,8 @@ internal static class CreateStageScenarioTools
             Transform targetTrans = currSelectable[i].transform;
             if(targetTrans != createBackGroundSector.GetFocusTransform())
                 targetTrans.GetComponent<NodeController>().TurnOffFunc();
-<<<<<<<< HEAD:02. Script/_CJH/MapScenario/MapCreating/CreateStageScenarioTools.cs
             else
                 targetTrans.GetComponent<NodeController>().ActiveFocsed();
-========
->>>>>>>> origin/main:02. Script/_CJH/MapScenario/GUI_Set/MapCreating/CreateStageScenarioTools.cs
 
             currSelectable[i].Destroy();
         }
