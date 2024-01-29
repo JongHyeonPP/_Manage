@@ -50,7 +50,8 @@ public class GameManager : MonoBehaviour
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
     EventTrigger eventTrigger;
     public int nodeLevel = 0;
-    public string scene; 
+    public string scene;
+    public string history;
     void Awake()//매니저 세팅은 Awake
     {
 
@@ -89,7 +90,7 @@ public class GameManager : MonoBehaviour
         {
             guildDict = new();
         }
-        fame = GetFloatValue(userDoc, "Fame");
+        fame = GetFloatValue(userDoc["Fame"]);
         bool needToSet = false;
         
         foreach (KeyValuePair<string, GuildClass> kvp in LoadManager.loadManager.guildDict)
@@ -142,7 +143,6 @@ public class GameManager : MonoBehaviour
                 break;
             case "Battle":
                 battleScenario = scenarioObject.GetComponent<BattleScenario>();
-                DataManager.dataManager.SetDocumentData("Scene", "Battle", "Progress", Uid);
                 break;
             case "Lobby":
                 lobbyScenario = scenarioObject.GetComponent<LobbyScenario>();
@@ -236,6 +236,10 @@ public class GameManager : MonoBehaviour
             return Task.CompletedTask;
         });
     }
+    private async Task LoadInventory()
+    {
+     
+    }
     private async Task LoadFriendly()
     {
         foreach (var x in BattleScenario.FriendlyGrids)
@@ -247,21 +251,24 @@ public class GameManager : MonoBehaviour
         foreach (DocumentSnapshot snapShot in friendlyDocs)
         {
             Dictionary<string, object> tempDict = snapShot.ToDictionary();
+            object obj;
             float ability;
             string hpValue;
             float resist;
             float speed;
-            if (tempDict.ContainsKey("Ability"))
+            string[] skillNames = new string[2];
+            string[] weaponNames = new string[2]; //Right, Left
+            if (tempDict.TryGetValue("Ability", out obj))
             {
-                ability = GetFloatValue(tempDict, "Ability");
+                ability = GetFloatValue(obj);
             }
             else
             {
                 ability = 0;
             }
-            if (tempDict.ContainsKey("Hp"))
+            if (tempDict.TryGetValue("Hp", out obj))
             {
-                hpValue = (string)tempDict["Hp"];
+                hpValue = (string)obj;
             }
             else
             {
@@ -269,37 +276,42 @@ public class GameManager : MonoBehaviour
             }
             float hp = float.Parse(hpValue.Split('/')[0]);
             float maxHp = float.Parse(hpValue.Split('/')[1]);
-            if (tempDict.ContainsKey("Resist"))
+            if (tempDict.TryGetValue("Resist", out obj))
             {
-                resist = GetFloatValue(tempDict, "Resist");
+                resist = GetFloatValue(obj);
             }
             else
             {
                 resist = 0;
             }
-            if (tempDict.ContainsKey("Speed"))
+            if (tempDict.TryGetValue("Speed", out obj))
             {
-                speed = GetFloatValue(tempDict, "Speed");
+                speed = GetFloatValue(obj);
             }
             else
             {
                 speed = 1f;
             }
-            string[] skillNames = new string[2];
             for (int i = 0; i < 2; i++)
             {
-                if (tempDict.TryGetValue(string.Format("Skill_{0}", i), out object valueObj))
+                if (tempDict.TryGetValue(string.Format("Skill_{0}", i), out obj))
                 {
-                    skillNames[i] =((string)valueObj);
+                    skillNames[i] =((string)obj);
                 }
             }
-
+            if(tempDict.TryGetValue("Weapon_R", out obj))
+            {
+                weaponNames[0] = (string)obj;
+            }
+            if (tempDict.TryGetValue("Weapon_L", out obj))
+            {
+                weaponNames[1] = (string)obj;
+            }
             ObjectGrid _grid = BattleScenario.FriendlyGrids[(int)(long)tempDict["Index"]];
-            InitFriendlyObject(snapShot.Id, skillNames, _grid);
-
-            CharacterData characterData = new(snapShot.Id, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], skillNames);
+            string jobId = GetJobId(skillNames);
+            InitFriendlyObject(snapShot.Id, jobId, _grid);
+            CharacterData characterData = new(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], skillNames, weaponNames);
             characterDataDict.Add(characterData);
-
         }
         CharacterManager.characterManager.SetCharacters(characterDataDict);
     }
@@ -332,10 +344,10 @@ public class GameManager : MonoBehaviour
         else
             return "000";
     }
-    public void InitFriendlyObject(string _docId, string[] _skillNames, ObjectGrid _grid)
+    public void InitFriendlyObject(string _docId,string _jobId, ObjectGrid _grid)
     {
-        string jobId = GetJobId(_skillNames);
-        GameObject friendlyObject = InitCharacterObject(_grid, false, jobId);
+
+        GameObject friendlyObject = InitCharacterObject(_grid, false, _jobId);
         FriendlyScript friendlyScript = friendlyObject.AddComponent<FriendlyScript>();
         friendlyScript.InitFriendly(_docId);
         BattleScenario.friendlies.Add(friendlyScript);
@@ -393,12 +405,13 @@ public class GameManager : MonoBehaviour
         rectTransform.localScale = new Vector2(1, 1);
         return characterObject;
     }
-    static float GetFloatValue(Dictionary<string, object> _dict, string _field)
+
+    float GetFloatValue(object _obj)
     {
-        if (_dict[_field] is long)
-            return (long)_dict[_field];
+        if (_obj is long)
+            return (int)(long)_obj;
         else
-            return (float)(double)_dict[_field];
+            return (float)(double)_obj;
     }
     private static string AddZero(int _num)
     {
@@ -425,8 +438,8 @@ public class GameManager : MonoBehaviour
         canvasGrid.gameObject.SetActive(false);
         uiCamera.SetActive(false);
         scene = null;
-        SceneManager.LoadScene("Start");
         progressDoc = null;
+
     }
     public void InitSeed()
     {
@@ -434,5 +447,14 @@ public class GameManager : MonoBehaviour
         Random.InitState(seed);
         DataManager.dataManager.SetDocumentData("Seed", seed, "Progress", Uid);
         Debug.Log("Seed : " + seed);
+    }
+    [ContextMenu("ChangeTest")]
+    public void ChangeTest()
+    {
+        List<string> temp = CharacterManager.characterManager.GetCharacter(0).ChangeWeapon(0, "rninQtNgoycJzwOfBoew");
+        foreach (string x in temp)
+        {
+            Debug.Log("id : " + x);
+        }
     }
 }

@@ -113,7 +113,7 @@ public class ObjectGrid : MonoBehaviour
     internal void OnGridPointerDown()
     {
         if (!owner) return;
-        if (GameManager.battleScenario.battlePatern == BattlePatern.Battle)
+        if (BattleScenario.battlePatern == BattlePatern.Battle)
         {
             if (GameManager.battleScenario.moveGauge < 10f) return;
             GameManager.battleScenario.moveGauge = 0f;

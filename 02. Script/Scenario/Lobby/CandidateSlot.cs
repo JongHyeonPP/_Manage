@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using TMPro;
 using LobbyCollection;
 
-public class RecruitCandidate : MonoBehaviour
+public class CandidateSlot : MonoBehaviour
 {
 
     private Transform transformCandidate;

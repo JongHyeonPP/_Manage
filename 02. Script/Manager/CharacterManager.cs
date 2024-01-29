@@ -7,9 +7,8 @@ using System.Linq;
 
 public class CharacterManager : MonoBehaviour
 {
-    [SerializeField]private List<CharacterData> characterDataList;//DocId는 내부에 존재
+    [SerializeField] private List<CharacterData> characterDataList;//DocId는 내부에 존재
     public static CharacterManager characterManager;
-
     private void Awake()
     {
         characterDataList = new();

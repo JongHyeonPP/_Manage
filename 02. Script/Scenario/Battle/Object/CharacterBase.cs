@@ -22,7 +22,7 @@ abstract public class CharacterBase : MonoBehaviour
             float hpUpper = (hp + armor > maxHpInBattle) ? hp + armor : maxHpInBattle;
             hpBar.fillAmount = hp / hpUpper;
             armorBar.fillAmount = (hp + armor) / hpUpper;
-            if (hp <= 0 && !isDead)
+            if (hp <= 0 && !isDead && BattleScenario.battlePatern == BattlePatern.Battle)
                 OnDead();
         }
     }
@@ -35,11 +35,13 @@ abstract public class CharacterBase : MonoBehaviour
     public float armor = 0f;
     public bool isDead;
     public List<Skill> skills;
+    public List<WeaponClass> weapons;
     private Skill defaultAttack;
     public GameObject hpObject;
     public Image hpBar;
     public Image armorBar;
-    public Dictionary<EffectType, float> TempEffects { get; private set; } = new();//전투동안 지속되는 효과
+    public Dictionary<EffectType, float> TempEffects = new();//전투동안 지속되는 효과
+    public Dictionary<EffectType, float> EffectsByAtt = new();//대미지를 입히면 적용시키는 효과, 비중첩
     public CharacterBase targetOpponent;
     public CharacterBase targetAlly;
     public bool IsEnemy { get; protected set; }
@@ -49,7 +51,12 @@ abstract public class CharacterBase : MonoBehaviour
     private List<EffectPassiveFormDot> passiveAtDotOpponent = new();
     private List<EffectPassiveFormDot> passiveAtDotAlly = new();
     protected Animator animator;
-    public Coroutine skillQueueCor;
+    public ObjectGrid grid;
+    private Coroutine moveCoroutine;
+    private readonly float ARRIVAL_TIME = 2f;
+    public SpriteRenderer[] weaponRenderer = new SpriteRenderer[2];//Right, Left
+    public SpriteRenderer[] shieldRenderer = new SpriteRenderer[2];//Right, Left
+    public abstract void SetAnimParam();
     public void InitCharacter()
     {
         hpObject = Instantiate(GameManager.gameManager.objectHpBar, transform);
@@ -60,16 +67,57 @@ abstract public class CharacterBase : MonoBehaviour
         armorBar = transform.GetChild(1).GetChild(0).GetComponent<Image>();
         animator = transform.GetChild(0).GetComponent<Animator>();
         defaultAttack = new Skill();
+        Transform armSet = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(3);
+        weaponRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
+        weaponRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
+        shieldRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
+        shieldRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
     }
-    public abstract void SetAnimParam();
-    public ObjectGrid grid;
-    private Coroutine moveCoroutine;
-    private readonly float ARRIVAL_TIME = 2f;
+    public void InBattleFieldZero()
+    {
+        abilityInBattle = maxHpInBattle = resistInBattle = speedInBattle = 0f;
+    }
+    public float CalcEffectValueByType(float calcValue, EffectType _type)
+    {
+        switch (_type)//Value 보정값 설정
+        {
+            case EffectType.Damage:
+                calcValue += GetRegularValue(EffectType.Enchant);
+                float incrementValue = GetRegularValue(EffectType.AttAscend) - GetRegularValue(EffectType.AttDescend);
+                calcValue *= Mathf.Max(1 + incrementValue, 0);
+                if (GameManager.CalculateProbability(GetRegularValue(EffectType.Critical)))
+                {
+                    //치명타 판정
+                    calcValue *= 2;
+                }
+                break;
+            case EffectType.Bleed:
+                calcValue *= 1 + GetRegularValue(EffectType.AttAscend);
+                calcValue *= 1 - GetRegularValue(EffectType.AttDescend);
+                break;
+            case EffectType.Heal:
+                calcValue *= 1 + GetRegularValue(EffectType.HealAscend);
+                calcValue *= 1 + GetRegularValue(EffectType.ResilienceAscend);
+                break;
+
+            case EffectType.AttAscend:
+            case EffectType.ResistAscend:
+            case EffectType.Enchant:
+                calcValue *= 1 + GetRegularValue(EffectType.BuffAscend);
+                break;
+            case EffectType.AttDescend:
+            case EffectType.ResistDescend:
+                calcValue *= 1 + GetRegularValue(EffectType.DebuffAscend);
+                break;
+        }
+
+        return calcValue;
+    }
     public void MoveToTargetGrid(ObjectGrid _grid, bool _isInstant = false)
     {
         bool isInstant;
         if (!_isInstant)
-            isInstant = (grid == _grid) || GameManager.battleScenario.battlePatern == BattlePatern.OnReady;
+            isInstant = (grid == _grid) || BattleScenario.battlePatern == BattlePatern.OnReady;
         else
             isInstant = true;
         float distance = Mathf.Abs(grid.index / 3 - _grid.index / 3) + Mathf.Abs(grid.index % 3 - _grid.index % 3);
@@ -163,91 +211,95 @@ abstract public class CharacterBase : MonoBehaviour
     {
         Hp -= GetRegularValue(EffectType.Bleed);
     }
-    void ApplyValue(float _value, EffectType _effectType)
+    void ApplyValue(float _value, EffectType _effectType, bool _byAtt= false)
     {
-        switch (_effectType)
+        if (_byAtt)
         {
-            default:
-                if (!TempEffects.ContainsKey(_effectType))
-                {
-                    TempEffects.Add(_effectType, new());
-                }
-                TempEffects[_effectType] += _value;
-                break;
-            case EffectType.Necro:
-            case EffectType.BleedTransfer:
-                if (!TempEffects.ContainsKey(_effectType))
-                {
-                    TempEffects.Add(_effectType, new());
-                }
-                TempEffects[_effectType] = Mathf.Max(TempEffects[_effectType], _value);
-                break;
-            case EffectType.Damage:
-                float temp = armor - _value;
-                if (temp < 0)
-                {
-                    armor = 0f;
-                    Hp += temp;
-                }
-                else
-                {
-                    armor = temp;
-                }
-                break;
-            case EffectType.Curse:
-                hp -= _value;
-                break;
-            case EffectType.Heal:
-                Debug.Log(_value + " : " + _effectType);
-                Hp = Mathf.Min(Hp + _value, maxHpInBattle);
-                break;
-            case EffectType.Armor:
-                armor += _value;
-                break;
-            case EffectType.AbilityVamp:
-                abilityInBattle -= _value * abilityInBattle;
-                Debug.Log("피격자 : " + abilityInBattle);
-                break;
-            case EffectType.Restoration:
-                Hp += (maxHpInBattle - Hp) * _value;
-                break;
-            case EffectType.AbilityAscend:
-                abilityInBattle *= 1 + _value;
-                break;
+            if (!EffectsByAtt.ContainsKey(_effectType))
+            {
+                EffectsByAtt.Add(_effectType, new());
+            }
+            EffectsByAtt[_effectType] += _value;
+        }
+        else
+        {
+            if (this is FriendlyScript)
+                Debug.Log(_effectType + " : " + _value);
+            switch (_effectType)
+            {
+                default:
+                    if (!TempEffects.ContainsKey(_effectType))
+                    {
+                        TempEffects.Add(_effectType, new());
+                    }
+                    TempEffects[_effectType] += _value;
+                    break;
+                case EffectType.Necro:
+                case EffectType.BleedTransfer:
+                case EffectType.CorpseExplo:
+                    if (!TempEffects.ContainsKey(_effectType))
+                    {
+                        TempEffects.Add(_effectType, new());
+                    }
+                    TempEffects[_effectType] = Mathf.Max(TempEffects[_effectType], _value);
+                    break;
+                case EffectType.Damage:
+                    float temp = armor - _value;
+                    if (temp < 0)
+                    {
+                        armor = 0f;
+                        Hp += temp;
+                    }
+                    else
+                    {
+                        armor = temp;
+                    }
+                    break;
+                case EffectType.Curse:
+                    hp -= _value;
+                    break;
+                case EffectType.Heal:
+                    Debug.Log(_value + " : " + _effectType);
+                    Hp = Mathf.Min(Hp + _value, maxHpInBattle);
+                    break;
+                case EffectType.Armor:
+                    armor += _value;
+                    break;
+                case EffectType.AbilityVamp:
+                    abilityInBattle -= _value * abilityInBattle;
+                    Debug.Log("피격자 : " + abilityInBattle);
+                    break;
+                case EffectType.Restoration:
+                    Hp += (maxHpInBattle - Hp) * _value;
+                    break;
+                case EffectType.AbilityAscend:
+                    abilityInBattle *= 1 + _value;
+                    break;
 
-            case EffectType.ResistAscend:
-                resistInBattle += _value;
-                break;
-            case EffectType.ResistDescend:
-                resistInBattle -= _value;
-                break;
-            case EffectType.SpeedAscend:
-                speedInBattle *= 1 + _value;
-                break;
-            case EffectType.SpeedDescend:
-                speedInBattle *= Mathf.Max(1 - _value, 0.1f);
-                break;
+                case EffectType.ResistAscend:
+                    resistInBattle += _value * (1+GetRegularValue(EffectType.ResistAscend_P));
+                    break;
+                case EffectType.ResistDescend:
+                    resistInBattle -= _value;
+                    break;
+                case EffectType.SpeedAscend:
+                    speedInBattle *= 1 + _value;
+                    break;
+                case EffectType.SpeedDescend:
+                    speedInBattle *= Mathf.Max(1 - _value, 0.1f);
+                    break;
+                case EffectType.RewardAscend:
+                    GameManager.battleScenario.RewardAscend += _value;
+                    break;
+            }
         }
     }
     protected IEnumerator OnDead_Base()
     {
-        Debug.Log("OnDead");
         animator.SetTrigger("Die");
         isDead = true;
         NewTargetForOther();
-        float bleedTransfer = GetRegularValue(EffectType.BleedTransfer);
-        if (bleedTransfer > 0)
-        {
-            List<CharacterBase> characters = new();
-            foreach (var character in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
-            {
-                if (character != this)
-                    characters.Add(character);
-            }
-            CharacterBase target = characters[Random.Range(0, characters.Count)];
-            target.ApplyValue(GetRegularValue(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
-            Debug.Log("BleedTransfer : " + target.grid.index);
-        }
+
 
 
 
@@ -261,6 +313,32 @@ abstract public class CharacterBase : MonoBehaviour
                 ally.TempEffects.Remove(EffectType.Revive);
                 ReviveMethod(value);
                 yield break;
+            }
+        }
+        float bleedTransfer = GetRegularValue(EffectType.BleedTransfer);
+        List<CharacterBase> characters = new();
+        if (bleedTransfer > 0)
+        { 
+            foreach (var character in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
+            {
+                if (character != this)
+                    characters.Add(character);
+            }
+            CharacterBase target = characters[Random.Range(0, characters.Count)];
+            target.ApplyValue(GetRegularValue(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
+            Debug.Log("BleedTransfer : " + target.grid.index);
+        }
+        float exploValue = GetRegularValue(EffectType.CorpseExplo);
+        characters = new(IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies);
+        if (exploValue>0)
+        {
+            foreach (CharacterBase character in characters)
+            {
+                if (character != this)
+                {
+                    character.ApplyValue(maxHpInBattle * exploValue, EffectType.Damage);
+                    Debug.Log("Explo : " + maxHpInBattle * exploValue);
+                }
             }
         }
         float necro = GetRegularValue(EffectType.Necro);
@@ -280,8 +358,8 @@ abstract public class CharacterBase : MonoBehaviour
                 {
                     passive.UnsetPassiveEffect();
                 }
-                StopCoroutine(skillQueueCor);
-                skillQueueCor = StartCoroutine(new SkillActiveForm(this, defaultAttack).StartQueueCycle());
+                StopAllCoroutines();
+                StartCoroutine(new SkillActiveForm(this, defaultAttack).StartQueueCycle());
                 ReviveMethod(necro);
                 Vector3 temp = transform.GetChild(0).rotation.eulerAngles;
                 temp.y += 180f;
@@ -325,8 +403,9 @@ abstract public class CharacterBase : MonoBehaviour
 
 
 
-    public IEnumerator SetSkillsWithBattle()
+    public IEnumerator SetSkillsAndStart()
     {
+        List<SkillActiveForm> skillActiveForms = new();
         List<Skill> skillsAndDa = new(skills);
         skillsAndDa.Add(defaultAttack);//기본 공격
         foreach (Skill skill in skillsAndDa)
@@ -339,7 +418,7 @@ abstract public class CharacterBase : MonoBehaviour
                     float value = effect.value;
                     if (!effect.isConst)
                         value *= abilityInBattle;
-
+                    value = CalcEffectValueByType(value, effect.type);
                     switch (effect.range)
                     {
                         case EffectRange.Dot:
@@ -361,7 +440,7 @@ abstract public class CharacterBase : MonoBehaviour
                             break;
                         case EffectRange.Self:
                             {
-                                ApplyValue(value, effect.type);
+                                ApplyValue(value, effect.type, effect.byAtt);
                             }
                             break;
                         default:
@@ -382,17 +461,24 @@ abstract public class CharacterBase : MonoBehaviour
             }
             if (skillActiveForm != null)
             {
-                skillQueueCor = StartCoroutine(skillActiveForm.StartQueueCycle());
+                skillActiveForms.Add(skillActiveForm);
             }
             yield return null;
         }
-
+        abilityInBattle += ability;
+        speedInBattle += speed;
+        resistInBattle += resist * (1 + GetRegularValue(EffectType.ResistAscend_P));
+        foreach (SkillActiveForm x in skillActiveForms)
+        {
+            StartCoroutine(x.StartQueueCycle());
+        }
     }
     public void FindNewTargetOpponent()
     {
         foreach (EffectPassiveFormDot passiveDot in passiveAtDotOpponent)
         {
-            passiveDot.DeapplyEffect(targetOpponent);
+            if (targetOpponent)
+                passiveDot.DeapplyEffect(targetOpponent);
         }
         List<CharacterBase> targetByColumn;
         int targetColumn;
@@ -453,8 +539,8 @@ abstract public class CharacterBase : MonoBehaviour
     {
         FindNewTargetAlly();
         FindNewTargetOpponent();
-        SetAnimParam();
-        StartCoroutine(SetSkillsWithBattle());
+        SetAnimParam(); 
+        StartCoroutine(SetSkillsAndStart());
     }
     public class EffectPassiveFormDot
     {
@@ -543,7 +629,7 @@ abstract public class CharacterBase : MonoBehaviour
             case EffectRange.Column:
                 targets = targetsBase.Where(item => item.grid.index % 3 == _target.grid.index % 3).ToList();
                 break;
-            case EffectRange.Back:
+            case EffectRange.Behind:
                 if (orderDir)
                     targets = targetsBase.Where(item => item.grid.index % 3 > _target.grid.index % 3).ToList();
                 else
@@ -556,7 +642,6 @@ abstract public class CharacterBase : MonoBehaviour
                     targets = targetsBase.Where(item => item.grid.index % 3 > _target.grid.index % 3).ToList();
                 break;
         }
-
         return targets;
     }
     public static List<ObjectGrid> GetGridsByRange(EffectRange _range, CharacterBase _target, bool _isTargetEnemy)
@@ -572,7 +657,7 @@ abstract public class CharacterBase : MonoBehaviour
             case EffectRange.Column:
                 targetGrids = gridsBase.Where(item => item.index % 3 == _target.grid.index % 3).ToList();
                 break;
-            case EffectRange.Back:
+            case EffectRange.Behind:
                 if (orderDir)
                     targetGrids = gridsBase.Where(item => item.index % 3 > _target.grid.index % 3).ToList();
                 else
@@ -717,36 +802,7 @@ abstract public class CharacterBase : MonoBehaviour
             if (!effect.isConst)
                 calcValue *= caster.abilityInBattle;
             List<CharacterBase> targets = GetTargetsByRange(effect.range, _target, isTargetEnemy);
-            switch (effect.type)//Value 보정값 설정
-            {
-                case EffectType.Damage:
-                    calcValue += caster.GetRegularValue(EffectType.Enchant);
-                    float incrementValue = caster.GetRegularValue(EffectType.AttAscend)- caster.GetRegularValue(EffectType.AttDescend);
-                    calcValue *= Mathf.Max(1 + incrementValue, 0);
-                    if (GameManager.CalculateProbability(caster.GetRegularValue(EffectType.Critical)))
-                    {
-                        //치명타 판정
-                        calcValue *= 2;
-                    }
-                    break;
-                case EffectType.Bleed:
-                    calcValue *= 1 + caster.GetRegularValue(EffectType.AttAscend);
-                    calcValue *= 1 - caster.GetRegularValue(EffectType.AttDescend);
-                    break;
-                case EffectType.Heal:
-                    calcValue *= 1 + caster.GetRegularValue(EffectType.HealAscend);
-                    break;
-
-                case EffectType.AttAscend:
-                case EffectType.ResistAscend:
-                case EffectType.Enchant:
-                    calcValue *= 1 + caster.GetRegularValue(EffectType.BuffAscend);
-                    break;
-                case EffectType.AttDescend:
-                case EffectType.ResistDescend:
-                    calcValue *= 1 + caster.GetRegularValue(EffectType.DebuffAscend);
-                    break;
-            }
+            calcValue = caster.CalcEffectValueByType(calcValue, effect.type);
             float calcTemp = calcValue;
 
             if (targets != null)
@@ -757,12 +813,19 @@ abstract public class CharacterBase : MonoBehaviour
                     switch (effect.type)
                     {
                         case EffectType.Damage://타겟에 대한 보정값
+                            //calcValue 
+                            float hpRatio = Mathf.Clamp01(1 - (target.hp / target.maxHpInBattle));
+                            hpRatio = 0.1f + 0.9f * hpRatio; // 0에서 1까지의 범위를 0.1에서 1로 이동
+                            calcValue *= 1f + hpRatio * caster.GetRegularValue(EffectType.AttAscend_Torment);
                             calcValue *= 1f / (1f + target.resistInBattle * 0.1f);
                             calcValue -= target.GetRegularValue(EffectType.Reduce);
                             calcValue = Mathf.Max(calcValue, 0);
+                            foreach (KeyValuePair<EffectType, float> kvp in caster.EffectsByAtt)
+                            {
+                                target.ApplyValue(kvp.Value, kvp.Key);
+                            }
                             break;
                         case EffectType.Curse:
-                            //Debug.Log(calcValue + ", " + target.hp);
                             calcValue *= target.hp;
                             break;
                     }
@@ -771,9 +834,10 @@ abstract public class CharacterBase : MonoBehaviour
             }
         }
 
+
+
         private IEnumerator RoopEffect(float calcValue, CharacterBase _target)
         {
-            
             for (int i = 0; i < effect.count; i++)
             {
                 //능력치 흡수
@@ -787,6 +851,7 @@ abstract public class CharacterBase : MonoBehaviour
                 if (effect.type == EffectType.Damage)
                 {
                     float vampValue = effect.vamp + caster.GetRegularValue(EffectType.Vamp);
+                    vampValue *= 1 + caster.GetRegularValue(EffectType.ResilienceAscend);
                     //흡수하는 채력
                     if (vampValue > 0)
                     {

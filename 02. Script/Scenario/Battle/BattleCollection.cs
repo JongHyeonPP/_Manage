@@ -81,7 +81,9 @@ namespace BattleCollection
             cooltime = 1.5f;
             isTargetEnemy = true;
             isAnim = true;
-            effects = new() { new SkillEffect().
+            effects = new()
+            {
+                new SkillEffect().
                 SetType(EffectType.Damage).
                 SetCount(1).
                 SetIsConst(false).
@@ -89,10 +91,23 @@ namespace BattleCollection
                 SetDelay(0.5f).
                 SetRange(EffectRange.Dot).
                 SetIsPassive(false).
-                SetVamp(0f)
+                SetVamp(0f).
+                SetByAtt(false)
             };
         }
+        public Skill(List<SkillEffect> _effects)
+        {
+            effects = new();
+            foreach (var jobEffect in _effects)
+            {
+                SkillEffect skillEffet = new();
+                skillEffet.SetIsConst(true).SetRange(EffectRange.Self).SetIsPassive(true).SetType(jobEffect.type).SetValue(jobEffect.value).SetByAtt(jobEffect.byAtt);
+                effects.Add(skillEffet);
+            }
+
+        }
     }
+    [Serializable]
     public class SkillEffect
     {
         public float value = 1f;
@@ -103,6 +118,7 @@ namespace BattleCollection
         public EffectRange range = EffectRange.Dot;
         public bool isPassive = false;
         public float vamp = 0f;
+        public bool byAtt = false;
         public SkillEffect SetValue(float _value)
         {
             value = _value;
@@ -143,37 +159,26 @@ namespace BattleCollection
             vamp = _vamp;
             return this;
         }
-    }
-    public class JobClass
-    {
-        public JobType jobType = JobType.None;
-        public Dictionary<Language, string> name = null;
-        public float hpCoef = 1f;
-        public float abilityCoef = 1f;
-        public float speedCoef = 1f;
-        public JobClass SetJobType(JobType _jobType)
+        public SkillEffect SetByAtt(bool _byAtt)
         {
-            jobType = _jobType;
+            byAtt = _byAtt;
             return this;
         }
+    }
+    [Serializable]
+    public class JobClass
+    {
+        public Dictionary<Language, string> name = null;
+
+        public List<SkillEffect> effects = new();
         public JobClass SetName(Dictionary<Language, string> _name)
         {
             name = _name;
             return this;
         }
-        public JobClass SetHpCoef(float _hpCoef)
+        public JobClass SetEffects(List<SkillEffect> _effects)
         {
-            hpCoef = _hpCoef;
-            return this;
-        }
-        public JobClass SetAbilityCoef(float _abilityCoef)
-        {
-            abilityCoef = _abilityCoef;
-            return this;
-        }
-        public JobClass SetSpeedCoef(float _speedCoef)
-        {
-            speedCoef = _speedCoef;
+            effects = _effects;
             return this;
         }
     }
@@ -232,4 +237,46 @@ namespace BattleCollection
         }
     }
 
+    public class WeaponClass
+    {
+        public string id;
+        public WeaponType type;
+        public WeaponGrade grade;
+        public List<SkillEffect> effects;
+        public float ability, hp, resist, speed;
+        public Sprite sprite;
+        public WeaponClass SetId(string _id)
+        {
+            id = _id;
+            return this;
+        }
+        public WeaponClass SetType(WeaponType _type)
+        {
+            type = _type;
+            return this;
+        }
+        public WeaponClass SetGrade(WeaponGrade _grade)
+        {
+            grade = _grade;
+            return this;
+        }
+        public WeaponClass SetStatus(float _ability, float _hp, float _resist, float _speed)
+        {
+            ability = _ability;
+            hp = _hp;
+            resist = _resist;
+            speed = _speed;
+            return this;
+        }
+        public WeaponClass SetEffects(List<SkillEffect> _effects )
+        {
+            effects = _effects;
+            return this;
+        }
+        public WeaponClass SetSprite(Sprite _sprite)
+        {
+            sprite = _sprite;
+            return this;
+        }
+    }
 }

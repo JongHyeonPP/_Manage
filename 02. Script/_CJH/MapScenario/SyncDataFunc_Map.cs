@@ -35,7 +35,7 @@ static public class SyncDataFunc_Map
         {
             case 0: return "Stage0";
             case 1: return "Shop";
-            case 2: return "Stage0"; // << Battle
+            case 2: return "Battle"; // << Battle
             default:
                 break;
         }

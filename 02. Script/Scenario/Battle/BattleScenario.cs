@@ -25,7 +25,8 @@ public class BattleScenario : MonoBehaviour
     #region UI
     public Transform canvasBattle;
     public Transform canvasTest;
-    public GameObject panelClear;
+    public Transform panelClear;
+    public Transform panelGameOver;
     public static readonly Color defaultGridColor = new(1f, 1f, 1f, 0.4f);
     public static readonly Color enemyGridColor = Color.red;
     public static readonly Color friendlyColor = Color.blue;
@@ -36,19 +37,22 @@ public class BattleScenario : MonoBehaviour
     public RectTransform rectFriendlyGroup;
     public bool isInFriendly;
     public static List<EffectType> buffOrDebuff;
-    public BattlePatern battlePatern;
+    public static BattlePatern battlePatern;
     public float moveGauge;
     private Coroutine regularEffectCor;
     public static List<ObjectGrid> FriendlyGrids { get; private set; } = new();
     public static List<ObjectGrid> EnemyGrids { get; private set; } = new();
+    public float RewardAscend = 0;
     public static readonly float gridCorrection = 20f;
     private void Awake()
     {
         friendlyGrids = FriendlyGrids;
         enemyGrids = EnemyGrids;
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
-        panelClear = canvasBattle.GetChild(0).gameObject;
-        panelClear.SetActive(false);
+        panelClear = canvasBattle.GetChild(1);
+        panelClear.gameObject.SetActive(false);
+        panelGameOver = canvasBattle.GetChild(2);
+        panelGameOver.gameObject.SetActive(false);
         texts =
                 new()
                 {
@@ -78,11 +82,28 @@ public class BattleScenario : MonoBehaviour
             canvasTest.gameObject.SetActive(true);
         rectFriendlyGroup = GameManager.gameManager.canvasGrid.GetChild(0).GetComponent<RectTransform>();
         GameManager.gameManager.uiCamera.SetActive(true);
-        FriendlyDataInit();
+
+        FriendlyDataInit();//Data->Base
+
         if (enemies.Count == 0)
         {
-            MakeEnemies(GameManager.gameManager.nodeLevel);
-            GameManager.gameManager.InitSeed();
+            string selectedCase = MakeEnemies(GameManager.gameManager.nodeLevel);
+            FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+            {
+                GameManager.gameManager.InitSeed();
+                DataManager.dataManager.SetDocumentData("EnemyCase", selectedCase, "Progress", GameManager.gameManager.Uid);
+                DataManager.dataManager.SetDocumentData("Scene", "Battle", "Progress", GameManager.gameManager.Uid);
+                return Task.CompletedTask;
+            });
+        }
+        foreach (CharacterBase x in friendlies)
+        {
+            if (x.Hp == 0)
+            {
+                x.Hp = 1f;
+                x.gameObject.SetActive(true);
+                x.isDead = false;
+            }
         }
     }
     public void OnGridPointerDown()
@@ -110,21 +131,47 @@ public class BattleScenario : MonoBehaviour
     internal void FriendlyDataInit()
     {
         List<CharacterData> characterDataList = CharacterManager.characterManager.GetCharacters();
-        foreach (var x in friendlies)
+        foreach (CharacterBase x in friendlies)
         {
             CharacterData characterData = characterDataList.FirstOrDefault(item => item.docId == x.documentId);
-            x.maxHp = x.maxHpInBattle = characterData.maxHp;
+            x.maxHp = x.maxHpInBattle = characterData.maxHp;//Hp만 우선적 init 나머지는 CharacterBase.SetSkillsAndStart()에서
+            x.ability = characterData.ability;
+            x.speed = characterData.speed;
+            x.resist = characterData.resist;
             x.Hp = characterData.hp;
-            x.ability = x.abilityInBattle = characterData.ability;
-            x.speed = x.speedInBattle = characterData.speed;
-            x.resist = x.resistInBattle = characterData.resist;
             x.skills = new();
+            x.job = LoadManager.loadManager.jobsDict[characterData.jobId];
+            x.skills.Add(new(x.job.effects));
             foreach (string skillName in characterData.skillNames)
             {
                 if (skillName.Length > 0)
                     x.skills.Add(GameManager.LocalizeSkill(skillName));
             }
-            
+            //Weapon
+            for (int i = 0; i < 2; i++)
+            {
+                LoadManager.loadManager.weaponDict.TryGetValue(characterData.weaponIds[i], out WeaponClass weaponClass);
+                if (characterData.weaponCurs[i] != characterData.weaponIds[i])//최근 무기와 일치하지 않다면
+                {
+                    x.shieldRenderer[i].sprite = x.weaponRenderer[i].sprite = null;//기존 무기를 해제한다.
+                    if (weaponClass != null)//새로 장착할 무기가 있다면
+                    {
+                        if (weaponClass.type == WeaponType.Shield)//방패 장착
+                        {
+                            x.shieldRenderer[i].sprite = weaponClass.sprite;
+                        }
+                        else//무기 장착
+                        {
+                            x.weaponRenderer[i].sprite = weaponClass.sprite;
+                        }
+                        
+                    }
+                    characterData.weaponCurs[i] = characterData.weaponIds[i];//갱신
+                }
+                if (weaponClass != null)
+                    if (weaponClass.effects != null)
+                        x.skills.Add(new(weaponClass.effects));
+            }
 
             x.grid = FriendlyGrids[characterData.index];
             x.MoveToTargetGrid(x.grid, true);
@@ -230,16 +277,11 @@ public class BattleScenario : MonoBehaviour
     public void StageClear()
     {
         Debug.Log("StageClear");
-        panelClear.SetActive(true);
+        panelClear.gameObject.SetActive(true);
         StartCoroutine(StopCoroutineInSecond());
         List<CharacterData> characters = CharacterManager.characterManager.GetCharacters();
-        foreach (CharacterData x in characters)
-        {
-            x.hp = friendlies.Where(item => item.documentId == x.docId).FirstOrDefault().Hp;
-        }
         foreach (CharacterBase x in friendlies)
         {
-            x.gameObject.SetActive(true);
             if (x.Hp == 0)
             {
                 x.Hp = 1f;
@@ -247,6 +289,11 @@ public class BattleScenario : MonoBehaviour
                 x.isDead = false;
             }
         }
+        foreach (CharacterData x in characters)
+        {
+            x.hp = friendlies.Where(item => item.documentId == x.docId).FirstOrDefault().Hp;
+        }
+
         foreach (CharacterBase x in enemies)
         {
             Destroy(x.gameObject, 1f);
@@ -271,8 +318,13 @@ public class BattleScenario : MonoBehaviour
     }
     public void ToMap()
     {
+        foreach (var x in friendlies)
+        {
+            x.InBattleFieldZero();
+        }
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         SceneManager.LoadScene("Stage0");
+
     }
     private IEnumerator MoveGaugeCor()
     {
@@ -294,12 +346,12 @@ public class BattleScenario : MonoBehaviour
         {
             x.StartBattle();
         }
-        canvasBattle.GetChild(1).gameObject.SetActive(false);
+        canvasBattle.GetChild(0).gameObject.SetActive(false);
         regularEffectCor = StartCoroutine(ActiveRegualrEffect());
         battlePatern = BattlePatern.Battle;
         StartCoroutine(MoveGaugeCor());
     }
-    private void MakeEnemies(int _nodeLevel)
+    private string MakeEnemies(int _nodeLevel)
     {
         var values = LoadManager.loadManager.enemyCaseDict;
         List<KeyValuePair<string, EnemyCase>> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel)).ToList();
@@ -314,7 +366,7 @@ public class BattleScenario : MonoBehaviour
             enemyScript.InitEnemy(enemyClass, grid);
             enemies.Add(enemyScript);
         }
-        DataManager.dataManager.SetDocumentData("EnemyCase", selectedCase.Key, "Progress", GameManager.gameManager.Uid);
+        return selectedCase.Key;
     }
     public static void ClearEnemy()
     {
@@ -345,9 +397,6 @@ public class BattleScenario : MonoBehaviour
         friendlies.Remove(x);
         Destroy(x.gameObject);
     }
-    [ContextMenu("ChangeTest")]
-    public void ChangeTest()
-    {
-        CharacterManager.characterManager.GetCharacter(0).ChangeSkill(1, "Sustain_0");
-    }
+    public void GoToStart() => SceneManager.LoadScene("Start");
+
 }

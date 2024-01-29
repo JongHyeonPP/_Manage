@@ -1,9 +1,5 @@
 namespace EnumCollection
 {
-    public enum JobType : byte
-    {
-        None, Tanker, Warrior, Ranger, Crusader, Thief, Witch
-    }
     public enum DataSection:byte
     {
         SoundSetting, Language
@@ -21,14 +17,17 @@ namespace EnumCollection
         //발동류
         Damage, Curse, Heal, Restoration, Armor, Bleed, AbilityVamp,
         //효과류
-        AttAscend, ResistAscend, HealAscend, BuffAscend, DebuffAscend, Reduce,
+        AttAscend, ResistAscend, HealAscend, DebuffAscend, Reduce,
         AttDescend,ResistDescend,SpeedAscend ,SpeedDescend,
         Confuse, BleedTransfer, Reflect, Paralyze, Necro,
         BarrierConv, Enchant, Repeat,
         DamageShare, AbilityAscend,
-        ResistByDamage, Vamp, 
-        Critical,Revive,
-        FameAscend, GoldAscend
+        ResistByDamage, Vamp, Critical, Revive,
+        FameAscend, GoldAscend,
+        //직업류
+        CorpseExplo, ResistAscend_P, BuffAscend, RewardAscend,
+        
+        AttAscend_Torment, ResilienceAscend
     }
     public enum GuildEffectType : byte
     {
@@ -37,7 +36,8 @@ namespace EnumCollection
     }
     public enum EffectRange : byte
     {
-        Dot, Row, Column, Back, Front, Self
+        Dot, Row, Column, Self,
+        Behind, Front
     }
     public enum EffectPrecon : byte
     {
@@ -66,5 +66,13 @@ namespace EnumCollection
     public enum Language:byte
     {
         Ko, En
+    }
+    public enum WeaponType : byte
+    {
+        Melee, Bow, Magic, Shield
+    }
+    public enum WeaponGrade : byte
+    {
+        Normal, Rare, Unique
     }
 }

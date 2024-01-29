@@ -16,6 +16,7 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
     public Dictionary<string, GuildClass> guildDict = new();
     public Dictionary<string, TalentFormStruct> talentDict = new();
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
+    public Dictionary<string, WeaponClass> weaponDict = new();
     private void Awake()
     {
         if (!loadManager)
@@ -32,7 +33,7 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
         if (!isInit)
         {
             await InitSkill();
-            await Task.WhenAll(InitJob(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc(), InitEnemyCase());
+            await Task.WhenAll(InitJob(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc(), InitEnemyCase(), InitWeapon());
             Debug.Log("FireStoreLoaded");
             isInit = true;
         }
@@ -142,71 +143,76 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
 
             skillsDict.Add(doc.Id, skillForm);
             
-            List<SkillEffect> InitEffect(string effectStr, Dictionary<string, object> _skillDict)
-            {
-                List<SkillEffect> effects = new();
-                foreach (object docDict in _skillDict[effectStr] as List<object>)
-                {
-                    SkillEffect effect = new();
-                    Dictionary<string, object> effectDict = docDict as Dictionary<string, object>;
-                    //Value
-                    object obj;
-                    if (effectDict.TryGetValue("Value", out obj))
-                        effect.SetValue(GetFloatValue(obj));
-                    //Count
-                    if (effectDict.TryGetValue("Count", out obj))
-                        effect.SetCount((int)(long)obj);
-                    //Range
-                    EffectRange range;
-                    if (effectDict.TryGetValue("Range", out obj))
-                    {
-                        switch (obj)
-                        {
-                            default:
-                                range = EffectRange.Dot;
-                                break;
-                            case "Self":
-                                range = EffectRange.Self;
-                                break;
-                            case "Row":
-                                range = EffectRange.Row;
-                                break;
-                            case "Column":
-                                range = EffectRange.Column;
-                                break;
-                            case "Behind":
-                                range = EffectRange.Back;
-                                break;
-                            case "Front":
-                                range = EffectRange.Front;
-                                break;
-                        }
-                        effect.SetRange(range);
-                    }
-                    //IsConst
-                    if (effectDict.TryGetValue("IsConst", out obj))
-                        effect.SetIsConst((bool)effectDict["IsConst"]);
-                    //Type
-                    EffectType type;
-                    type = ParseEffectType((string)effectDict["Type"]);
-                    effect.SetType(type);
-                    //Delay
-                    if (effectDict.TryGetValue("Delay", out obj))
-                        effect.SetDelay(GetFloatValue(obj));
-                    //IsPassive
-                    if (effectDict.TryGetValue("IsPassive", out obj))
-                        effect.SetIsPassive((bool)obj);
-                    //Vamp
-                    if (effectDict.TryGetValue("Vamp", out obj))
-                        effect.SetVamp(GetFloatValue(obj));
-                    //적용
-                    effects.Add(effect);
-                }
-                return effects;
-            }
+
         }
     }
-
+    List<SkillEffect> InitEffect(string _effectStr, Dictionary<string, object> _skillDict)
+    {
+        List<SkillEffect> effects = new();
+        if (!(_skillDict.TryGetValue(_effectStr, out object listObj)))
+            return null;
+        foreach (object docDict in listObj as List<object>)
+        {
+            SkillEffect effect = new();
+            Dictionary<string, object> effectDict = docDict as Dictionary<string, object>;
+            //Value
+            object obj;
+            if (effectDict.TryGetValue("Value", out obj))
+                effect.SetValue(GetFloatValue(obj));
+            //Count
+            if (effectDict.TryGetValue("Count", out obj))
+                effect.SetCount((int)(long)obj);
+            //Range
+            EffectRange range;
+            if (effectDict.TryGetValue("Range", out obj))
+            {
+                switch (obj)
+                {
+                    default:
+                        range = EffectRange.Dot;
+                        break;
+                    case "Self":
+                        range = EffectRange.Self;
+                        break;
+                    case "Row":
+                        range = EffectRange.Row;
+                        break;
+                    case "Column":
+                        range = EffectRange.Column;
+                        break;
+                    case "Behind":
+                        range = EffectRange.Behind;
+                        break;
+                    case "Front":
+                        range = EffectRange.Front;
+                        break;
+                }
+                effect.SetRange(range);
+            }
+            //IsConst
+            if (effectDict.TryGetValue("IsConst", out obj))
+                effect.SetIsConst((bool)effectDict["IsConst"]);
+            //Type
+            EffectType type;
+            type = ParseEffectType((string)effectDict["Type"]);
+            effect.SetType(type);
+            //Delay
+            if (effectDict.TryGetValue("Delay", out obj))
+                effect.SetDelay(GetFloatValue(obj));
+            //IsPassive
+            if (effectDict.TryGetValue("IsPassive", out obj))
+                effect.SetIsPassive((bool)obj);
+            //Vamp
+            if (effectDict.TryGetValue("Vamp", out obj))
+                effect.SetVamp(GetFloatValue(obj));
+            //ByAtt
+            if (effectDict.TryGetValue("ByAtt", out obj))
+                effect.SetByAtt(((bool)obj));
+            //적용
+            effects.Add(effect);
+        }
+        return effects;
+    }
     private static EffectType ParseEffectType(string _typeName)
     {
         EffectType type;
@@ -296,16 +302,30 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             case "Critical":
                 type = EffectType.Critical;
                 break;
-            case "BuffAscend":
-                type = EffectType.BuffAscend;
-                break;
             case "DebuffAscend":
                 type = EffectType.DebuffAscend;
                 break;
             case "HealAscend":
                 type = EffectType.HealAscend;
                 break;
-
+            case "CorpseExplo":
+                type = EffectType.CorpseExplo;
+                break;
+            case "ResistAscend_P":
+                type = EffectType.ResistAscend_P;
+                break;
+            case "BuffAscend":
+                type = EffectType.BuffAscend;
+                break;
+            case "RewardAscend":
+                type = EffectType.RewardAscend;
+                break;
+            case "AttAscend_Torment":
+                type = EffectType.AttAscend_Torment;
+                break;
+            case "ResilienceAscend":
+                type = EffectType.ResilienceAscend;
+                break;
             default:
                 Debug.LogError("Init Effect By Default..." + _typeName);
                 type = EffectType.Damage;
@@ -322,54 +342,44 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
         {
             object obj;
             Dictionary<string, object> dict = doc.ToDictionary();
-            JobClass jobStruct = new();
-            if (dict.TryGetValue("HpCoef", out obj))
+            JobClass jobClass = new();
+            if (dict.TryGetValue("Effect", out obj))
             {
-                jobStruct.SetHpCoef(GetFloatValue(obj));
-            }
-            if (dict.TryGetValue("AbilityCoef", out obj))
-            {
-                jobStruct.SetAbilityCoef(GetFloatValue(obj));
-            }
-            if (dict.TryGetValue("SpeedCoef", out obj))
-            {
-                jobStruct.SetSpeedCoef(GetFloatValue(obj));
+                List<object> objList = obj as List<object>;
+                List<SkillEffect> effects = new();
+                foreach (object x in objList)
+                {
+                    Dictionary<string, object> effectDict = x as Dictionary<string, object>;
+                    string typeStr = (string)effectDict["Type"];
+                    bool byAtt;
+                    if (effectDict.TryGetValue("ByAtt", out obj))
+                    {
+                        byAtt = (bool)obj;
+                    }
+                    else
+                        byAtt = false;
+                    EffectType effectType = ParseEffectType(typeStr);
+                    float value;
+                    if (effectDict.TryGetValue("Value", out obj))
+                    {
+                        value = GetFloatValue(obj);
+                    }
+                    else
+                        value = 0f;
+                    SkillEffect skillEffect = new SkillEffect().SetType(effectType).SetValue(value).SetByAtt(byAtt);
+                    effects.Add(skillEffect);
+                }
+                jobClass.SetEffects(effects);
             }
             string jobId = (string)dict["JobId"];
-            JobType jobType;
-            switch (jobId)
-            {
-                default:
-                    jobType = JobType.None;
-                    break;
-                case "020":
-                    jobType = JobType.Tanker;
-                    break;
-                case "110":
-                    jobType = JobType.Warrior;
-                    break;
-                case "200":
-                    jobType = JobType.Ranger;
-                    break;
-                case "011":
-                    jobType = JobType.Crusader;
-                    break;
-                case "101":
-                    jobType = JobType.Thief;
-                    break;
-                case "002":
-                    jobType = JobType.Witch;
-                    break;
-            }
-            jobStruct.SetJobType(jobType);
             //Name
             Dictionary<Language, string> name = new();
             Dictionary<string, object> nameTemp = dict["Name"] as Dictionary<string, object>;
             name.Add(Language.Ko, (string)nameTemp["Ko"]);
             name.Add(Language.En, (string)nameTemp["En"]);
-            jobStruct.SetName(name);
+            jobClass.SetName(name);
 
-            jobsDict.Add(jobId, jobStruct);
+            jobsDict.Add(jobId, jobClass);
         }
     }
     private async Task InitEnemy()
@@ -563,7 +573,7 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             EnemyCase enemyCase = new EnemyCase();
             Dictionary<string, object> dict = doc.ToDictionary();
             //Enemies
-            List<System.Tuple<string, int>> enemyTuples = new();
+            List<System.Tuple<string, int>> enemyTuples = new();//id, grid
             List<object> enemies = dict["Enemies"] as List<object>;
             foreach (object enemyObj in enemies)
             {
@@ -581,6 +591,94 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             }
             enemyCase.SetLevelRange(levelRange);
             enemyCaseDict.Add(doc.Id, enemyCase);
+        }
+    }
+    private async Task InitWeapon()
+    {
+        await Task.WhenAll(InitWeaponOnType("Bow"),
+            InitWeaponOnType("Magic"),
+            InitWeaponOnType("Melee"),
+            InitWeaponOnType("Shield"));
+
+        async Task InitWeaponOnType(string _weaponTypeStr)
+        {
+            List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Weapon", "Data", _weaponTypeStr));
+            foreach (DocumentSnapshot doc in documents)
+            {
+                WeaponClass weaponClass = new WeaponClass();
+                Dictionary<string, object> dict = doc.ToDictionary();
+                //Effects
+                List<SkillEffect> effects = InitEffect("Effects", dict);
+                if (effects != null)
+                    foreach (SkillEffect x in effects)
+                    {
+                        x.SetIsPassive(true);
+                    }
+                weaponClass.SetEffects(effects);
+                //Grade
+                WeaponGrade grade;
+                switch (dict["Grade"])
+                {
+                    default:
+                        grade = WeaponGrade.Normal;
+                        break;
+                    case "Rare":
+                        grade = WeaponGrade.Rare;
+                        break;
+                    case "Unique":
+                        grade = WeaponGrade.Unique;
+                        break;
+                }
+                weaponClass.SetGrade(grade);
+                //Id
+                weaponClass.SetId(doc.Id);
+                //Stat
+                Dictionary<string, object> statusDict = dict["Status"] as Dictionary<string, object>;
+                object obj;
+                float ability;
+                if (statusDict.TryGetValue("Ability", out obj))
+                    ability = GetFloatValue(obj);
+                else
+                    ability = 0f;
+                float hp;
+                if (statusDict.TryGetValue("Hp", out obj))
+                    hp = GetFloatValue(obj);
+                else
+                    hp = 0f;
+                float resist;
+                if (statusDict.TryGetValue("Resist", out obj))
+                    resist = GetFloatValue(obj);
+                else
+                    resist = 0f;
+                float speed;
+                if (statusDict.TryGetValue("Speed", out obj))
+                    speed = GetFloatValue(obj);
+                else
+                    speed = 0f;
+                weaponClass.SetStatus(ability, hp, resist, speed);
+                //Type
+                WeaponType type;
+                switch (_weaponTypeStr)
+                {
+                    default:
+                        type = WeaponType.Melee;
+                        break;
+                    case "Bow":
+                        type = WeaponType.Bow;
+                        break;
+                    case "Magic":
+                        type = WeaponType.Magic;
+                        break;
+                    case "Shield":
+                        type = WeaponType.Shield;
+                        break;
+                }
+                weaponClass.SetType(type);
+                //Sprite
+                Sprite sprite = Resources.Load<Sprite>(string.Format("{0}/{1}/{2}/{3}", "Texture", "Weapon", _weaponTypeStr, doc.Id));
+                weaponClass.SetSprite(sprite);
+                weaponDict.Add(doc.Id, weaponClass);
+            }
         }
     }
     float GetFloatValue(object _obj)

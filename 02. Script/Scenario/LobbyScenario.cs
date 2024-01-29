@@ -17,8 +17,8 @@ public class LobbyScenario : MonoBehaviour
     private GameObject panelInfo;
     [HideInInspector] public GameObject panelRecruit;
     private GameObject panelUpgrade;
-    public List<RecruitCandidate> candidates = new();
-    public List<RecruitCandidate> selected = new();
+    public List<CandidateSlot> candidates = new();
+    public List<CandidateSlot> selected = new();
     private readonly int defaultAbility = 8;
     private readonly int defaultHp = 100;
     private readonly int defaultResist = 0;
@@ -28,7 +28,7 @@ public class LobbyScenario : MonoBehaviour
     private GameObject upgradeNpc;
     private GameObject talentExplain;
     private GameObject[] talentObjects = new GameObject[3];
-    private RecruitCandidate focusedCandidate;
+    private CandidateSlot focusedCandidate;
     private static readonly TalentStruct noTalent = new(new() { { Language.Ko, "재능 없음" },{Language.En,"No Talent" } },0,
         new() { { Language.Ko, "이 사람은 아무런 재능이 없습니다."},{Language.En, "This guy has no talent" } } 
         , null);
@@ -190,8 +190,8 @@ public class LobbyScenario : MonoBehaviour
         GameManager.gameManager.guildValueDict.TryGetValue(GuildEffectType.AllocateNumberUp, out float numUp);
         for (int i = 0; i < numUp + 3; i++)
         {
-            GameObject candidateObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/RecruitCandidate"));
-            RecruitCandidate candidate = candidateObject.GetComponent<RecruitCandidate>();
+            GameObject candidateObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/CandidateSlot"));
+            CandidateSlot candidate = candidateObject.GetComponent<CandidateSlot>();
             candidates.Add(candidate);
             candidateObject.transform.SetParent(panelRecruit.transform.GetChild(0));
             candidateObject.transform.localScale = Vector3.one;
@@ -310,7 +310,7 @@ public class LobbyScenario : MonoBehaviour
             return Task.CompletedTask;
         });
     }
-    public void OnCandidateClicked(RecruitCandidate _clickedCandidate)
+    public void OnCandidateClicked(CandidateSlot _clickedCandidate)
     {
         if(focusedCandidate)
         focusedCandidate.transform.GetChild(1).GetChild(0).GetComponent<Animator>().enabled = false;
@@ -412,9 +412,9 @@ public class LobbyScenario : MonoBehaviour
     {
         talentExplain.SetActive(false);
     }
-    public async Task FromCandidateToFriendly(List<RecruitCandidate> _candidates)
+    public async Task FromCandidateToFriendly(List<CandidateSlot> _candidates)
     {
-        List<RecruitCandidate> candidates = new(_candidates);
+        List<CandidateSlot> candidates = new(_candidates);
         List<CharacterData> characterDataList = new();
         for (int i = 0; i < 3; i++)
         {
@@ -429,11 +429,13 @@ public class LobbyScenario : MonoBehaviour
             characterField.Add("Resist", candidates[i].candiInfo.resist);
             characterField.Add("Skill_0", string.Empty);
             characterField.Add("Skill_1", string.Empty);
+            characterField.Add("Weapon_R", string.Empty);
+            characterField.Add("Weapon_L", string.Empty);
             characterField.Add("Speed", candidates[i].candiInfo.speed);
             string docId = await DataManager.dataManager.SetDocumentData(characterField, string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"));
             
             friendlyScript.InitFriendly(docId);
-            characterDataList.Add(new CharacterData(docId, candidates[i].candiInfo.hp, candidates[i].candiInfo.hp, candidates[i].candiInfo.ability, candidates[i].candiInfo.resist, candidates[i].candiInfo.speed,gridIndex, new string[2]));
+            characterDataList.Add(new CharacterData(docId, "000", candidates[i].candiInfo.hp, candidates[i].candiInfo.hp, candidates[i].candiInfo.ability, candidates[i].candiInfo.resist, candidates[i].candiInfo.speed,gridIndex, new string[2] { "",""}, new string[2] { "", "" }));
             
             BattleScenario.friendlies.Add(friendlyScript);
             friendlyObject.transform.localPosition = Vector3.zero;

@@ -8,7 +8,6 @@ using LobbyCollection;
 
 public class FriendlyScript : CharacterBase
 {
-    public JobClass job;
     public static readonly Color TARGET_COLOR = new(0f, 0f, 1f, 0.5f);
     public bool isAct = false;
     public new string name;
@@ -20,7 +19,7 @@ public class FriendlyScript : CharacterBase
         IsEnemy = false;
         documentId = _documentId;
     }
-    [ContextMenu("Dead")]
+    [ContextMenu("DeadTest")]
     public override void OnDead()
     {
         StartCoroutine(OnDead_Base());
@@ -30,7 +29,7 @@ public class FriendlyScript : CharacterBase
                 gameOverFlag = true;
         if (!gameOverFlag)
         {
-            GameManager.gameManager.GameOver();
+            //GameManager.gameManager.GameOver();
         }
 
     }
