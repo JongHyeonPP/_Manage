@@ -15,7 +15,7 @@ public class FriendlyScript : CharacterBase
 
     public void InitFriendly(string _documentId)
     {
-        InitCharacter();
+        InitCharacter(false);
         IsEnemy = false;
         documentId = _documentId;
     }

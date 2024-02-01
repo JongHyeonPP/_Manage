@@ -44,10 +44,13 @@ public class BattleScenario : MonoBehaviour
     public static List<ObjectGrid> EnemyGrids { get; private set; } = new();
     public float RewardAscend = 0;
     public static readonly float gridCorrection = 20f;
-    private void Awake()
+    public Transform prefabSet;
+    private Dictionary<BackgroundType, GameObject> backgrounds = new();
+    private async void Awake()
     {
         friendlyGrids = FriendlyGrids;
         enemyGrids = EnemyGrids;
+
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
         panelClear = canvasBattle.GetChild(1);
         panelClear.gameObject.SetActive(false);
@@ -87,8 +90,8 @@ public class BattleScenario : MonoBehaviour
 
         if (enemies.Count == 0)
         {
-            string selectedCase = MakeEnemies(GameManager.gameManager.nodeLevel);
-            FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+            string selectedCase = await MakeEnemies(GameManager.gameManager.nodeLevel);
+            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction => 
             {
                 GameManager.gameManager.InitSeed();
                 DataManager.dataManager.SetDocumentData("EnemyCase", selectedCase, "Progress", GameManager.gameManager.Uid);
@@ -105,6 +108,15 @@ public class BattleScenario : MonoBehaviour
                 x.isDead = false;
             }
         }
+        backgrounds[BackgroundType.Plains] = prefabSet.GetChild(0).gameObject;
+        backgrounds[BackgroundType.Beach] = prefabSet.GetChild(1).gameObject;
+        backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(2).gameObject;
+        backgrounds[BackgroundType.Cave] = prefabSet.GetChild(3).gameObject;
+        backgrounds[BackgroundType.Desert] = prefabSet.GetChild(4).gameObject;
+        backgrounds[BackgroundType.Forest] = prefabSet.GetChild(5).gameObject;
+        backgrounds[BackgroundType.Lava] = prefabSet.GetChild(6).gameObject;
+        backgrounds[BackgroundType.IceField] = prefabSet.GetChild(7).gameObject;
+        backgrounds[BackgroundType.Swamp] = prefabSet.GetChild(8).gameObject;
     }
     public void OnGridPointerDown()
     {
@@ -169,10 +181,15 @@ public class BattleScenario : MonoBehaviour
                     characterData.weaponCurs[i] = characterData.weaponIds[i];//°»½Å
                 }
                 if (weaponClass != null)
+                {
+                    x.ability += weaponClass.ability;
+                    x.resist += weaponClass.resist;
+                    x.maxHp += weaponClass.hp;
+                    x.speed += weaponClass.speed;
                     if (weaponClass.effects != null)
                         x.skills.Add(new(weaponClass.effects));
+                }
             }
-
             x.grid = FriendlyGrids[characterData.index];
             x.MoveToTargetGrid(x.grid, true);
             x.grid.owner = x;
@@ -280,15 +297,6 @@ public class BattleScenario : MonoBehaviour
         panelClear.gameObject.SetActive(true);
         StartCoroutine(StopCoroutineInSecond());
         List<CharacterData> characters = CharacterManager.characterManager.GetCharacters();
-        foreach (CharacterBase x in friendlies)
-        {
-            if (x.Hp == 0)
-            {
-                x.Hp = 1f;
-                x.gameObject.SetActive(true);
-                x.isDead = false;
-            }
-        }
         foreach (CharacterData x in characters)
         {
             x.hp = friendlies.Where(item => item.documentId == x.docId).FirstOrDefault().Hp;
@@ -302,7 +310,8 @@ public class BattleScenario : MonoBehaviour
         {
             foreach (CharacterBase x in friendlies)
             {
-                DataManager.dataManager.SetDocumentData("Hp", string.Format("{0}/{1}", x.Hp, x.maxHp), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"), x.documentId);
+                DataManager.dataManager.SetDocumentData("Hp", string.Format("{0}/{1}", Mathf.Max(x.Hp, 1), x.maxHp), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"), x.documentId);
+                x.grid.owner = null;
             }
             DataManager.dataManager.SetDocumentData("Scene", "Stage0", "Progress", GameManager.gameManager.Uid);
             return Task.CompletedTask;
@@ -351,22 +360,15 @@ public class BattleScenario : MonoBehaviour
         battlePatern = BattlePatern.Battle;
         StartCoroutine(MoveGaugeCor());
     }
-    private string MakeEnemies(int _nodeLevel)
+    private async Task<string> MakeEnemies(int _nodeLevel)
     {
         var values = LoadManager.loadManager.enemyCaseDict;
-        List<KeyValuePair<string, EnemyCase>> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel)).ToList();
-        KeyValuePair<string, EnemyCase> selectedCase = ableCases[UnityEngine.Random.Range(0, ableCases.Count)];
-        foreach (Tuple<string, int> tuple in selectedCase.Value.enemies)
-        {
-            EnemyClass enemyClass = LoadManager.loadManager.enemyiesDict[tuple.Item1];
-            ObjectGrid grid = EnemyGrids[tuple.Item2];
-            GameObject enemyObject = GameManager.gameManager.InitCharacterObject(grid, true, tuple.Item1);
-            EnemyScript enemyScript = enemyObject.AddComponent<EnemyScript>();
-
-            enemyScript.InitEnemy(enemyClass, grid);
-            enemies.Add(enemyScript);
-        }
-        return selectedCase.Key;
+        List<string> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel))
+                              .Select(item => item.Key)
+                              .ToList();
+        string selectedCase = ableCases[UnityEngine.Random.Range(0, ableCases.Count)];
+        await GameManager.gameManager.LoadEnemies(selectedCase);
+        return selectedCase;
     }
     public static void ClearEnemy()
     {
@@ -398,5 +400,18 @@ public class BattleScenario : MonoBehaviour
         Destroy(x.gameObject);
     }
     public void GoToStart() => SceneManager.LoadScene("Start");
-
+    public void ChangeMap(BackgroundType _backgroundType)
+    {
+        foreach (GameObject backgroundObj in backgrounds.Values)
+        {
+            backgroundObj.SetActive(false);
+        }
+        backgrounds[_backgroundType].SetActive(true);
+    }
+    [ContextMenu("ChangeTest")]
+    public void ChangeTest()
+    {
+        BackgroundType[] enumValues = (BackgroundType[])System.Enum.GetValues(typeof(BackgroundType));
+        ChangeMap(enumValues[UnityEngine.Random.Range(0, enumValues.Length)]);
+    }
 }

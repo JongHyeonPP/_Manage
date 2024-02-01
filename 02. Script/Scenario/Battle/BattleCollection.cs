@@ -190,6 +190,9 @@ namespace BattleCollection
         public float resist;
         public List<Skill> skills;
         public float speed;
+        public bool isMonster;
+        public string type;
+        public int enemyLevel;
         public EnemyClass SetName(Dictionary<Language, string> _name)
         {
             name = _name;
@@ -220,19 +223,63 @@ namespace BattleCollection
             speed = _speed;
             return this;
         }
+        public EnemyClass SetIsMonster(bool _isMonster)
+        {
+            isMonster = _isMonster;
+            return this;
+        }
+        public EnemyClass SetType(string _type)
+        {
+            type = _type;
+            return this;
+        }
+        public EnemyClass SetEnemyLevel(int _enemyLevel)
+        {
+            enemyLevel = _enemyLevel;
+            return this;
+        }
     }
     public class EnemyCase
     {
-        public List<Tuple<string, int>> enemies;//id, index
+        public List<EnemyCasePiece> pieces;//id, index
         public List<int> levelRange;
-        public EnemyCase SetEnemies(List<Tuple<string, int>> _enemies)
+        public EnemyCase SetEnemies(List<EnemyCasePiece> _pieces)
         {
-            enemies = _enemies;
+            pieces = _pieces;
             return this;
         }
         public EnemyCase SetLevelRange(List<int> _levelRange)
         {
             levelRange = _levelRange;
+            return this;
+        }
+    }
+    public class EnemyCasePiece
+    {
+        //셋 중 하나만 있어야 함
+        public string id;
+        public string type;
+        public int enemyLevel = -1;
+        //반드시 필요함
+        public int index;
+        public EnemyCasePiece SetId(string _id)
+        {
+            id = _id;
+            return this;
+        }
+        public  EnemyCasePiece SetLevel(int _enemyLevel)
+        {
+            enemyLevel = _enemyLevel;
+            return this;
+        }
+        public EnemyCasePiece SetType(string _type)
+        {
+            type = _type;
+            return this;
+        }
+        public EnemyCasePiece SetIndex(int _index)
+        {
+            index = _index;
             return this;
         }
     }

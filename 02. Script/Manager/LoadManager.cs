@@ -67,13 +67,13 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     break;
             }
             skillForm.SetCategori(categori);
-                List<List<SkillEffect>> effects;
+            List<List<SkillEffect>> effects;
             if (categori == SkillCategori.Enemy)//ÀûÀÇ ½ºÅ³
             {
                 List<SkillEffect> effect = InitEffect("Effect", skillDict);
                 effects = new() { effect };
                 skillForm.SetEffects(effects);
-               explains = null;
+                explains = null;
             }
             else//¾Æ±º Ä³¸¯ÅÍ°¡ »ç¿ëÇÏ´Â ½ºÅ³
             {
@@ -119,7 +119,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     }
                     explains.Add(temp);
                 }
-                skillForm.SetExplain(explains);    
+                skillForm.SetExplain(explains);
             }
             object obj;
             //CoolTime
@@ -142,7 +142,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
 
 
             skillsDict.Add(doc.Id, skillForm);
-            
+
 
         }
     }
@@ -387,44 +387,66 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Enemy");
         foreach (DocumentSnapshot doc in documents)
         {
-            EnemyClass enemyClass = new EnemyClass();
-            Dictionary<string, object> dict = doc.ToDictionary();
-            object obj;
-            //Name
-            Dictionary<Language, string> name = new();
-            Dictionary<string, object> nameTemp = dict["Name"] as Dictionary<string, object>;
-            name.Add(Language.Ko, (string)nameTemp["Ko"]);
-            name.Add(Language.En, (string)nameTemp["En"]);
-            enemyClass.SetName(name);
+            try
+            {
+                EnemyClass enemyClass = new EnemyClass();
+                Dictionary<string, object> dict = doc.ToDictionary();
+                object obj;
+                //Name
+                Dictionary<Language, string> name = new();
+                Dictionary<string, object> nameTemp = dict["Name"] as Dictionary<string, object>;
+                name.Add(Language.Ko, (string)nameTemp["Ko"]);
+                name.Add(Language.En, (string)nameTemp["En"]);
+                enemyClass.SetName(name);
 
-            //Skill
-            List<Skill> skills = new();
-            foreach (object x in dict["Skills"] as List<object>)
-            {
-                skills.Add(GameManager.LocalizeSkill((string)x));
+                //Skill
+                List<Skill> skills = new();
+                foreach (object x in dict["Skills"] as List<object>)
+                {
+                    skills.Add(GameManager.LocalizeSkill((string)x));
+                }
+                enemyClass.SetSkills(skills);
+                //Ability
+                if (dict.TryGetValue("Ability", out obj))
+                {
+                    enemyClass.SetAbility(GetFloatValue(obj));
+                }
+                //Hp
+                if (dict.TryGetValue("Hp", out obj))
+                {
+                    enemyClass.SetHp(GetFloatValue(obj));
+                }
+                //Resist
+                if (dict.TryGetValue("Resist", out obj))
+                {
+                    enemyClass.SetResist(GetFloatValue(obj));
+                }
+                //Speed
+                if (dict.TryGetValue("Speed", out obj))
+                {
+                    enemyClass.SetSpeed(GetFloatValue(obj));
+                }
+                //IsMonster
+                if (dict.TryGetValue("IsMonster", out obj))
+                {
+                    enemyClass.SetIsMonster((bool)obj);
+                }
+                //Type
+                if (dict.TryGetValue("Type", out obj))
+                {
+                    enemyClass.SetType((string)obj);
+                }
+                //EnemyLevel
+                if (dict.TryGetValue("EnemyLevel", out obj))
+                {
+                    enemyClass.SetEnemyLevel((int)(long)(obj));
+                }
+                enemyiesDict.Add(doc.Id, enemyClass);
             }
-            enemyClass.SetSkills(skills);
-            //Ability
-            if (dict.TryGetValue("Ability", out obj))
+            catch
             {
-                enemyClass.SetAbility(GetFloatValue(obj));
+                Debug.Log("Error At : " + doc.Id);
             }
-            //Hp
-            if (dict.TryGetValue("Hp", out obj))
-            {
-                enemyClass.SetHp(GetFloatValue(obj));
-            }
-            //Resist
-            if (dict.TryGetValue("Resist", out obj))
-            {
-                enemyClass.SetResist(GetFloatValue(obj));
-            }
-            //Speed
-            if (dict.TryGetValue("Speed", out obj))
-            {
-                enemyClass.SetSpeed(GetFloatValue(obj));
-            }
-            enemyiesDict.Add(doc.Id, enemyClass);
         }
     }
     private async Task InitGuild()
@@ -560,7 +582,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 {
                     DataManager.dataManager.SetDocumentData("Guild_" + i, 0, "User", GameManager.gameManager.Uid);
                 }
-                DataManager .dataManager.SetDocumentData( "Fame", 0, "User", GameManager.gameManager.Uid);
+                DataManager.dataManager.SetDocumentData("Fame", 0, "User", GameManager.gameManager.Uid);
                 GameManager.gameManager.fame = 0;
             }
         });
@@ -573,16 +595,29 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             EnemyCase enemyCase = new EnemyCase();
             Dictionary<string, object> dict = doc.ToDictionary();
             //Enemies
-            List<System.Tuple<string, int>> enemyTuples = new();//id, grid
+            List<EnemyCasePiece> enemyPieces = new();//id, grid
             List<object> enemies = dict["Enemies"] as List<object>;
             foreach (object enemyObj in enemies)
             {
-                Dictionary<string, object> enemy = enemyObj as Dictionary<string, object>;
-                string id = (string)enemy["Id"];
-                int index = (int)(long)enemy["Index"];
-                enemyTuples.Add(new(id, index));
+                Dictionary<string, object> pieceObj = enemyObj as Dictionary<string, object>;
+                object obj;
+                var piece = new EnemyCasePiece();
+                if (pieceObj.TryGetValue("Id", out obj))
+                {
+                    piece.SetId((string)obj);
+                }
+                else if (pieceObj.TryGetValue("Type", out obj))
+                {
+                    piece.SetType((string)obj);
+                }
+                else if (pieceObj.TryGetValue("EnemyLevel", out obj))
+                {
+                    piece.SetLevel((int)(long)obj);
+                }
+                piece.SetIndex((int)(long)pieceObj["Index"]);
+                enemyPieces.Add(piece);
             }
-            enemyCase.SetEnemies(enemyTuples);
+            enemyCase.SetEnemies(enemyPieces);
             //LevelRange
             List<int> levelRange = new();
             foreach (var x in dict["LevelRange"] as List<object>)
@@ -687,5 +722,17 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             return (int)(long)_obj;
         else
             return (float)(double)_obj;
+    }
+    [ContextMenu("SetDoc")]
+    public async void SetEnemyDoc()
+    {
+        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Enemy");
+        foreach (DocumentSnapshot x in docs)
+        {
+            Dictionary<string, object> dict = new();
+            object obj = x.ToDictionary()["Name"];
+            dict.Add("EnemyLevel", 0);
+            await x.Reference.UpdateAsync(dict);
+        }
     }
 }

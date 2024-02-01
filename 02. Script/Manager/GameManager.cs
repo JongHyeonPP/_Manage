@@ -3,6 +3,7 @@ using EnumCollection;
 using Firebase.Firestore;
 using LobbyCollection;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -219,7 +220,7 @@ public class GameManager : MonoBehaviour
         nodeLevel = (int)(long)progressDoc["NodeLevel"];
         await LoadFriendly();
         if (scene == "Battle")
-            await LoadEnemy((string)progressDoc["EnemyCase"]);
+            await LoadEnemies((string)progressDoc["EnemyCase"]);
         SceneManager.LoadScene(scene);
     }
     public void NewGame()
@@ -370,42 +371,68 @@ public class GameManager : MonoBehaviour
         SkillForm tempSkillForm = LoadManager.loadManager.skillsDict[skillID];
         return new Skill(tempSkillForm, skillLevel);
     }
-    private async Task LoadEnemy(string _enemyCase)
+    public async Task LoadEnemies(string _caseStr)
     {
-        foreach (var x in BattleScenario.EnemyGrids)
+        //foreach (var x in BattleScenario.EnemyGrids)
+        //{
+        //    x.gameObject.SetActive(true);
+        //}
+        EnemyCase enemyCase = LoadManager.loadManager.enemyCaseDict[_caseStr];
+        Dictionary<string, EnemyClass> enemyDict = LoadManager.loadManager.enemyiesDict;
+        foreach (EnemyCasePiece piece in enemyCase.pieces)
         {
-            x.gameObject.SetActive(true);
-        }
-        object enemyObj = await DataManager.dataManager.GetFieldData("Enemies","EnemyCase", _enemyCase);
-        foreach (object obj in enemyObj as List<object>)
-        {
-            Dictionary<string, object> enemy = obj as Dictionary<string, object>;
-            int index = (int)(long)enemy["Index"];
-            string id = (string)enemy["Id"];
-            EnemyClass enemyClass = LoadManager.loadManager.enemyiesDict[id];
-            ObjectGrid grid = BattleScenario.EnemyGrids[index];
-            GameObject enemyObject = InitCharacterObject(grid, true, id);
+            string id;
+            if (piece.id != null)
+            {
+                id = piece.id;
+            }
+            else if (piece.type != null)
+            {
+                List<KeyValuePair<string, EnemyClass>> values = enemyDict.ToList();
+                List<KeyValuePair<string, EnemyClass>> typeValues = values.Where(item => item.Value.type == piece.type).ToList();
+                id = typeValues[Random.Range(0, typeValues.Count)].Key;
+            }
+            else
+            {
+                List<KeyValuePair<string, EnemyClass>> values = enemyDict.ToList();
+                List<KeyValuePair<string, EnemyClass>> typeValues = values.Where(item => item.Value.enemyLevel == piece.enemyLevel).ToList();
+                id = typeValues[Random.Range(0, typeValues.Count)].Key;
+            }
+            ObjectGrid grid = BattleScenario.EnemyGrids[piece.index];
+            GameObject enemyObject;
+            EnemyClass enemyClass = enemyDict[id];
+            enemyObject = InitCharacterObject(grid, true, id, enemyClass.isMonster);
             EnemyScript enemyScript = enemyObject.AddComponent<EnemyScript>();
-
-            enemyScript.InitEnemy(enemyClass,  grid);
+            enemyScript.InitEnemy(enemyClass, grid, enemyClass.isMonster);
             BattleScenario.enemies.Add(enemyScript);
         }
     }
 
-    public GameObject InitCharacterObject(ObjectGrid _grid, bool _isEnemy, string _characterId)
+    public GameObject InitCharacterObject(ObjectGrid _grid, bool _isEnemy, string _characterId, bool _isMonster = false)
     {
         string type = _isEnemy ? "Enemy" : "Friendly";
-        GameObject characterObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/{0}/{0}_{1}", type, _characterId)));
-
-        characterObject.transform.GetChild(0).localScale = Vector3.one * 70;
+        GameObject characterObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/{0}/{1}", type, _characterId)));
         characterObject.transform.SetParent(_grid.transform);
-        _grid.GetComponent<Image>().enabled = true;
-        RectTransform rectTransform = characterObject.GetComponent<RectTransform>();
-        rectTransform.anchoredPosition3D = new Vector3(0, 0, 0);
-        rectTransform.localScale = new Vector2(1, 1);
+        if (_isMonster)
+        {
+            Transform objTransform = characterObject.transform;
+            objTransform.localPosition = Vector3.zero;
+            objTransform.localScale = Vector3.one;
+            objTransform.GetChild(0).localScale = Vector3.one * 50f;
+            Vector3 curRot = objTransform.eulerAngles;
+            curRot.y = 180f;
+            objTransform.eulerAngles = curRot;
+        }
+        else
+        {
+            characterObject.transform.GetChild(0).localScale = Vector3.one * 70;
+            _grid.GetComponent<Image>().enabled = true;
+            RectTransform rectTransform = characterObject.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition3D = new Vector3(0, 0, 0);
+            rectTransform.localScale = new Vector2(1, 1);
+        }
         return characterObject;
     }
-
     float GetFloatValue(object _obj)
     {
         if (_obj is long)
@@ -439,7 +466,7 @@ public class GameManager : MonoBehaviour
         uiCamera.SetActive(false);
         scene = null;
         progressDoc = null;
-
+        battleScenario.panelGameOver.gameObject.SetActive(true);
     }
     public void InitSeed()
     {
@@ -447,14 +474,5 @@ public class GameManager : MonoBehaviour
         Random.InitState(seed);
         DataManager.dataManager.SetDocumentData("Seed", seed, "Progress", Uid);
         Debug.Log("Seed : " + seed);
-    }
-    [ContextMenu("ChangeTest")]
-    public void ChangeTest()
-    {
-        List<string> temp = CharacterManager.characterManager.GetCharacter(0).ChangeWeapon(0, "rninQtNgoycJzwOfBoew");
-        foreach (string x in temp)
-        {
-            Debug.Log("id : " + x);
-        }
     }
 }

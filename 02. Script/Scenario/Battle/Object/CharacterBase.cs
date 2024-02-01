@@ -45,6 +45,7 @@ abstract public class CharacterBase : MonoBehaviour
     public CharacterBase targetOpponent;
     public CharacterBase targetAlly;
     public bool IsEnemy { get; protected set; }
+    public bool isMonster { get; protected set; }
     //스킬 정보
     private List<IEnumerator> skillQueue = new();
     private List<EffectPassiveForm> passiveEffectsAtGrid = new();
@@ -57,21 +58,27 @@ abstract public class CharacterBase : MonoBehaviour
     public SpriteRenderer[] weaponRenderer = new SpriteRenderer[2];//Right, Left
     public SpriteRenderer[] shieldRenderer = new SpriteRenderer[2];//Right, Left
     public abstract void SetAnimParam();
-    public void InitCharacter()
+    public void InitCharacter(bool _isEnemy)
     {
         hpObject = Instantiate(GameManager.gameManager.objectHpBar, transform);
         hpObject.transform.localScale = Vector3.one;
         hpObject.transform.GetComponent<RectTransform>().localPosition = new(0f, -15f, 0f);
 
-        hpBar = transform.GetChild(1).GetChild(1).GetComponent<Image>();
-        armorBar = transform.GetChild(1).GetChild(0).GetComponent<Image>();
-        animator = transform.GetChild(0).GetComponent<Animator>();
+        hpBar = hpObject.transform.GetChild(1).GetComponent<Image>();
+        armorBar = hpObject.transform.GetChild(0).GetComponent<Image>();
+        if (isMonster)
+            animator = GetComponent<Animator>();
+        else
+            animator = transform.GetChild(0).GetComponent<Animator>();
         defaultAttack = new Skill();
-        Transform armSet = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(3);
-        weaponRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
-        weaponRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
-        shieldRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
-        shieldRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
+        if (!_isEnemy)
+        {
+            Transform armSet = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(3);
+            weaponRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
+            weaponRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
+            shieldRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
+            shieldRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
+        }
     }
     public void InBattleFieldZero()
     {
@@ -122,7 +129,7 @@ abstract public class CharacterBase : MonoBehaviour
             isInstant = true;
         float distance = Mathf.Abs(grid.index / 3 - _grid.index / 3) + Mathf.Abs(grid.index % 3 - _grid.index % 3);
 
-        if (!grid.Equals(_grid))
+        if (grid != _grid)
         {
             if (grid.ExitOnGrid != null)
             {
@@ -132,7 +139,6 @@ abstract public class CharacterBase : MonoBehaviour
             {
                 passive.UnsetPassiveEffect();
             }
-
             grid = _grid;
             _grid.owner = this;
 
@@ -176,7 +182,16 @@ abstract public class CharacterBase : MonoBehaviour
     }
     private IEnumerator MoveCharacterCoroutine(Transform _targetTransform, float _speed)
     {
-        animator.SetFloat("RunState", _speed);
+        if (isMonster)
+        {
+            animator.SetBool("Run", true);
+        }
+        else
+        {
+            animator.SetFloat("RunState", _speed);
+        }
+
+            
         transform.localPosition = Vector3.zero;
         transform.SetParent(_targetTransform);
         Vector3 initialPosition = transform.localPosition;
@@ -195,7 +210,15 @@ abstract public class CharacterBase : MonoBehaviour
 
         transform.localPosition = targetPosition;
         moveCoroutine = null;
-        animator.SetFloat("RunState", 0f);
+        if (isMonster)
+        {
+            animator.SetBool("Run", false);
+        }
+        else
+        {
+            animator.SetFloat("RunState", 0f);
+        }
+        
     }
     public abstract void OnDead();
     public float GetRegularValue(EffectType _type)
@@ -773,7 +796,8 @@ abstract public class CharacterBase : MonoBehaviour
             {
                 float minValue = 1.5f;
                 float maxValue = 5;
-                caster.animator.SetFloat("AttackState", (skill.cooltime -minValue ) / (maxValue - minValue));
+                if (!caster.isMonster)
+                    caster.animator.SetFloat("AttackState", (skill.cooltime - minValue) / (maxValue - minValue));
                 //caster.animator.SetFloat("NormalState", 0.5f);
                 //caster.animator.SetFloat("SkillState", 0.5f);
                 caster.animator.SetTrigger("Attack");

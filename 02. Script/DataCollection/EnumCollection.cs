@@ -51,9 +51,9 @@ namespace EnumCollection
     {
         Battle, OnReady
     }
-    public enum MapArea:byte
+    public enum BackgroundType : byte
     {
-        Plains, Ruins, Cave, Desert, Forest
+        Plains, Ruins, Cave, Desert, Forest, Beach, Lava, IceField, Swamp
     }
     public enum BattleDifficulty:byte
     {

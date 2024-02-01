@@ -12,9 +12,10 @@ public class EnemyScript : CharacterBase
     {
         IsEnemy = true;
     }
-    public void InitEnemy(EnemyClass _enemyClass, ObjectGrid _grid)
+    public void InitEnemy(EnemyClass _enemyClass, ObjectGrid _grid, bool _isMonster)
     {
-        InitCharacter();
+        isMonster = _isMonster;
+        InitCharacter(true);
         maxHp = Hp = maxHpInBattle =  _enemyClass.hp;
         ability = abilityInBattle = _enemyClass.ability;
         resist = resistInBattle = _enemyClass.resist;
