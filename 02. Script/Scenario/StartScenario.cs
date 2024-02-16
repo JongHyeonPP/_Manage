@@ -16,6 +16,7 @@ public class StartScenario : MonoBehaviour
     TMP_Text
         textNewGame,
         textLoadGame,
+        textSetting,
         textExit,
         textEasy,
         textNormal,
@@ -23,12 +24,13 @@ public class StartScenario : MonoBehaviour
 
     private void Awake()
     {
-        panelMainMenu = canvasStart.GetChild(0);
-        panelDifficultySelect = canvasStart.GetChild(1);
+        panelMainMenu = canvasStart.GetChild(1);
+        panelDifficultySelect = canvasStart.GetChild(2);
 
         textNewGame = panelMainMenu.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
         textLoadGame = panelMainMenu.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textExit = panelMainMenu.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
+        textSetting = panelMainMenu.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
+        textExit = panelMainMenu.GetChild(3).GetChild(0).GetComponent<TMP_Text>();
 
         textEasy = panelDifficultySelect.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
         textNormal = panelDifficultySelect.GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
@@ -51,6 +53,13 @@ public class StartScenario : MonoBehaviour
                         {
                             { Language.Ko, "이어하기" },
                             { Language.En, "Load Game" }
+                        }
+                    },{
+                        textSetting,
+                        new()
+                        {
+                            { Language.Ko, "환경설정" },
+                            { Language.En, "Setting" }
                         }
                     },{
                         textExit,
@@ -87,6 +96,14 @@ public class StartScenario : MonoBehaviour
                 };
         SettingManager.onLanguageChange += LanguageChange;
         LanguageChange(GameManager.language);
+        SettingManager.settingManager.buttonSetting.SetActive(true);
+    }
+    private void Start()
+    {
+        if (GameManager.gameManager.progressDoc != null)
+        {
+            ActiveLoadBtn(true);
+        }
     }
     public void NewGameBtnClick()
     {
@@ -127,5 +144,5 @@ public class StartScenario : MonoBehaviour
             keyValue.Key.text = keyValue.Value[_language];
         }
     }
-    public void ActiveLoadBtn(bool _isActive) => canvasStart.GetChild(0).GetChild(1).GetComponent<Button>().enabled = _isActive;
+    public void ActiveLoadBtn(bool _isActive) => panelMainMenu.GetChild(1).GetComponent<Button>().enabled = _isActive;
 }

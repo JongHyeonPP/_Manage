@@ -108,15 +108,19 @@ public class BattleScenario : MonoBehaviour
                 x.isDead = false;
             }
         }
+        //Stage0
         backgrounds[BackgroundType.Plains] = prefabSet.GetChild(0).gameObject;
-        backgrounds[BackgroundType.Beach] = prefabSet.GetChild(1).gameObject;
-        backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(2).gameObject;
-        backgrounds[BackgroundType.Cave] = prefabSet.GetChild(3).gameObject;
-        backgrounds[BackgroundType.Desert] = prefabSet.GetChild(4).gameObject;
         backgrounds[BackgroundType.Forest] = prefabSet.GetChild(5).gameObject;
+        backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(2).gameObject;
+        //Stage1
+        backgrounds[BackgroundType.Beach] = prefabSet.GetChild(1).gameObject;
+        backgrounds[BackgroundType.Swamp] = prefabSet.GetChild(8).gameObject;
+        backgrounds[BackgroundType.Cave] = prefabSet.GetChild(3).gameObject;
+        //Stage2
+        backgrounds[BackgroundType.Desert] = prefabSet.GetChild(4).gameObject;
         backgrounds[BackgroundType.Lava] = prefabSet.GetChild(6).gameObject;
         backgrounds[BackgroundType.IceField] = prefabSet.GetChild(7).gameObject;
-        backgrounds[BackgroundType.Swamp] = prefabSet.GetChild(8).gameObject;
+
     }
     public void OnGridPointerDown()
     {
@@ -153,32 +157,46 @@ public class BattleScenario : MonoBehaviour
             x.Hp = characterData.hp;
             x.skills = new();
             x.job = LoadManager.loadManager.jobsDict[characterData.jobId];
-            x.skills.Add(new(x.job.effects));
+            if (x.job.effects != null)
+                x.skills.Add(new(x.job.effects));
             foreach (string skillName in characterData.skillNames)
             {
                 if (skillName.Length > 0)
                     x.skills.Add(GameManager.LocalizeSkill(skillName));
             }
             //Weapon
-            for (int i = 0; i < 2; i++)
-            {
-                LoadManager.loadManager.weaponDict.TryGetValue(characterData.weaponIds[i], out WeaponClass weaponClass);
-                if (characterData.weaponCurs[i] != characterData.weaponIds[i])//최근 무기와 일치하지 않다면
+
+                LoadManager.loadManager.weaponDict.TryGetValue(characterData.weaponId, out WeaponClass weaponClass);
+                if (characterData.weaponCur != characterData.weaponId)//최근 무기와 일치하지 않다면
                 {
-                    x.shieldRenderer[i].sprite = x.weaponRenderer[i].sprite = null;//기존 무기를 해제한다.
+                    x.shieldRenderer.sprite = x.weaponRenderer.sprite = null;//기존 무기를 해제한다.
                     if (weaponClass != null)//새로 장착할 무기가 있다면
                     {
                         if (weaponClass.type == WeaponType.Shield)//방패 장착
                         {
-                            x.shieldRenderer[i].sprite = weaponClass.sprite;
+                            x.shieldRenderer.sprite = weaponClass.sprite;
                         }
                         else//무기 장착
                         {
-                            x.weaponRenderer[i].sprite = weaponClass.sprite;
+                            x.weaponRenderer.sprite = weaponClass.sprite;
                         }
+
+                            float stateValue = 0f;
+                            switch (weaponClass.type)
+                            {
+                                case WeaponType.Bow:
+                                    stateValue = 0.5f;
+                                    break;
+                                case WeaponType.Magic:
+                                    stateValue = 1f;
+
+                                    break;
+                            }
+                            x.animator.SetFloat("NormalState", stateValue);
+                            x.animator.SetFloat("SkillState", stateValue);
                         
-                    }
-                    characterData.weaponCurs[i] = characterData.weaponIds[i];//갱신
+                    
+                    characterData.weaponCur = characterData.weaponId;//갱신
                 }
                 if (weaponClass != null)
                 {
@@ -189,10 +207,12 @@ public class BattleScenario : MonoBehaviour
                     if (weaponClass.effects != null)
                         x.skills.Add(new(weaponClass.effects));
                 }
+                x.weapon = weaponClass;
             }
             x.grid = FriendlyGrids[characterData.index];
             x.MoveToTargetGrid(x.grid, true);
             x.grid.owner = x;
+            
         }
         battlePatern = BattlePatern.OnReady;
     }
@@ -295,7 +315,6 @@ public class BattleScenario : MonoBehaviour
     {
         Debug.Log("StageClear");
         panelClear.gameObject.SetActive(true);
-        StartCoroutine(StopCoroutineInSecond());
         List<CharacterData> characters = CharacterManager.characterManager.GetCharacters();
         foreach (CharacterData x in characters)
         {
@@ -311,19 +330,16 @@ public class BattleScenario : MonoBehaviour
             foreach (CharacterBase x in friendlies)
             {
                 DataManager.dataManager.SetDocumentData("Hp", string.Format("{0}/{1}", Mathf.Max(x.Hp, 1), x.maxHp), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"), x.documentId);
-                x.grid.owner = null;
+
             }
             DataManager.dataManager.SetDocumentData("Scene", "Stage0", "Progress", GameManager.gameManager.Uid);
             return Task.CompletedTask;
         });
-        ClearEnemy();
-
-        IEnumerator StopCoroutineInSecond()
+        foreach (CharacterBase x in friendlies)
         {
-            yield return new WaitForSeconds(1f);
-            foreach (var x in friendlies)
-                x.StopAllCoroutines();
+            x.StopBattle();
         }
+        ClearEnemy();
     }
     public void ToMap()
     {
@@ -400,6 +416,17 @@ public class BattleScenario : MonoBehaviour
         Destroy(x.gameObject);
     }
     public void GoToStart() => SceneManager.LoadScene("Start");
+    public void CreateSkillEffect(GameObject effect, CharacterBase _character, bool _isSkillVe)
+    {
+        GameObject effectObj = Instantiate(effect, _character.skillTarget);
+        if (_isSkillVe)
+        {
+            int rangeX = UnityEngine.Random.Range(-3, 4);
+            int rangeY = UnityEngine.Random.Range(-3, 4);
+            effectObj.transform.position += new Vector3(rangeX, rangeY);
+        }
+        Destroy(effectObj, 0.5f);
+    }
     public void ChangeMap(BackgroundType _backgroundType)
     {
         foreach (GameObject backgroundObj in backgrounds.Values)
@@ -411,7 +438,7 @@ public class BattleScenario : MonoBehaviour
     [ContextMenu("ChangeTest")]
     public void ChangeTest()
     {
-        BackgroundType[] enumValues = (BackgroundType[])System.Enum.GetValues(typeof(BackgroundType));
+        BackgroundType[] enumValues = (BackgroundType[])Enum.GetValues(typeof(BackgroundType));
         ChangeMap(enumValues[UnityEngine.Random.Range(0, enumValues.Length)]);
     }
 }

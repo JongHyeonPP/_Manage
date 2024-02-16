@@ -15,7 +15,7 @@ public class EnemyScript : CharacterBase
     public void InitEnemy(EnemyClass _enemyClass, ObjectGrid _grid, bool _isMonster)
     {
         isMonster = _isMonster;
-        InitCharacter(true);
+        InitCharacter();
         maxHp = Hp = maxHpInBattle =  _enemyClass.hp;
         ability = abilityInBattle = _enemyClass.ability;
         resist = resistInBattle = _enemyClass.resist;

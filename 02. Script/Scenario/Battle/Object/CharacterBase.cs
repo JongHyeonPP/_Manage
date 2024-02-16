@@ -35,7 +35,7 @@ abstract public class CharacterBase : MonoBehaviour
     public float armor = 0f;
     public bool isDead;
     public List<Skill> skills;
-    public List<WeaponClass> weapons;
+    public WeaponClass weapon;
     private Skill defaultAttack;
     public GameObject hpObject;
     public Image hpBar;
@@ -47,19 +47,22 @@ abstract public class CharacterBase : MonoBehaviour
     public bool IsEnemy { get; protected set; }
     public bool isMonster { get; protected set; }
     //스킬 정보
-    private List<IEnumerator> skillQueue = new();
+    private List<SkillActiveForm> skillQueue = new();
     private List<EffectPassiveForm> passiveEffectsAtGrid = new();
     private List<EffectPassiveFormDot> passiveAtDotOpponent = new();
     private List<EffectPassiveFormDot> passiveAtDotAlly = new();
-    protected Animator animator;
+    public Animator animator;
     public ObjectGrid grid;
     private Coroutine moveCoroutine;
     private readonly float ARRIVAL_TIME = 2f;
-    public SpriteRenderer[] weaponRenderer = new SpriteRenderer[2];//Right, Left
-    public SpriteRenderer[] shieldRenderer = new SpriteRenderer[2];//Right, Left
+    public SpriteRenderer weaponRenderer;//Right
+    public SpriteRenderer shieldRenderer;//Left
+    public Transform skillTarget;
     public abstract void SetAnimParam();
-    public void InitCharacter(bool _isEnemy)
+    public void InitCharacter()
     {
+        skillTarget = transform.GetChild(0).GetChild(0);
+
         hpObject = Instantiate(GameManager.gameManager.objectHpBar, transform);
         hpObject.transform.localScale = Vector3.one;
         hpObject.transform.GetComponent<RectTransform>().localPosition = new(0f, -15f, 0f);
@@ -71,14 +74,6 @@ abstract public class CharacterBase : MonoBehaviour
         else
             animator = transform.GetChild(0).GetComponent<Animator>();
         defaultAttack = new Skill();
-        if (!_isEnemy)
-        {
-            Transform armSet = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(3);
-            weaponRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
-            weaponRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
-            shieldRenderer[0] = armSet.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
-            shieldRenderer[1] = armSet.GetChild(0).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
-        }
     }
     public void InBattleFieldZero()
     {
@@ -246,8 +241,6 @@ abstract public class CharacterBase : MonoBehaviour
         }
         else
         {
-            if (this is FriendlyScript)
-                Debug.Log(_effectType + " : " + _value);
             switch (_effectType)
             {
                 default:
@@ -282,7 +275,6 @@ abstract public class CharacterBase : MonoBehaviour
                     hp -= _value;
                     break;
                 case EffectType.Heal:
-                    Debug.Log(_value + " : " + _effectType);
                     Hp = Mathf.Min(Hp + _value, maxHpInBattle);
                     break;
                 case EffectType.Armor:
@@ -360,7 +352,6 @@ abstract public class CharacterBase : MonoBehaviour
                 if (character != this)
                 {
                     character.ApplyValue(maxHpInBattle * exploValue, EffectType.Damage);
-                    Debug.Log("Explo : " + maxHpInBattle * exploValue);
                 }
             }
         }
@@ -558,6 +549,12 @@ abstract public class CharacterBase : MonoBehaviour
             return rowDist + ColumnDist;
         }
     }
+    public void StopBattle()
+    {
+        grid.owner = null;
+        StopAllCoroutines();
+        skillQueue.Clear();
+    }
     public void StartBattle()
     {
         FindNewTargetAlly();
@@ -709,16 +706,17 @@ abstract public class CharacterBase : MonoBehaviour
         {
             skill = _skill;
             caster = _caster;
-
-
         }
+        private void StartSkillCor(IEnumerator _coroutine) => caster.StartCoroutine(_coroutine);
         public IEnumerator StartQueueCycle()
         {
             yield return new WaitForSeconds(skill.cooltime / caster.speedInBattle);
-            caster.skillQueue.Add(ActiveSkill());
+            caster.skillQueue.Add(this);
             if (caster.skillQueue.Count == 1)
-                caster.StartCoroutine(ActiveSkill());
-            
+            {
+                StartSkillCor(ActiveSkill());
+            }
+
         }
         public IEnumerator ActiveSkill()
         {
@@ -747,6 +745,7 @@ abstract public class CharacterBase : MonoBehaviour
                     float repeatValue = caster.GetRegularValue(EffectType.Repeat);
                     for (int i = 0; i < ((repeatValue>0)?2:1); i++)
                     {
+
                         foreach (EffectActiveForm effectForm in actvieEffects)
                         {
                             CharacterBase effectTarget;
@@ -768,39 +767,67 @@ abstract public class CharacterBase : MonoBehaviour
                             if (effectTarget != null)
                             {
                                 effectForm.ActiveEffect0nTarget(effectTarget, i == 1 ? repeatValue : 1f);
-                                if (skill.isAnim)
-                                {
-                                    SkillAnim();
-                                    yield return new WaitForSeconds(skillCastTime);
-                                }
+                                //Skill
+                                if (skill.visualEffect)
+                                    GameManager.battleScenario.CreateSkillEffect(skill.visualEffect, effectTarget, true);
+                                //Weapon
+                                if (caster.weapon != null)
+                                    caster.StartCoroutine(WeaponVisualEffect());
                             }
+                        }
+                        if (skill.isAnim)
+                        {
+                            SkillAnim();
+                            yield return new WaitForSeconds(skillCastTime);
                         }
                     }
                 }
             }
+                caster.skillQueue.Remove(this);
+
             //Next Skill
-            caster.skillQueue.RemoveAt(0);
             if (caster.skillQueue.Count > 0)
             {
-                caster.StartCoroutine(caster.skillQueue[0]);
+
+                StartSkillCor(caster.skillQueue[0].ActiveSkill());
             }
+
             yield return new WaitForSeconds(skill.cooltime / caster.speedInBattle);
-            caster.skillQueue.Add(ActiveSkill());
+            caster.skillQueue.Add(this);
             if (caster.skillQueue.Count == 1)
             {
-                caster.StartCoroutine(ActiveSkill());
+                StartSkillCor(ActiveSkill());
             }
+            
+
                
 
             void SkillAnim()
             {
-                float minValue = 1.5f;
-                float maxValue = 5;
+                float minValue = Skill.defaultAttackCooltime;
+                float maxValue = 8;
                 if (!caster.isMonster)
                     caster.animator.SetFloat("AttackState", (skill.cooltime - minValue) / (maxValue - minValue));
                 //caster.animator.SetFloat("NormalState", 0.5f);
                 //caster.animator.SetFloat("SkillState", 0.5f);
-                caster.animator.SetTrigger("Attack");
+                if (skill.isTargetEnemy)
+                    caster.animator.SetTrigger("Attack");
+                else
+                    caster.animator.SetTrigger("Buff");
+            }
+
+            IEnumerator WeaponVisualEffect()
+            {
+                switch (caster.weapon.type)
+                {
+                    case WeaponType.Bow:
+                        yield return new WaitForSeconds(0.3f);
+                        break;
+                }
+                if (skill.categori == SkillCategori.Default)
+                    GameManager.battleScenario.CreateSkillEffect(caster.weapon.defaultVisualEffect, caster, false);
+                else
+                    GameManager.battleScenario.CreateSkillEffect(caster.weapon.skillVisualEffect, caster, false);
             }
         }
     }

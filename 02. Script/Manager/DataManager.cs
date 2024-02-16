@@ -20,7 +20,6 @@ public class DataManager : MonoBehaviour
     FirebaseFirestore db;
     internal GameData gameData;
     public static DataManager dataManager;
-
     private void Awake()
     {
         gameData = new GameData();

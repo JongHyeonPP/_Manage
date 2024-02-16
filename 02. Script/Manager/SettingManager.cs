@@ -18,6 +18,7 @@ public class SettingManager : MonoBehaviour
     public TMP_Dropdown dropdownLanguage;
     public Toggle toggleFullScreen;
     public GameObject panelSetting;
+    public GameObject buttonSetting;
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     TMP_Text 
         textResolution, 

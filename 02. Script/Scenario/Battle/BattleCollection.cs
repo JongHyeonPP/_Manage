@@ -11,10 +11,11 @@ namespace BattleCollection
         public Dictionary<Language, string> name;
         public List<Dictionary<Language, string>> explain;
         public SkillCategori categori;
-        public float cooltime = 4f;
+        public float cooltime = 8f;
         public bool isTargetEnemy = false;
         public List<List<SkillEffect>> effects;
         public bool isAnim;
+        public List<string> visualEffect;
         public SkillForm SetName(Dictionary<Language, string> _name)
         {
             name = _name;
@@ -45,10 +46,14 @@ namespace BattleCollection
             effects = _effects;
             return this;
         }
-
-        internal SkillForm SetIsAnim(bool _isAnim)
+        public SkillForm SetIsAnim(bool _isAnim)
         {
             isAnim = _isAnim;
+            return this;
+        }
+        public SkillForm SetSkillEffect(List<string> _visualEffect)
+        {
+            visualEffect = _visualEffect;
             return this;
         }
     }
@@ -62,6 +67,8 @@ namespace BattleCollection
         public List<SkillEffect> effects;
         public bool isTargetEnemy;
         public bool isAnim;
+        public GameObject visualEffect;
+        public static float defaultAttackCooltime = 3f;
         public Skill(SkillForm _skillForm, byte _level)//Skill
         {
             name = _skillForm.name;
@@ -73,14 +80,18 @@ namespace BattleCollection
             effects = new();
             effects = _skillForm.effects[_level];
             isAnim = _skillForm.isAnim;
+            string veName = _skillForm.visualEffect[_level];
+            if (veName != string.Empty)
+                visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
         }
         public Skill()//Default Attack
         {
             name = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
             explain = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
-            cooltime = 1.5f;
+            cooltime = defaultAttackCooltime;
             isTargetEnemy = true;
             isAnim = true;
+            //skillEffect = LoadManager.loadManager.skillEffectDict["arrowFire_01"];
             effects = new()
             {
                 new SkillEffect().
@@ -170,7 +181,7 @@ namespace BattleCollection
     {
         public Dictionary<Language, string> name = null;
 
-        public List<SkillEffect> effects = new();
+        public List<SkillEffect> effects;
         public JobClass SetName(Dictionary<Language, string> _name)
         {
             name = _name;
@@ -292,6 +303,8 @@ namespace BattleCollection
         public List<SkillEffect> effects;
         public float ability, hp, resist, speed;
         public Sprite sprite;
+        public GameObject defaultVisualEffect;
+        public GameObject skillVisualEffect;
         public WeaponClass SetId(string _id)
         {
             id = _id;
@@ -323,6 +336,12 @@ namespace BattleCollection
         public WeaponClass SetSprite(Sprite _sprite)
         {
             sprite = _sprite;
+            return this;
+        }
+        public WeaponClass SetVisualEffect(GameObject _defaultVisualEffect, GameObject _skillVisualEffect)
+        {
+            defaultVisualEffect = _defaultVisualEffect;
+            skillVisualEffect = _skillVisualEffect;
             return this;
         }
     }

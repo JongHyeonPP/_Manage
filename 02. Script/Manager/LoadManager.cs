@@ -3,6 +3,8 @@ using EnumCollection;
 using Firebase.Firestore;
 using LobbyCollection;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -17,6 +19,9 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<string, TalentFormStruct> talentDict = new();
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
     public Dictionary<string, WeaponClass> weaponDict = new();
+    private readonly string visualEffectPath = "Prefab/VisualEffect";
+    public Dictionary<string, GameObject> skillVisualEffectDict = new();
+    public Dictionary<string, GameObject> weaponVisualEffectDict = new();
     private void Awake()
     {
         if (!loadManager)
@@ -32,10 +37,29 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     {
         if (!isInit)
         {
+            LoadSkillVisualEffect();
+            LoadWeaponVisualEffect();
             await InitSkill();
             await Task.WhenAll(InitJob(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc(), InitEnemyCase(), InitWeapon());
-            Debug.Log("FireStoreLoaded");
+            
+            Debug.Log("LoadComplete");
             isInit = true;
+        }
+    }
+    private void LoadSkillVisualEffect()
+    {
+        GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/Skill");
+        foreach (GameObject visualEffect in visualEffects)
+        {
+            skillVisualEffectDict.Add(visualEffect.name, visualEffect);
+        }
+    }
+    private void LoadWeaponVisualEffect()
+    {
+        GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/Weapon");
+        foreach (GameObject visualEffect in visualEffects)
+        {
+            weaponVisualEffectDict.Add(visualEffect.name, visualEffect);
         }
     }
     private async Task InitSkill()
@@ -139,8 +163,19 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             else
                 isAnim = true;
             skillForm.SetIsAnim(isAnim);
+            //SkillEffect
+            List<string> skillEffect = new();
+            if (skillDict.TryGetValue("VisualEffect", out obj))
+            {
+                foreach (object x in (List<object>)obj)
+                {
+                    skillEffect.Add((string)x);
+                }
+            }
+            else
+                skillEffect = null;
 
-
+            skillForm.SetSkillEffect(skillEffect);
             skillsDict.Add(doc.Id, skillForm);
 
 
@@ -709,9 +744,24 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         break;
                 }
                 weaponClass.SetType(type);
+                //VisualEffect
+                GameObject defaultVisualEffect = null;
+                GameObject skillVisualEffect = null;
+                if (dict.TryGetValue("VisualEffect", out obj))
+                {
+                    Dictionary<string, object> veDict = obj as Dictionary<string, object>;
+                    defaultVisualEffect = weaponVisualEffectDict[(string)veDict["Default"]];
+                    skillVisualEffect = weaponVisualEffectDict[(string)veDict["Skill"]];
+                }
+                weaponClass.SetVisualEffect(defaultVisualEffect, skillVisualEffect);
                 //Sprite
                 Sprite sprite = Resources.Load<Sprite>(string.Format("{0}/{1}/{2}/{3}", "Texture", "Weapon", _weaponTypeStr, doc.Id));
                 weaponClass.SetSprite(sprite);
+                
+                
+
+
+
                 weaponDict.Add(doc.Id, weaponClass);
             }
         }
@@ -724,15 +774,21 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             return (float)(double)_obj;
     }
     [ContextMenu("SetDoc")]
-    public async void SetEnemyDoc()
+    public async void SetDoc()
     {
-        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Enemy");
+        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Skill");
         foreach (DocumentSnapshot x in docs)
         {
             Dictionary<string, object> dict = new();
-            object obj = x.ToDictionary()["Name"];
-            dict.Add("EnemyLevel", 0);
-            await x.Reference.UpdateAsync(dict);
+            {
+                if (!x.ToDictionary().ContainsKey("Explain"))
+                {
+                    Dictionary<string, object> item = new Dictionary<string, object>() { { "En", string.Empty }, { "Ko", string.Empty } };
+                    dict.Add("Explain", new List<object>() { item, item, item });
+                    await x.Reference.UpdateAsync(dict);
+                }
+            }
+            Debug.Log("Comp");
         }
     }
 }

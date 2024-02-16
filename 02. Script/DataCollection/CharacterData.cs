@@ -19,8 +19,8 @@ public class CharacterData
     public int index;
     public Dictionary<EffectType, float> PermEffects { get; private set; }//보류
     public string[] skillNames = new string[2];
-    public string[] weaponIds = new string[2];
-    public string[] weaponCurs = new string[2];//무기가 변경되었는지 알기 위한 배열 
+    public string weaponId;
+    public string weaponCur;//무기가 변경되었는지 알기 위한 배열 
     public void SetPermEffects(EffectType _effectType, float _value)
     {
         if (!PermEffects.ContainsKey(_effectType))
@@ -29,7 +29,7 @@ public class CharacterData
         }
         PermEffects[_effectType] += _value;
     }
-    public CharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, string[] _skillNames, string[] _weaponNames)
+    public CharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, string[] _skillNames, string _weaponName)
     {
         docId = _docId;
         jobId = _jobId;
@@ -40,7 +40,7 @@ public class CharacterData
         speed = _speed;
         index = _index;
         skillNames = _skillNames;
-        weaponIds = _weaponNames;
+        weaponId = _weaponName;
     }
     public string ChangeSkill(int _index, string _skillName)//스킬 착용하고 착용하고 있던 스킬 리턴
     {
@@ -71,24 +71,48 @@ public class CharacterData
         }
         return returnValue;
     }
-    public List<string> ChangeWeapon(int _index, string _weaponId)//무기를 장착하고 무기 id 리스트 리턴
+    public string ChangeWeapon(string _weaponId)//무기를 장착하고 무기 id 리스트 리턴
     {
         //type에 따른 한 손, 양 손 판정
         //weaponsName만 접근
-        List<string> returnValue = new();
-        WeaponClass temp = LoadManager.loadManager.weaponDict[_weaponId];
-        if (temp.type == WeaponType.Bow || temp.type == WeaponType.Magic)
+        weaponId = _weaponId;
+        return weaponId;
+    }
+    public Tuple<string, float> GetSkillExplainAndCoolTime(int _skillIndex)
+    {
+        string skillName = skillNames[_skillIndex];
+        if (skillName == string.Empty)
+            return null;
+        Skill skill = GameManager.LocalizeSkill(skillNames[_skillIndex]);
+        string explain = skill.explain[GameManager.language].
+            Replace("{Value_0}", skill.effects[0].value.ToString() + (skill.effects[0].isConst ? string.Empty:"Ab")).
+            Replace("{Count_0}", skill.effects[0].count.ToString()).
+            Replace("{Vamp_0}", skill.effects[0].vamp.ToString());
+        if (skill.effects.Count >= 2)
         {
-            returnValue.Add(weaponIds[0]);
-            returnValue.Add(weaponIds[1]);
-            weaponIds[0] = _weaponId;
-            weaponIds[1] = string.Empty;
+            explain = explain.
+            Replace("{Value_1}", skill.effects[1].value.ToString() + (skill.effects[1].isConst ? string.Empty : "Ab")).
+            Replace("{Count_1}", skill.effects[1].count.ToString()).
+            Replace("{Vamp_1}", skill.effects[1].vamp.ToString());
         }
-        else
+        if (skill.effects.Count >= 3)
         {
-            returnValue.Add(weaponIds[_index]);
-            weaponIds[_index] = _weaponId;
+            explain = explain.
+            Replace("{Value_2}", skill.effects[2].value.ToString() + (skill.effects[2].isConst ? string.Empty : "Ab")).
+            Replace("{Count_2}", skill.effects[2].count.ToString()).
+            Replace("{Vamp_2}", skill.effects[2].vamp.ToString());
         }
-        return returnValue;
+        
+        bool isAllPassive = true;
+        foreach (var x in skill.effects)
+        {
+            if (!x.isPassive)
+            {
+                isAllPassive = false;
+                break;
+            }
+        }
+        float cooltime = isAllPassive?-1:skill.cooltime;
+        return new Tuple<string, float>(explain, cooltime);
     }
 }

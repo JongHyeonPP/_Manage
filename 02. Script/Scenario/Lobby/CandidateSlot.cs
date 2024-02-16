@@ -16,7 +16,7 @@ public class CandidateSlot : MonoBehaviour
     {
         objectButton = transform.GetChild(0).gameObject;
         objectButton.SetActive(false);
-        friendlyObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/Friendly_000"));
+        friendlyObject = Instantiate(Resources.Load<GameObject>("Prefab/Friendly/000"));
         friendlyObject.transform.SetParent(transform);
         friendlyObject.transform.localScale = Vector3.one;
         friendlyObject.transform.localPosition = new Vector3(0f, -20f, 0f);

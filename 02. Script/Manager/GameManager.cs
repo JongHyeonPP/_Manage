@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static UnityEngine.EventSystems.EventTrigger;
@@ -72,10 +73,6 @@ public class GameManager : MonoBehaviour
     async void Start()
     {
         progressDoc = await DataManager.dataManager.GetField("Progress", Uid);
-        if (progressDoc != null)
-        {
-            startScenario.ActiveLoadBtn(true);
-        }
         BattleScenario.friendlies = new();
         BattleScenario.enemies = new();
     }
@@ -135,12 +132,9 @@ public class GameManager : MonoBehaviour
 
         switch (_arg0.name)
         {
-            case "Awake":
-                SceneManager.LoadScene("Start");
-                break;
             case "Start":
                 startScenario = scenarioObject.GetComponent<StartScenario>();
-                    startScenario.ActiveLoadBtn(false);
+                    //startScenario.ActiveLoadBtn(false);
                 break;
             case "Battle":
                 battleScenario = scenarioObject.GetComponent<BattleScenario>();
@@ -258,7 +252,7 @@ public class GameManager : MonoBehaviour
             float resist;
             float speed;
             string[] skillNames = new string[2];
-            string[] weaponNames = new string[2]; //Right, Left
+            string weaponName; //Right, Left
             if (tempDict.TryGetValue("Ability", out obj))
             {
                 ability = GetFloatValue(obj);
@@ -300,18 +294,16 @@ public class GameManager : MonoBehaviour
                     skillNames[i] =((string)obj);
                 }
             }
-            if(tempDict.TryGetValue("Weapon_R", out obj))
+            if (tempDict.TryGetValue("Weapon", out obj))
             {
-                weaponNames[0] = (string)obj;
+                weaponName = (string)obj;
             }
-            if (tempDict.TryGetValue("Weapon_L", out obj))
-            {
-                weaponNames[1] = (string)obj;
-            }
+            else
+                weaponName = string.Empty;
             ObjectGrid _grid = BattleScenario.FriendlyGrids[(int)(long)tempDict["Index"]];
             string jobId = GetJobId(skillNames);
             InitFriendlyObject(snapShot.Id, jobId, _grid);
-            CharacterData characterData = new(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], skillNames, weaponNames);
+            CharacterData characterData = new(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], skillNames, weaponName);
             characterDataDict.Add(characterData);
         }
         CharacterManager.characterManager.SetCharacters(characterDataDict);
@@ -347,7 +339,6 @@ public class GameManager : MonoBehaviour
     }
     public void InitFriendlyObject(string _docId,string _jobId, ObjectGrid _grid)
     {
-
         GameObject friendlyObject = InitCharacterObject(_grid, false, _jobId);
         FriendlyScript friendlyScript = friendlyObject.AddComponent<FriendlyScript>();
         friendlyScript.InitFriendly(_docId);
@@ -418,14 +409,17 @@ public class GameManager : MonoBehaviour
             Transform objTransform = characterObject.transform;
             objTransform.localPosition = Vector3.zero;
             objTransform.localScale = Vector3.one;
-            objTransform.GetChild(0).localScale = Vector3.one * 50f;
+            Transform body = objTransform.GetChild(0);
+            body.localScale = Vector3.one * 50f;
+            var sortingGroup = body.gameObject.AddComponent<SortingGroup>();
+            sortingGroup.sortingOrder = 0;
             Vector3 curRot = objTransform.eulerAngles;
             curRot.y = 180f;
             objTransform.eulerAngles = curRot;
         }
         else
         {
-            characterObject.transform.GetChild(0).localScale = Vector3.one * 70;
+            characterObject.transform.GetChild(0).localScale = Vector3.one * 80;
             _grid.GetComponent<Image>().enabled = true;
             RectTransform rectTransform = characterObject.GetComponent<RectTransform>();
             rectTransform.anchoredPosition3D = new Vector3(0, 0, 0);

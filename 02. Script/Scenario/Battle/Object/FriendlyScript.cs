@@ -15,14 +15,17 @@ public class FriendlyScript : CharacterBase
 
     public void InitFriendly(string _documentId)
     {
-        InitCharacter(false);
+        InitCharacter();
         IsEnemy = false;
         documentId = _documentId;
+        Transform armSet = transform.GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetChild(3);
+        weaponRenderer = armSet.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<SpriteRenderer>();
+        shieldRenderer = armSet.GetChild(0).GetChild(0).GetChild(2).GetChild(0).GetComponent<SpriteRenderer>();
     }
     [ContextMenu("DeadTest")]
     public override void OnDead()
     {
-        StartCoroutine(OnDead_Base());
+        GameManager.battleScenario.StartCoroutine(OnDead_Base());
         bool gameOverFlag = false;
         foreach (var x in BattleScenario.friendlies)
             if (!x.isDead)
@@ -36,7 +39,6 @@ public class FriendlyScript : CharacterBase
 
     public override void SetAnimParam()
     {
-        animator.SetFloat("NormalState", 0.0f);
-        animator.SetFloat("SkillState", 0.0f);
+
     }
 }
