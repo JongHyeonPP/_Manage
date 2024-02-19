@@ -44,8 +44,6 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             Debug.Log("LoadComplete");
             isInit = true;
         }
-
-        
     }
     async Task LoadVisualEffect()
     {
@@ -56,16 +54,24 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
         {
             Dictionary<string, object> durationData = await DataManager.dataManager.GetField("VisualEffect", _type);
             GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/" + _type);
-            float duration;
+            float duration = 1f;
+            string sound = string.Empty;
             foreach (GameObject visualEffect in visualEffects)
             {
-                if (durationData.TryGetValue(visualEffect.name, out object obj))
+                if (durationData.TryGetValue(visualEffect.name, out object obj0))
                 {
-                    duration = GetFloatValue(obj);
+                    object obj1;
+                    Dictionary<string, object> ve = obj0 as Dictionary<string, object>;
+                    if (ve.TryGetValue("Duration", out obj1))
+                    {
+                        duration = GetFloatValue(obj1);
+                    }
+                    if (ve.TryGetValue("Sound", out obj1))
+                    {
+                        sound = (string)obj1;
+                    }
                 }
-                else
-                    duration = 1f;
-                _dict.Add(visualEffect.name, new VisualEffect(visualEffect, duration));
+                _dict.Add(visualEffect.name, new VisualEffect(visualEffect, duration, sound));
             }
         }
 

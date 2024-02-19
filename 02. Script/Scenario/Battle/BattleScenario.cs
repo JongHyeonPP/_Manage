@@ -108,7 +108,7 @@ public class BattleScenario : MonoBehaviour
                 x.isDead = false;
             }
         }
-        //Stage0
+        //stage 0
         backgrounds[BackgroundType.Plains] = prefabSet.GetChild(0).gameObject;
         backgrounds[BackgroundType.Forest] = prefabSet.GetChild(5).gameObject;
         backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(2).gameObject;
@@ -332,7 +332,7 @@ public class BattleScenario : MonoBehaviour
                 DataManager.dataManager.SetDocumentData("Hp", string.Format("{0}/{1}", Mathf.Max(x.Hp, 1), x.maxHp), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"), x.documentId);
 
             }
-            DataManager.dataManager.SetDocumentData("Scene", "Stage0", "Progress", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData("Scene", "stage 0", "Progress", GameManager.gameManager.Uid);
             return Task.CompletedTask;
         });
         foreach (CharacterBase x in friendlies)
@@ -348,7 +348,7 @@ public class BattleScenario : MonoBehaviour
             x.InBattleFieldZero();
         }
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-        SceneManager.LoadScene("Stage0");
+        SceneManager.LoadScene("stage 0");
 
     }
     private IEnumerator MoveGaugeCor()
@@ -440,5 +440,11 @@ public class BattleScenario : MonoBehaviour
     {
         BackgroundType[] enumValues = (BackgroundType[])Enum.GetValues(typeof(BackgroundType));
         ChangeMap(enumValues[UnityEngine.Random.Range(0, enumValues.Length)]);
+    }
+    public string visualEffectStr;
+    [ContextMenu("SkillVisualEffetTest")]
+    public void SkillVisualEffectTest()
+    {
+        CreateVisualEffect(LoadManager.loadManager.skillVisualEffectDict[visualEffectStr], enemies[0], true);
     }
 }

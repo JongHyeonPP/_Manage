@@ -352,10 +352,12 @@ namespace BattleCollection
     {
         public GameObject effectObject;
         public float duration;
-        public VisualEffect(GameObject _effectObject, float _duration)
+        public string sound;
+        public VisualEffect(GameObject _effectObject, float _duration, string _sound)
         {
             effectObject = _effectObject;
             duration = _duration;
+            sound = _sound;
         }
     }
 }

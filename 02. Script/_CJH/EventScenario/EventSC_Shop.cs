@@ -60,8 +60,8 @@ public class EventSC_Shop : MonoBehaviour
         // Scene 이동 추가 및 카메라 이동 시작
         if (true)
         {
-            Debug.Log("MoveScene To Stage0");
-            _UTIL.ALS.LoadScene_Asyc("Stage0");
+            Debug.Log("MoveScene To stage 0");
+            _UTIL.ALS.LoadScene_Asyc("stage 0");
         }
     }
 

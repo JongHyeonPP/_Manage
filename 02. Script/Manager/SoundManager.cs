@@ -11,21 +11,31 @@ public class SoundManager : MonoBehaviour
     public static SoundManager soundManager;
     [Header("SoundSetting")]
     public AudioMixer masterMixer;
-    public Slider SliderAll;
-    public Slider SliderSfx;
-    public Slider SliderBgm;
-    [SerializeField] private AudioSource BgmSource;
-    [SerializeField] private List<AudioClip> BgmList;
+    public Slider sliderAll;
+    public Slider sliderSfx;
+    public Slider sliderBgm;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private Dictionary<string, AudioClip> bgmList;
+    [SerializeField] private Dictionary<string, AudioClip> sfxList;
+    readonly string bgmPath = "Sound/Bgm";
+    readonly string sfxPath = "Sound/Bgm";
     private void Awake()
     {
         if (!soundManager)
         {
             soundManager = this;
             SceneManager.sceneLoaded += OnSceneLoaded;
-            string[] BgmPaths = Resources.LoadAll("BGM", typeof(AudioClip)).Select(x => x.name).ToArray();
-            BgmSource = GetComponent<AudioSource>();
-            BgmList = new List<AudioClip>();
-            BgmList.AddRange(Resources.LoadAll<AudioClip>("BGM"));
+            audioSource = GetComponent<AudioSource>();
+            bgmList = new ();
+            foreach (AudioClip x in Resources.LoadAll<AudioClip>(bgmPath))
+            {
+                bgmList.Add(x.name, x);
+            }
+            sfxList = new ();
+            foreach (AudioClip x in Resources.LoadAll<AudioClip>(sfxPath))
+            {
+                sfxList.Add(x.name, x);
+            }
         }
     }
     private void Start()
@@ -37,7 +47,7 @@ public class SoundManager : MonoBehaviour
     }
     public void ALLControl()
     {
-        float sound = SliderAll.value;
+        float sound = sliderAll.value;
         if (sound == -30f)
             sound = -80f;
         SettingManager.settingManager.ChangeSound(EVolume.All, sound);
@@ -45,7 +55,7 @@ public class SoundManager : MonoBehaviour
     }
     public void BgmControl()
     {
-        float sound = SliderBgm.value;
+        float sound = sliderBgm.value;
         if (sound == -30f)
             sound = -80f;
         SettingManager.settingManager.ChangeSound(EVolume.Bgm, sound);
@@ -53,7 +63,7 @@ public class SoundManager : MonoBehaviour
     }
     public void SfxControl()
     {
-        float sound = SliderSfx.value;
+        float sound = sliderSfx.value;
         if (sound == -30f)
             sound = -80f;
         SettingManager.settingManager.ChangeSound(EVolume.Sfx, sound);
@@ -66,13 +76,14 @@ public class SoundManager : MonoBehaviour
     }
     private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
     {
-        for (int i = 0; i < BgmList.Count; i++)
+        if (bgmList.TryGetValue(arg0.name, out AudioClip audioClip))
         {
-            if (arg0.name == BgmList[i].name)
-            {
-                BgmSource.clip = BgmList[i];
-                BgmSource.Play();
-            }
+            audioSource.clip = bgmList[arg0.name];
+            audioSource?.Play();
         }
+    }
+    public void SfxPlay(string _name)
+    {
+        audioSource.PlayOneShot(sfxList[_name]);
     }
 }

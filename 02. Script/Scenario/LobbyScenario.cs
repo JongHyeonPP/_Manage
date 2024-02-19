@@ -276,8 +276,14 @@ public class LobbyScenario : MonoBehaviour
                 }
                 else
                 {
-                    await FromCandidateToFriendly(selected);
-                    SceneManager.LoadScene("Stage0");
+                    await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async Transaction =>
+                    {
+                        DataManager.dataManager.SetDocumentData("Scene","Stage 0", "Progress", GameManager.gameManager.Uid);
+                        await FromCandidateToFriendly(selected);
+                        return Task.CompletedTask;
+                    });
+                    
+                    SceneManager.LoadScene("Stage 0");
                 }
                 break;
             case false:

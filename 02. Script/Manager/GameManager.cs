@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour
             uiCamera.SetActive(false);
             //Until Steam API
             //uid = "FMefxTlgP9aHsgfE0Grc";
-            uid = "KF5U1XMs5cy7n13dgKjF";
+            uid = "FMefxTlgP9aHsgfE0Grc";
         }
 
 
@@ -147,8 +147,8 @@ public class GameManager : MonoBehaviour
                 lobbyScenario = scenarioObject.GetComponent<LobbyScenario>();
                 DataManager.dataManager.SetDocumentData("Scene", "Lobby", "Progress", Uid);
                 break;
-            case "Stage0":
-                DataManager.dataManager.SetDocumentData("Scene", "Stage0", "Progress", Uid);
+            case "stage 0":
+                DataManager.dataManager.SetDocumentData("Scene", "stage 0", "Progress", Uid);
                 break;
         }
         //Skill currentSkill = CharacterManager.characterManager.GetCharacter(0).ChangeSkill(0, ½ºÅ³);

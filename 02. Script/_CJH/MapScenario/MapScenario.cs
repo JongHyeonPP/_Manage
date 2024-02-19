@@ -140,7 +140,7 @@ public class MapScenario : MonoBehaviour
             if (true)
             {
                 // <<< Scene Name
-                string dstSceneName = GameManager.gameManager.GetSceneName_byEventIndex(_SC.cs.GetIndex_atCurrFocusing());
+                string dstSceneName = "Battle";
                 _SGT.mapDATA.CurrMS._UTIL.ALS.LoadScene_Asyc(dstSceneName); //history.GetNextScene()  Shop
                 _SC.mapGUI.moveCamFunc(desV3, task);
             }

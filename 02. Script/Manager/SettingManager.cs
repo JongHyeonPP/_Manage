@@ -317,18 +317,18 @@ internal class SettingClass
     private void InitSound()
     {
         if (originSet.allVolume == -1)
-            SoundManager.soundManager.SliderAll.value = -15f;
+            SoundManager.soundManager.sliderAll.value = -15f;
         else
-            SoundManager.soundManager.SliderAll.value = originSet.allVolume;
+            SoundManager.soundManager.sliderAll.value = originSet.allVolume;
         if (originSet.sfxVolume == -1)
-            SoundManager.soundManager.SliderSfx.value = -15f;
+            SoundManager.soundManager.sliderSfx.value = -15f;
         else
-            SoundManager.soundManager.SliderSfx.value = originSet.sfxVolume;
+            SoundManager.soundManager.sliderSfx.value = originSet.sfxVolume;
 
         if (originSet.bgmVolume == -1)
-            SoundManager.soundManager.SliderBgm.value = -15f;
+            SoundManager.soundManager.sliderBgm.value = -15f;
         else
-            SoundManager.soundManager.SliderBgm.value = originSet.bgmVolume;
+            SoundManager.soundManager.sliderBgm.value = originSet.bgmVolume;
     }
     private void InitLanguage()
     {
