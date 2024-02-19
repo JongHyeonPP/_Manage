@@ -16,7 +16,6 @@ public class AwakeScenario : MonoBehaviour
         Color imageColor = logoImage.color;
         imageColor.a = 0f;
         logoImage.color = imageColor;
-        SceneManager.LoadScene("Start");
         StartCoroutine(ShowJhLogo());
     }
 

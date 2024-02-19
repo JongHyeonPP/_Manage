@@ -67,7 +67,7 @@ namespace BattleCollection
         public List<SkillEffect> effects;
         public bool isTargetEnemy;
         public bool isAnim;
-        public GameObject visualEffect;
+        public VisualEffect visualEffect;
         public static float defaultAttackCooltime = 3f;
         public Skill(SkillForm _skillForm, byte _level)//Skill
         {
@@ -80,9 +80,12 @@ namespace BattleCollection
             effects = new();
             effects = _skillForm.effects[_level];
             isAnim = _skillForm.isAnim;
-            string veName = _skillForm.visualEffect[_level];
-            if (veName != string.Empty)
-                visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
+            if (_skillForm.visualEffect != null)
+            {
+                string veName = _skillForm.visualEffect[_level];
+                if (veName != string.Empty)
+                    visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
+            }
         }
         public Skill()//Default Attack
         {
@@ -303,8 +306,8 @@ namespace BattleCollection
         public List<SkillEffect> effects;
         public float ability, hp, resist, speed;
         public Sprite sprite;
-        public GameObject defaultVisualEffect;
-        public GameObject skillVisualEffect;
+        public VisualEffect defaultVisualEffect;
+        public VisualEffect skillVisualEffect;
         public WeaponClass SetId(string _id)
         {
             id = _id;
@@ -338,11 +341,21 @@ namespace BattleCollection
             sprite = _sprite;
             return this;
         }
-        public WeaponClass SetVisualEffect(GameObject _defaultVisualEffect, GameObject _skillVisualEffect)
+        public WeaponClass SetVisualEffect(VisualEffect _defaultVisualEffect, VisualEffect _skillVisualEffect)
         {
             defaultVisualEffect = _defaultVisualEffect;
             skillVisualEffect = _skillVisualEffect;
             return this;
+        }
+    }
+    public class VisualEffect
+    {
+        public GameObject effectObject;
+        public float duration;
+        public VisualEffect(GameObject _effectObject, float _duration)
+        {
+            effectObject = _effectObject;
+            duration = _duration;
         }
     }
 }
