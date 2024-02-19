@@ -14,7 +14,7 @@ public class GUI_SelectedNode : MonoBehaviour
     [SerializeField] internal List<SpriteRenderer> myList;
     [SerializeField] internal State_NodeBtn state = new();
 
-    public Color HighLightMaterial, subHighLightMaterial, DefaultMaterial;
+    public Color HighLightMaterial, subHighLightMaterial, DefaultMaterial, DefaultMaterial_Node;
     public MapScenario.OnClickFunc _decideSelected_Func; // Progress 
     public float power; public float timer;
     
@@ -80,6 +80,11 @@ public class GUI_SelectedNode : MonoBehaviour
         {
             myList[i].color = DefaultMaterial;
         }
+
+        if(myList.Count > 0)
+            myList[myList.Count-1].color = DefaultMaterial_Node;
+
+
         myList.Clear();
 
         NodeInfoGUI.SetGUI_toDefault();
@@ -94,6 +99,12 @@ public class GUI_SelectedNode : MonoBehaviour
         {
             myList[i].color = DefaultMaterial;
         }
+
+        if (myList.Count != 0)
+        {
+            myList[myList.Count-1].color = Color.white;
+        }
+
         myList.Clear();
 
         setHighLight();

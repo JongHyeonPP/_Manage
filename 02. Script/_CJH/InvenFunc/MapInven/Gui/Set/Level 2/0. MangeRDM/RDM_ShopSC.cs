@@ -148,5 +148,5 @@ public class ShopSC_REF{
     public GUI_InvenSetManager Inven_M;
     public RBD_CasherZone RBD_Info;
     public InvenSC_Shop InvenSC;
-    public Test_PopGather GoldEFF;
+    public Effect_PopGather GoldEFF;
 }

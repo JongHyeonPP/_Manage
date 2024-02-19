@@ -14,11 +14,11 @@ public class MapScenario : MonoBehaviour
     //public MapScenarioValues values_DEBUG;
 
     public bool isAction;
-    bool trash = false;
+    bool _checkCreated = false;
 
     private void Awake()
     {
-        trash = _SGT.mapDATA.CheckInitOn(this);
+        _checkCreated = _SGT.mapDATA.CheckInitOn(this);
 
         SceneToSceneFuncSGT.InitSingleton(ref _SGT.STS);
         _SGT.mapDATA.visualObj.enabled = (true);
@@ -45,14 +45,13 @@ public class MapScenario : MonoBehaviour
 
     private void Start()
     {
-        if (trash)
+        if (_checkCreated)
             StartMapCreating();
 
         _SGT.mapDATA.gameObject.SetActive(true);
         _SC.mapGUI.SetInitState();
     }
 
-    public CharacterManager _cm;
 
     public void StartMapCreating()
     {
@@ -67,7 +66,8 @@ public class MapScenario : MonoBehaviour
 
         if (history.GetHistory().Length == 0)//(values.history == "Null")
         {
-            history.SetHistory("");
+            //debug
+            history.InitHistoryData(UnityEngine.Random.Range(0,500));
             _SC.cs.NewGame(history.getSeed());
         }
         else
@@ -107,7 +107,7 @@ public class MapScenario : MonoBehaviour
         ProgressMap_preInput task = new(() => {; });
         Vector3 desV3 = _SC.cs.ProgressMap(index, ref task);
 
-        if (desV3 != Vector3.zero) {; }
+        if (desV3 != Vector3.zero) {;}
         else
         {
             _SGT.mapDATA.ApplyStageClearToHistory();
@@ -126,17 +126,46 @@ public class MapScenario : MonoBehaviour
             task += SceneChange;
             //Debug.Log("MoveScene by MapSC");
 
-            var temp = SGT_GUI_ItemData.GetCharInvenSGT(1);
-            for (int i = 0; i < temp.Count; i++)
+            for (int charIndex = 1; charIndex < 4; charIndex++)
             {
-                Debug.Log(i + " - " + temp[i]);
+                string[] skillEquipped = new string[2] { "Null", "Null" };
+                string[] weaponEquipped = new string[2] { "Null", "Null" };
+
+                SGT_GUI_ItemData.GetCharInvenSGT(charIndex,ref skillEquipped, ref weaponEquipped);
+
+                this.SetMapData_CharSkills(charIndex - 1, skillEquipped);
+                this.SetMapData_CharEquips(charIndex - 1, weaponEquipped);
             }
-            string dstSceneName = GameManager.gameManager.GetSceneName_byEventIndex(_SC.cs.GetIndex_atCurrFocusing());
-            _SGT.mapDATA.CurrMS._UTIL.ALS.LoadScene_Asyc(dstSceneName); //history.GetNextScene()  Shop
-            _SC.mapGUI.moveCamFunc(desV3, task);
+
+            if (true)
+            {
+                // <<< Scene Name
+                string dstSceneName = GameManager.gameManager.GetSceneName_byEventIndex(_SC.cs.GetIndex_atCurrFocusing());
+                _SGT.mapDATA.CurrMS._UTIL.ALS.LoadScene_Asyc(dstSceneName); //history.GetNextScene()  Shop
+                _SC.mapGUI.moveCamFunc(desV3, task);
+            }
         }
     }
+    public void ProgressCamp()
+    {
+        if (_UTIL.ALS.IsLoadedScene())
+        {
+            Debug.Log("cant");
+            return;
+        }
 
+        ProgressMap_preInput task = new(() => {; });
+        task += () => _UTIL.ALS.TimeToSwitchScene();
+        task += () => _SGT.mapDATA.gameObject.SetActive(false);
+        SceneToSceneFuncSGT.ExitScene_Map(task);
+
+        // Scene 이동 추가 및 카메라 이동 시작
+        if (true)
+        {
+            Debug.Log("MoveScene To Camp");
+            _UTIL.ALS.LoadScene_Asyc("Camp");
+        }
+    }
     public void SceneChange()
     {
         isAction = true;
@@ -184,14 +213,35 @@ public class MapHistoryData
     public int seed;
     public int stage;
 
+    public void InitHistoryData(int _seed)
+    {
+        seed = _seed;
+        SetHistory("");
+        return;
+    }
+
     public string GetHistory()
     {
-        return history[stage];
+        string _history = history[stage];
+        var splited = _history.Split('_');
+
+        if (splited.Length == 1)
+        {
+            return "";
+        }
+
+        if (splited.Length == 2)
+        {
+            return splited[1];
+        }
+
+        Debug.Log("??? ->" + _history);
+        return _history;
     }
 
     public void SetHistory(string input)
     {
-        history[stage] = input;
+        history[stage] = stage + "_" + input;
     }
 
     public int getSeed() { return seed * stage; }
@@ -203,7 +253,7 @@ public class MapHistoryData
 
     public string GetNextScene()
     {
-        return "Stage" + stage;
+        return "Stage " + stage;
     }
 }
 
@@ -211,7 +261,6 @@ public class MapHistoryData
 internal struct Values_SGT
 {
     public MapDataSGT mapDATA;
-    public GUI_MapScenario mapGUI;
     public SceneToSceneFuncSGT STS;
 }
 

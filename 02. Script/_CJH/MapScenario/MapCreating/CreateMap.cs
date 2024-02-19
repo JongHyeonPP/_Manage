@@ -438,9 +438,12 @@ public class CreateMap : MonoBehaviour
 
             for (int i = (int)range_Curr.x; i < range_Curr.y + 1; i++)
             {
-               eventObjectList.SetTerrain(focusingNode, new Vector2Int(focusingNode.x+1, i));
-                List<SpriteRenderer> instantBG = createMapBackgroundValues.setBackgroundSprites(events[i].transform.position, 
-                    terrainDataToIndex(currLayer.nodeTerrainData[i])); // << color
+                eventObjectList.SetTerrain(focusingNode, new Vector2Int(focusingNode.x+1, i));
+                List<SpriteRenderer> instantBG = createMapBackgroundValues.setBackgroundSprites(
+                    events[i].transform.position, 
+                    terrainDataToIndex(currLayer.nodeTerrainData[i]),
+                    level
+                ); // << color
 
                 List<SpriteRenderer> trashBin = new();
 
@@ -483,9 +486,8 @@ public class CreateMap : MonoBehaviour
             Vector2 range_Curr = eventObjectList.getChildRangeByGridPos(focusingNode);
             //Debug.Log(focusingNode + " child range : " + range_Curr + " / " + currLayer.spriteList.Count);
 
-            List<SpriteRenderer> instantBG = createMapBackgroundValues.setBackgroundSprites(events[0].transform.position,0);
+            List<SpriteRenderer> instantBG = createMapBackgroundValues.setBackgroundSprites(events[0].transform.position,0,0);
             List<SpriteRenderer> _trashbin = new();
-
 
             events[0].ActiveDetailed(); //Root
             //DisableIntersectingSprites(instantBG, _trashbin, events[0], createMapEventValues.ereaseScale);
@@ -515,7 +517,11 @@ public class CreateMap : MonoBehaviour
 
         for (int i = (int)range_Curr.x; i < range_Curr.y + 1; i++)
         {
-            List<SpriteRenderer> instantBG = createMapBackgroundValues.setBackgroundSprites_BOSS(events[i].transform.position, terrainDataToIndex(nextLayer.nodeTerrainData[i]));
+            List<SpriteRenderer> instantBG = createMapBackgroundValues.setBackgroundSprites_BOSS(
+                events[i].transform.position, 
+                terrainDataToIndex(nextLayer.nodeTerrainData[i]),
+                2
+                );
             List<SpriteRenderer> trashBin = new();
 
             events[i].ActiveDetailed(); // LastDance
@@ -587,8 +593,7 @@ public class CreateMap : MonoBehaviour
 [Serializable]
 public struct CreateMapBackgroundValues
 {
-    public GameObject[] bgPrefabList;
-    [SerializeField] internal BgSet_byStage[] bgPrefabList_new;
+    [SerializeField] internal MapSettingDataSet BgObjDataSet;
     public Transform parentTransform;
     
     public int countX;
@@ -602,39 +607,6 @@ public struct CreateMapBackgroundValues
 
     public BoxPointer backgroundArea;
     
-}
-
-[Serializable]
-internal class BgSet_byStage
-{
-    public int typeIndex;
-    public GameObject[] bgPrefabList;
-    public int[] ratioList;
-
-    public GameObject GetGameObj_byRandom()
-    {
-        int _rtn = 0;
-        int _sum = 0;
-        for (int i = 0; i < ratioList.Length; i++)
-        {
-            _sum += ratioList[i];
-        }
-
-        int _rnd = UnityEngine.Random.Range(0, _sum);
-
-        for (int i = 0; i < ratioList.Length; i++)
-        {
-            _rnd -= ratioList[i];
-
-            if (_rnd <= 0)
-            {
-                _rtn = i;
-                break;
-            }
-        }
-
-        return bgPrefabList[_rtn];
-    }
 }
 
 [Serializable]

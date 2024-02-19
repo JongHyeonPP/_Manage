@@ -6,7 +6,7 @@ public static class _CharStatFuncSet_DDO
 {
     static public bool CompareItem_withStat(this SlotGUI_EquipSlot targetEquip, ItemUnit target)
     {
-        int charComp_0 = targetEquip.compIndex_0; int itemComp_0 = target.itemData[0];
+        int charComp_0 = (int)targetEquip.itemType; int itemComp_0 = target.itemData[0];
 
         if (charComp_0 != itemComp_0)
         {
@@ -15,7 +15,7 @@ public static class _CharStatFuncSet_DDO
 
         if (charComp_0 == 0)
         {
-            int charType = targetEquip.equipIndex;
+            int charType = (int)targetEquip.detailType;
             int itemType = target.itemData[1];
 
             if (charType != itemType)

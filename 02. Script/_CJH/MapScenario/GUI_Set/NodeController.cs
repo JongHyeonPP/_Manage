@@ -50,13 +50,16 @@ public class NodeController : MonoBehaviour
             objList_Detailed[i].SetActive(true);
         }
 
-        _ps1.Stop(true);
-        _ps1.Clear(true);
+        if (_ps1 != null)
+        {
+            _ps1.Stop(true);
+            _ps1.Clear(true);
 
-        uint temp = (uint)Random.Range(0, 1000);
-        _ps1.randomSeed = temp;
-        _ps2.randomSeed = temp;
-        _ps1.Play();
+            uint temp = (uint)Random.Range(0, 1000);
+            _ps1.randomSeed = temp;
+            _ps2.randomSeed = temp;
+            _ps1.Play();
+        }
     }
 
     public void TurnOffFunc()

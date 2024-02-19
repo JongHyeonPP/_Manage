@@ -12,17 +12,14 @@ public class GUI_InvenSetManager : MonoBehaviour
     public Transform _InsTrans;
     public bool _isDebug = false;
 
-    private void Start()
-    { 
-        _DEBUG();
-    }
-
-    private void _DEBUG()
+    [ContextMenu("_Debug")]
+    public void _DEBUG()
     {
         if (!_isDebug)
             return;
 
-        myInvenSet = GetComponentsInChildren<GUI_InvenSpaceSlotSet>().ToList();
+        if(myInvenSet == null)
+         myInvenSet = GetComponentsInChildren<GUI_InvenSpaceSlotSet>().ToList();
 
         for (int i = 0; i < myInvenSet.Count; i++)
         {

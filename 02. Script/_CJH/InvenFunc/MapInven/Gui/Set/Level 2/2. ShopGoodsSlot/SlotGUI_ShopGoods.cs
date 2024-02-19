@@ -48,7 +48,6 @@ public class SlotGUI_ShopGoods : MonoBehaviour, IDragDropObj
             }
         }
 
-
         if (true)
         {
             RBD_CasherZone check = target as RBD_CasherZone;
@@ -58,7 +57,6 @@ public class SlotGUI_ShopGoods : MonoBehaviour, IDragDropObj
                 return;
             }
         }
-
 
         _itemGUI.SetSizeAuto();
         return;

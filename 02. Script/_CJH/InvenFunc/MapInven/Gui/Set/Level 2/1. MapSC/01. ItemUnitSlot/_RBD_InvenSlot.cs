@@ -6,6 +6,7 @@ public static class _RBD_InvenSlot
 {
     internal static bool CheckUpAvailable(this iRoot_DDO_Manager _inven, SlotGUI_InvenSlot _src, IResponedByDrop _dst)
     {
+        Debug.Log("Check can Interact");
         if ((_dst as SlotGUI_EquipSlot == true))
         {
             SlotGUI_EquipSlot _dst2 = _dst as SlotGUI_EquipSlot;
@@ -20,18 +21,23 @@ public static class _RBD_InvenSlot
         {
             RBD_IngridimentSlot _dst2 = _dst as RBD_IngridimentSlot;
 
-            if (_src._itemGUI._myData.itemData[0] == 1)
+            if (_src._itemGUI._myData.itemData[0] == 0)
                 return true;
             else
                 return false;
         }
 
+        if ((_dst as RBD_UseDisposable == true))
+        {
+            return _src._itemGUI._myData.itemData[0] == 0;
+        }
 
         return true;
     }
 
     internal static void InteractFuncByRBD(this iRoot_DDO_Manager _inven, SlotGUI_InvenSlot _src)
     {
+        Debug.Log("Not Allocated Case");
         _src._itemGUI.SetSizeAuto();
     }
 
@@ -46,6 +52,12 @@ public static class _RBD_InvenSlot
         {
             _inven.ItemToItem_EventDDO(_src, _dst); return;
         }
+        if ((_inven as RDM_CampSC == true))
+        {
+            _inven.ItemToItem_EventDDO(_src, _dst); return;
+        }
+        Debug.Log("Not Allocated Case");
+        _src._itemGUI.SetSizeAuto();
     }
 
     internal static void InteractFuncByRBD(this iRoot_DDO_Manager _inven, SlotGUI_InvenSlot _src, SlotGUI_EquipSlot _dst)
@@ -61,6 +73,9 @@ public static class _RBD_InvenSlot
             Debug.Log("RDM_MapSC / SlotGUI_MapInventory -> SlotGUI_MapEquip");
             _inven.ItemToItem_EventDDO(_src, _dst); return;
         }
+
+        Debug.Log("Not Allocated Case");    
+        _src._itemGUI.SetSizeAuto();
     }
 
     internal static void InteractFuncByRBD(this iRoot_DDO_Manager _inven, SlotGUI_InvenSlot _src, RBD_CasherZone _dst)
@@ -78,6 +93,7 @@ public static class _RBD_InvenSlot
 
     internal static void InteractFuncByRBD(this iRoot_DDO_Manager _inven, SlotGUI_InvenSlot _src, RBD_IngridimentSlot _dst)
     {
+        Debug.Log("Moment");
         _dst.DDO_Event_byInvenSlot(_src);
         return;
     }

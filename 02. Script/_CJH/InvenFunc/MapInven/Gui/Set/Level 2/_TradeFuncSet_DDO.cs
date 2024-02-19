@@ -58,7 +58,7 @@ internal static class _TradeFuncSet_DDO
         _inven.GetInvenSGT().AddItemUnit_byPurchase(_src._itemGUI._myData);
 
         GUI_ItemUnit _srcGUI = _src._itemGUI;
-        _dst.SetItemGUI(_srcGUI);
+        _dst.SetGUI_byItemGUI(_srcGUI);
         _src.SetGUI_byItemGUI(null);
 
         return true;

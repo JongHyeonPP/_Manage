@@ -31,14 +31,27 @@ internal static class GUI_SelectedNodeTools
             Vector2Int focus_Adrr = obj.adress.focusingNode;
             Vector2Int select_Adrr = new Vector2Int(focus_Adrr.x + 1, input);
 
-            Debug.Log(data[select_Adrr.x].eventIndex[select_Adrr.y] + " is Selected");
+            if(data[select_Adrr.x].eventIndex.Count == 0)
+            {
+                Debug.Log("BOSS is Selected");
+                GUI_MapNodeInfo _nodeInfoGUI = obj.NodeInfoGUI;
 
-            GUI_MapNodeInfo _nodeInfoGUI = obj.NodeInfoGUI;
+                _nodeInfoGUI.SetGUI_toActive();
+                _nodeInfoGUI.SetGUI_byImage(data[select_Adrr.x].nodeList[select_Adrr.y].EventNode.sprite);
+                _nodeInfoGUI.SetGUI_byName("BOSS");// + data[select_Adrr.x].terrainScale[select_Adrr.y]);
+                _nodeInfoGUI.SetGUI_byVector3(data[select_Adrr.x].nodeTerrainData[select_Adrr.y]);
+            }
+            else
+            {
+                Debug.Log(data[select_Adrr.x].eventIndex[select_Adrr.y] + " is Selected");
 
-            _nodeInfoGUI.SetGUI_toActive();
-            _nodeInfoGUI.SetGUI_byImage(data[select_Adrr.x].nodeList[select_Adrr.y].EventNode.sprite);
-            _nodeInfoGUI.SetGUI_byName(_convEventIndex_toString(data[select_Adrr.x].eventIndex[select_Adrr.y]));// + data[select_Adrr.x].terrainScale[select_Adrr.y]);
-            _nodeInfoGUI.SetGUI_byVector3(data[select_Adrr.x].nodeTerrainData[select_Adrr.y]);
+                GUI_MapNodeInfo _nodeInfoGUI = obj.NodeInfoGUI;
+
+                _nodeInfoGUI.SetGUI_toActive();
+                _nodeInfoGUI.SetGUI_byImage(data[select_Adrr.x].nodeList[select_Adrr.y].EventNode.sprite);
+                _nodeInfoGUI.SetGUI_byName(_convEventIndex_toString(data[select_Adrr.x].eventIndex[select_Adrr.y]));// + data[select_Adrr.x].terrainScale[select_Adrr.y]);
+                _nodeInfoGUI.SetGUI_byVector3(data[select_Adrr.x].nodeTerrainData[select_Adrr.y]);
+            }
         }
 
         return;

@@ -9,7 +9,7 @@ internal static class _MoveItemFunc
     {
         if (_inven.Comp_ItemToItem(_src, _dst))
         {
-            if (CheckItemMaxLevel(_src._itemGUI._myData))
+            if (CheckItem_isFusionAble(_src._itemGUI._myData))
             {
                 return Color.blue;
             }
@@ -24,13 +24,11 @@ internal static class _MoveItemFunc
     {
         if (_inven.Comp_ItemToItem(_src, _dst))
         {
-            if (CheckItemMaxLevel(_src._itemGUI._myData))
+            if (CheckItem_isFusionAble(_src._itemGUI._myData))
             {
                 _inven.FusionFunc(_src, _dst);
                 return;
             }
-            else
-                Debug.Log("??");
         }
 
         _inven.MoveFunc(_src, _dst);
@@ -56,8 +54,8 @@ internal static class _MoveItemFunc
     {
         GUI_ItemUnit _srcGUI = _src._itemGUI;
         GUI_ItemUnit _dstGUI = _dst._itemGUI;
-        _dst.SetItemGUI(_srcGUI);
-        _src.SetItemGUI(_dstGUI);
+        _dst.SetGUI_byItemGUI(_srcGUI);
+        _src.SetGUI_byItemGUI(_dstGUI);
         return;
     }
 
@@ -66,17 +64,30 @@ internal static class _MoveItemFunc
         _inven.GetInvenSGT().itemUnits.Remove(_src._itemGUI._myData);
         _src.SetItemData_byData(null);
 
-        ItemUnit targetData = _dst._itemGUI._myData; targetData.itemData[2]++;
+        ItemUnit targetData = _dst._itemGUI._myData; 
+        func();
         GUI_ItemUnit newGUI = _inven.GetInvenSGT().spriteDataSet.GetGUI_byItemData(targetData.itemData, _src.GetTransform_ItemGUI());
         _dst.SetItemData_byData(null);
         _dst.SetGUI_byItemGUI(newGUI);
         _dst.SetItemData_byData(targetData);
 
         return;
+
+
+        void func()
+        {
+            if (targetData.itemData[0] != 0)
+                targetData.itemData[targetData.itemData.Count - 1]++;
+        }
     }
 
-    static bool CheckItemMaxLevel(ItemUnit target) 
+    static bool CheckItem_isFusionAble(ItemUnit target) 
     {
-        return target.itemData[2] < 2;
+        if (target.itemData[0] == 0)
+        {
+            return false;
+        }
+
+        return target.itemData[target.itemData.Count-1] < 2;
     }
 }

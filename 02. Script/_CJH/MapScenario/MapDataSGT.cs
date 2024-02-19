@@ -12,7 +12,7 @@ public class MapDataSGT : MonoBehaviour
     public MapScenario CurrMS;
 
     public Camera visualObj;
-    public bool isHaveToCreate = false;
+    public bool isHaveToCreate = false; 
 
     public static MapDataSGT GlobalInit()
     {

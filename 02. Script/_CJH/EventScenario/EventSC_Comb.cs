@@ -12,6 +12,7 @@ public class EventSC_Comb : MonoBehaviour
     {
         SceneToSceneFuncSGT.InitSingleton(ref _SGT.STS);
         SceneToSceneFuncSGT.ArriveScene_Map();
+        
         /*
         _UTIL.invenSC.setGUI_bySGT();
 
@@ -33,14 +34,30 @@ public class EventSC_Comb : MonoBehaviour
         }*/
     }
 
-    void Start()
-    {
-        
-    }
-
     public void SceneChange()
     {
         _UTIL.ALS.TimeToSwitchScene();
+    }
+
+    public void ProgressMap()
+    {
+        if (_UTIL.ALS.IsLoadedScene())
+        {
+            Debug.Log("cant");
+            return;
+        }
+
+        ProgressMap_preInput task = new(() => {; });
+        task += SceneChange;
+
+        SceneToSceneFuncSGT.ExitScene_Map(task);
+
+        // Scene 이동 추가 및 카메라 이동 시작
+        if (true)
+        {
+            Debug.Log("MoveScene To Stage 0");
+            _UTIL.ALS.LoadScene_Asyc("Stage 0");
+        }
     }
 }
 

@@ -70,7 +70,7 @@ public class RBD_CasherZone : MonoBehaviour, IResponedByDrop
 
     void SetItemInfo_byGUI(GUI_ItemUnit _currItemGUI)
     {
-        Image temp = currItemGUI.getImageGUI();
+        Sprite img = currItemGUI.GetImageGUI_Sprite();
 
         ItemUnit inputData = _currItemGUI._myData;
         text.text =
@@ -88,8 +88,8 @@ public class RBD_CasherZone : MonoBehaviour, IResponedByDrop
 
         this.SetGUI_Default(currItemGUI);
         text.text = " .";
-        Image temp = currItemGUI.getImageGUI();
-        temp.material = null;
-        currItemGUI = null; isInven = null;
+        currItemGUI.SetImageGUI_Material(null);
+        currItemGUI = null; 
+        isInven = null;
     }
 }

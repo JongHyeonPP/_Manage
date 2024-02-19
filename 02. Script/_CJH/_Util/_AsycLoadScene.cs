@@ -10,11 +10,12 @@ public class _AsycLoadScene : MonoBehaviour
     public string nextSceneName = "NextScene";
     public AsyncOperation asyncLoad; public float output;
 
+    /*
     private void Update()
     {
         if(asyncLoad!=null)
             output = Mathf.RoundToInt(asyncLoad.progress * 100f);
-    }
+    }*/
 
     public void LoadScene_Asyc(string target)
     {

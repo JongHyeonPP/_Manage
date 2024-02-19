@@ -5,9 +5,10 @@ using UnityEngine;
 public class InvenSC_Map : MonoBehaviour
 {
     public SGT_GUI_ItemData invenData_SGT;
-    public CJH_GUI_CharData charData_SGT;
+    public CJH_CharacterData charData_SGT;
     public GUI_InvenSetManager invenGUI_Manager;
     public List<ItemUnit> ItemList_Data;
+
     void Awake()
     {
         invenData_SGT.InitSGT(ref invenData_SGT);
@@ -49,14 +50,15 @@ public class InvenSC_Map : MonoBehaviour
         }
 
         ItemUnit itemData = new ItemUnit();
-        itemData.InitData_Random_Slot(invenData_SGT.spriteDataSet, targetSlot);
+        itemData.InitData_Random_Slot(targetSlot);
         ItemList_Data.Add(itemData);
+
         addGUI_byData(itemData);
     }
 
 
     private void addGUI_byData(ItemUnit data)
-    {        
+    {
         SlotGUI_InvenSlot targetSlot = invenGUI_Manager.GetSlotGUI_byAddr(data.invenAddr);
         GUI_ItemUnit ins_ItemGUI = invenData_SGT.spriteDataSet.GetGUI_byItemData(data.itemData, invenGUI_Manager._InsTrans);
 

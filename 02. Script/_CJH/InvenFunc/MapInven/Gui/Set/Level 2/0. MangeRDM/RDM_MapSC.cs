@@ -9,6 +9,7 @@ public class RDM_MapSC : MonoBehaviour, iRoot_DDO_Manager
     public MyInputManager _inputM;
     public GUI_InvenSetManager m_inven;
     public Transform _AboveOfAll;
+    [SerializeField] MapRDM_ItemInfoCtrl mapRDM_ItemInfoCtrl;
 
     private Transform _itemTrans,_defaultParent; 
     private IDragDropObj targetDDO;
@@ -16,6 +17,7 @@ public class RDM_MapSC : MonoBehaviour, iRoot_DDO_Manager
 
     public void SetSlotTransform_OnDrag(IDragDropObj _targetDDO)
     {
+        Debug.Log((_targetDDO.GetTransform_ItemGUI() == null) + " <<");
         if (_targetDDO.GetTransform_ItemGUI() == null)
             return;
 
@@ -48,24 +50,33 @@ public class RDM_MapSC : MonoBehaviour, iRoot_DDO_Manager
 
     public void SetEvent_OnEnter(IResponedByDrop _currRBD)
     {
+
         if (_itemTrans == null)
-        {
+        {        
+            // 드래그 하지도 않음
             if (targetDDO as iInvenSlot == _currRBD as iInvenSlot)
             {
+                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(_currRBD as iInvenSlot);
+
                 _currRBD.GetTargetSlotGUI().SetColor_ONFOCUS();
                 return;
             }
             else
             {
+                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(_currRBD as iInvenSlot);
+
                 _currRBD.GetTargetSlotGUI().SetColor_ONFOCUS();
                 return;
             }
         }
         else
-        {
+        {        
+            // 드래그 대상 존재
+
             if (targetDDO as iInvenSlot != _currRBD as iInvenSlot)
-            {
-                if(targetDDO.IsInteractable_byGetRBD(this,_currRBD))
+            {          
+                // 대상이 인벤 슬롯인가
+                if (targetDDO.IsInteractable_byGetRBD(this,_currRBD))
                 {
                     currRBD = _currRBD;
                     _currRBD.GetTargetSlotGUI().SetColor_ABLE();
@@ -77,6 +88,7 @@ public class RDM_MapSC : MonoBehaviour, iRoot_DDO_Manager
             }
             else if (_currRBD as RBD_CasherZone)
             {
+                // 대상이 인벤 슬롯인가
                 if (targetDDO.IsInteractable_byGetRBD(this, _currRBD))
                 {
                     currRBD = _currRBD;
@@ -92,6 +104,7 @@ public class RDM_MapSC : MonoBehaviour, iRoot_DDO_Manager
 
     public void SetEvent_OnExit(IResponedByDrop _currRBD = null)
     {
+        mapRDM_ItemInfoCtrl.SetDefault();
         _currRBD.GetTargetSlotGUI().SetColor_DEFAULT();
         currRBD = null;
     }

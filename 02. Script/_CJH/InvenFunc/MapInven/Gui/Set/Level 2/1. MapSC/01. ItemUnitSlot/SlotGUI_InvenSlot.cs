@@ -8,10 +8,14 @@ using UnityEngine.UI;
 
 public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
 {
-    [SerializeField]internal GUI_Ctrl myGUI_CTRL;
+    [SerializeField] private GUI_Ctrl myGUI_CTRL;
+    [SerializeField] private _SlotItemGuiEvent _ItemEvent;
+
     public List<int> myAddr = new();
-    public GUI_ItemUnit _itemGUI;
+    public GUI_ItemUnit _itemGUI; 
+    public Image _ExistEffect;
     public int _index;
+
 
 
     public void _DEBUG(int index, List<int> _data)
@@ -29,18 +33,6 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
         if (_itemGUI)
             _itemGUI.SetAddressData(myAddr);
     }
-
-    public void SetGUI_byItemGUI(GUI_ItemUnit target)
-    {
-        _itemGUI = target;
-
-        if (target)
-        {
-            target.SetSizeAuto(transform);
-            _itemGUI.SetAddressData(myAddr);
-        }
-    }
-
 
     public SlotGUI_InvenSlot GetMyItemGUI() { return this; }
 
@@ -103,26 +95,38 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
                 GetDDO_Manager().InteractFuncByRBD(this, _src as RBD_IngridimentSlot);
                 return;
             }
+            else if ((_src as RBD_UseDisposable == true))
+            {
+                GetDDO_Manager().InteractFuncByRBD(this, _src as RBD_UseDisposable);
+                return;
+            }
         }
 
+        Debug.Log("Not Allocated Case");
         GetDDO_Manager().InteractFuncByRBD(this);
         return;
     }
 
-    public void SetItemGUI(GUI_ItemUnit target)
+    public void SetGUI_byItemGUI(GUI_ItemUnit target)
     {
+        _ItemEvent.SetGui_byIsNull(target == null);
+
         if (target == null)
         {
+            _ExistEffect.enabled = false;
             _itemGUI = null;
             return;
         }
 
+        _ExistEffect.enabled = true;
         _itemGUI = target;
         target.transform.SetParent(transform);
         target._myData.invenAddr = myAddr;
         target.SetSizeAuto();
     }
 }
+
+
 
 [Serializable]
 internal class GUI_Ctrl : iSlotGUI

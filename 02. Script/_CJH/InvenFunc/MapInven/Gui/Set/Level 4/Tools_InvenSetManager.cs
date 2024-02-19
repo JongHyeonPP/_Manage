@@ -4,21 +4,35 @@ using UnityEngine;
 
 internal static class Tools_InvenSetManager
 {
-    static internal GUI_ItemUnit GetGUI_byItemData(this List<UnitDataTable_toGUI> _dataSet, List<int> _itemData,Transform _trans)
+    static internal GUI_ItemUnit GetGUI_byItemData(this MyInvenSpriteDB _dataSet, List<int> _itemData,Transform _trans)
     {
-        int itemType_0 = _itemData[0]; int itemType_1 = _itemData[1]; int itemType_2 = _itemData[2];
+        GUI_ItemUnit obj = Object.Instantiate(_dataSet.invenPrefab, _trans);
+        obj.SetImageGUI_Sprite(_dataSet.GetSprite_byItemData(_itemData));
 
-        GUI_ItemUnit obj = Object.Instantiate(_dataSet[itemType_0].prefab_InvenUnitGUI, _trans);
-        obj._GUI.img.sprite = _dataSet[itemType_0].spriteList[itemType_1].table[itemType_2];
-        obj._GUI.img.color = _dataSet[itemType_0].spriteList[itemType_1].myColor;
+        string temp = "Lv ";
+        if (true)
+        {
+            if (_itemData[0] == 0)
+            {
+                temp += _itemData[1];
+            }
+            else {
+                temp += _itemData[_itemData.Count - 1];
+            }
+        }
+
+        obj.SetNameText(temp);
+        obj.SetSizeAuto(_trans);
         return obj;
     }
 
     static internal SlotGUI_InvenSlot GetSlotGUI_byAddr(this GUI_InvenSetManager _inven, List<int> _addrData)
     {
         int equipIndex = _addrData[0];
-        int invenIndex = _addrData[1];
-
+        int invenIndex = _addrData[1]; 
+        Debug.Log(equipIndex + " / " + invenIndex);
+        if (_inven.myInvenSet.Count <= equipIndex)
+            return null;
         return _inven.myInvenSet[equipIndex].MySlotList[invenIndex];
     }
 
@@ -39,12 +53,20 @@ internal static class Tools_InvenSetManager
         if (_item == null)
         {
             Object.Destroy(_inven._itemGUI.gameObject);
-            _inven._itemGUI = null;
+            _inven.SetGUI_byItemGUI(null);
         }    
 
         return;
     }
+
     static internal void SetItemData_byData(this SlotGUI_ShopGoods _inven, ItemUnit _item)
+    {
+        _inven._itemGUI._myData = _item;
+
+        return;
+    }
+
+    static internal void SetItemData_byData(this SlotGUI_CookResult _inven, ItemUnit _item)
     {
         _inven._itemGUI._myData = _item;
 

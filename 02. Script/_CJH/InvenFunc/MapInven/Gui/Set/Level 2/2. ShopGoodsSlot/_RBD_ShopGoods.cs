@@ -56,4 +56,6 @@ internal static class GUI_ShopGoods_RBD
         _src._itemGUI.SetSizeAuto();
         return;
     }
+
+
 }

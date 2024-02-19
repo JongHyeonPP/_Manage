@@ -137,7 +137,7 @@ internal static class CreateMapTools
         return points;
     }
 
-    internal static List<SpriteRenderer> setBackgroundSprites(this CreateMapBackgroundValues values, Vector2 stdPos, int index)
+    internal static List<SpriteRenderer> setBackgroundSprites(this CreateMapBackgroundValues values, Vector2 stdPos, int index, int level)
     {
         List<SpriteRenderer> filledByBG = new();
 
@@ -154,6 +154,10 @@ internal static class CreateMapTools
             {
                 for (int x = 0; x < values.countX; x++)
                 {
+                    var target = values.BgObjDataSet.GetDataSet_byStage(level);
+                    if (target == null)
+                        continue;
+
                     float offset_X = x - (values.countX / 2);
                     float offset_Y = y - (values.countY / 2);
                     offset_X /= (values.countX / 2);
@@ -164,13 +168,11 @@ internal static class CreateMapTools
                     if (dir == Vector2.zero)
                         continue;
 
-                    dir += dir.normalized * new Vector2(coefX, coefY) * values.coef_Outline;
-
-
                     //dir += size;
+                    dir += dir.normalized * new Vector2(coefX, coefY) * values.coef_Outline;
                     dir += GetRandomPointInCircle(new Vector2(values.coefX, values.coefY));
 
-                    InstantSprite(Object.Instantiate(values.bgPrefabList_new[0].GetGameObj_byRandom()).transform, dir);
+                    InstantSprite(Object.Instantiate(target).transform, dir);
                 }
             }
 
@@ -209,7 +211,8 @@ internal static class CreateMapTools
             filledByBG.Add(insTrans.GetComponent<SpriteRenderer>());
         }
     }
-    internal static List<SpriteRenderer> setBackgroundSprites_BOSS(this CreateMapBackgroundValues values, Vector2 stdPos, int index)
+
+    internal static List<SpriteRenderer> setBackgroundSprites_BOSS(this CreateMapBackgroundValues values, Vector2 stdPos, int index, int level)
     {
         List<SpriteRenderer> filledByBG = new();
 
@@ -240,7 +243,9 @@ internal static class CreateMapTools
                     //dir += size;
                     dir += GetRandomPointInCircle(new Vector2(values.coefX, values.coefY)) * 2;
 
-                    InstantSprite(Object.Instantiate(values.bgPrefabList_new[0].GetGameObj_byRandom()).transform, dir);
+
+                    var target = values.BgObjDataSet.GetDataSet_byStage(-1);
+                    InstantSprite(Object.Instantiate(target).transform, dir);
                 }
             }
         }

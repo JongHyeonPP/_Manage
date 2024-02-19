@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class _RBD_EquipSlot_MAP
 {
-    internal static bool CheckUpScale(this iRoot_DDO_Manager _inven, SlotGUI_EquipSlot _src, IResponedByDrop _dst)
+    internal static bool Check_Upscale(this iRoot_DDO_Manager _inven, SlotGUI_EquipSlot _src, IResponedByDrop _dst)
     {
         if ((_dst as SlotGUI_EquipSlot == true))
         {

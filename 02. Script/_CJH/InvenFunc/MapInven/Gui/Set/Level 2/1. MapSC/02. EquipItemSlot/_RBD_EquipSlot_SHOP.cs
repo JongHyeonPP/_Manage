@@ -36,7 +36,7 @@ public static class _RBD_EquipSlot_SHOP
     {
         GUI_ItemUnit _srcGUI = _src._itemGUI;
         GUI_ItemUnit _dstGUI = _dst._itemGUI;
-        _src.SetItemGUI(_dstGUI);
-        _dst.SetItemGUI(_srcGUI);
+        _src.SetGUI_byItemGUI(_dstGUI);
+        _dst.SetGUI_byItemGUI(_srcGUI);
     }
 }

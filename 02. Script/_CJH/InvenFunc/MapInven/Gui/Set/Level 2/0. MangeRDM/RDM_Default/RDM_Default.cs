@@ -9,7 +9,7 @@ public class RDM_Default : MonoBehaviour, iRoot_DDO_Manager
 
     public SGT_GUI_ItemData GetInvenSGT()
     {
-        throw new System.NotImplementedException();
+        return _REF._SGT_GUI_ItemData;
     }
 
     public bool IsDragObjExist()
@@ -110,9 +110,13 @@ internal class RDM_DefaultValue
 {
     [SerializeField] internal MyInputManager _inputM;
     [SerializeField] internal Transform _AboveOfAll;
-
-    internal SGT_GUI_ItemData _SGT_GUI_ItemData;
+    [SerializeField] internal SGT_GUI_ItemData _SGT_GUI_ItemData;
     internal Transform _itemTrans, _defaultParent;
     internal IDragDropObj targetDDO;
     internal IResponedByDrop currRBD;
+
+    internal bool isDragingEvent()
+    {
+        return _itemTrans == null;
+    }
 }
