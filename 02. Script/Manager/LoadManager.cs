@@ -20,8 +20,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
     public Dictionary<string, WeaponClass> weaponDict = new();
     private readonly string visualEffectPath = "Prefab/VisualEffect";
-    public Dictionary<string, GameObject> skillVisualEffectDict = new();
-    public Dictionary<string, GameObject> weaponVisualEffectDict = new();
+    public Dictionary<string, VisualEffect> skillVisualEffectDict = new();
+    public Dictionary<string, VisualEffect> weaponVisualEffectDict = new();
     private void Awake()
     {
         if (!loadManager)
@@ -37,30 +37,38 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     {
         if (!isInit)
         {
-            LoadSkillVisualEffect();
-            LoadWeaponVisualEffect();
+            await LoadVisualEffect();
             await InitSkill();
             await Task.WhenAll(InitJob(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc(), InitEnemyCase(), InitWeapon());
-            
+
             Debug.Log("LoadComplete");
             isInit = true;
         }
+
+        
     }
-    private void LoadSkillVisualEffect()
+    async Task LoadVisualEffect()
     {
-        GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/Skill");
-        foreach (GameObject visualEffect in visualEffects)
+        
+        LoadVisualEffectType("Weapon", weaponVisualEffectDict);
+        LoadVisualEffectType("Skill", skillVisualEffectDict);
+        async void LoadVisualEffectType(string _type, Dictionary<string, VisualEffect> _dict)
         {
-            skillVisualEffectDict.Add(visualEffect.name, visualEffect);
+            Dictionary<string, object> durationData = await DataManager.dataManager.GetField("VisualEffect", _type);
+            GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/" + _type);
+            float duration;
+            foreach (GameObject visualEffect in visualEffects)
+            {
+                if (durationData.TryGetValue(visualEffect.name, out object obj))
+                {
+                    duration = GetFloatValue(obj);
+                }
+                else
+                    duration = 1f;
+                _dict.Add(visualEffect.name, new VisualEffect(visualEffect, duration));
+            }
         }
-    }
-    private void LoadWeaponVisualEffect()
-    {
-        GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/Weapon");
-        foreach (GameObject visualEffect in visualEffects)
-        {
-            weaponVisualEffectDict.Add(visualEffect.name, visualEffect);
-        }
+
     }
     private async Task InitSkill()
     {
@@ -745,8 +753,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
                 weaponClass.SetType(type);
                 //VisualEffect
-                GameObject defaultVisualEffect = null;
-                GameObject skillVisualEffect = null;
+                VisualEffect defaultVisualEffect = null;
+                VisualEffect skillVisualEffect = null;
                 if (dict.TryGetValue("VisualEffect", out obj))
                 {
                     Dictionary<string, object> veDict = obj as Dictionary<string, object>;

@@ -416,16 +416,16 @@ public class BattleScenario : MonoBehaviour
         Destroy(x.gameObject);
     }
     public void GoToStart() => SceneManager.LoadScene("Start");
-    public void CreateSkillEffect(GameObject effect, CharacterBase _character, bool _isSkillVe)
+    public void CreateVisualEffect(VisualEffect _visualEffect, CharacterBase _character, bool _isSkillVe)
     {
-        GameObject effectObj = Instantiate(effect, _character.skillTarget);
+        GameObject effectObj = Instantiate(_visualEffect.effectObject, _character.skillTarget);
         if (_isSkillVe)
         {
             int rangeX = UnityEngine.Random.Range(-3, 4);
             int rangeY = UnityEngine.Random.Range(-3, 4);
             effectObj.transform.position += new Vector3(rangeX, rangeY);
         }
-        Destroy(effectObj, 0.5f);
+        Destroy(effectObj, _visualEffect.duration);
     }
     public void ChangeMap(BackgroundType _backgroundType)
     {

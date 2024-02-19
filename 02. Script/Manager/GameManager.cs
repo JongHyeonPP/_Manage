@@ -69,6 +69,10 @@ public class GameManager : MonoBehaviour
             //uid = "FMefxTlgP9aHsgfE0Grc";
             uid = "KF5U1XMs5cy7n13dgKjF";
         }
+
+
+
+
     }
     async void Start()
     {

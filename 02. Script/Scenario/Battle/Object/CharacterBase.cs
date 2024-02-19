@@ -421,7 +421,7 @@ abstract public class CharacterBase : MonoBehaviour
     {
         List<SkillActiveForm> skillActiveForms = new();
         List<Skill> skillsAndDa = new(skills);
-        skillsAndDa.Add(defaultAttack);//기본 공격
+        //skillsAndDa.Add(defaultAttack);//기본 공격
         foreach (Skill skill in skillsAndDa)
         {
             SkillActiveForm skillActiveForm = null;
@@ -462,6 +462,7 @@ abstract public class CharacterBase : MonoBehaviour
                             passiveEffectsAtGrid.Add(form);
                             form.SetPassiveEffect();
                             break;
+                            
                     }
                 }
                 else//액티브 스킬
@@ -768,8 +769,8 @@ abstract public class CharacterBase : MonoBehaviour
                             {
                                 effectForm.ActiveEffect0nTarget(effectTarget, i == 1 ? repeatValue : 1f);
                                 //Skill
-                                if (skill.visualEffect)
-                                    GameManager.battleScenario.CreateSkillEffect(skill.visualEffect, effectTarget, true);
+                                if (skill.visualEffect != null)
+                                    GameManager.battleScenario.CreateVisualEffect(skill.visualEffect, effectTarget, true);
                                 //Weapon
                                 if (caster.weapon != null)
                                     caster.StartCoroutine(WeaponVisualEffect());
@@ -825,9 +826,9 @@ abstract public class CharacterBase : MonoBehaviour
                         break;
                 }
                 if (skill.categori == SkillCategori.Default)
-                    GameManager.battleScenario.CreateSkillEffect(caster.weapon.defaultVisualEffect, caster, false);
+                    GameManager.battleScenario.CreateVisualEffect(caster.weapon.defaultVisualEffect, caster, false);
                 else
-                    GameManager.battleScenario.CreateSkillEffect(caster.weapon.skillVisualEffect, caster, false);
+                    GameManager.battleScenario.CreateVisualEffect(caster.weapon.skillVisualEffect, caster, false);
             }
         }
     }
