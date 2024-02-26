@@ -418,12 +418,18 @@ public class BattleScenario : MonoBehaviour
     public void GoToStart() => SceneManager.LoadScene("Start");
     public void CreateVisualEffect(VisualEffect _visualEffect, CharacterBase _character, bool _isSkillVe)
     {
-        GameObject effectObj = Instantiate(_visualEffect.effectObject, _character.skillTarget);
-        if (_isSkillVe)
+        Transform target;
+        target = _visualEffect.fromRoot ? _character.rootTargetTransform : _character.skillTargetTransform;
+        GameObject effectObj = Instantiate(_visualEffect.effectObject, target);
+        if (_isSkillVe && !_visualEffect.fromRoot)
         {
-            int rangeX = UnityEngine.Random.Range(-3, 4);
-            int rangeY = UnityEngine.Random.Range(-3, 4);
+            int rangeX = UnityEngine.Random.Range(-3, 3);
+            int rangeY = UnityEngine.Random.Range(-3, 3);
             effectObj.transform.position += new Vector3(rangeX, rangeY);
+        }
+        if (_visualEffect.sound != string.Empty)
+        {
+            SoundManager.soundManager.SfxPlay(_visualEffect.sound);
         }
         Destroy(effectObj, _visualEffect.duration);
     }
@@ -442,9 +448,36 @@ public class BattleScenario : MonoBehaviour
         ChangeMap(enumValues[UnityEngine.Random.Range(0, enumValues.Length)]);
     }
     public string visualEffectStr;
-    [ContextMenu("SkillVisualEffetTest")]
-    public void SkillVisualEffectTest()
+    public float visualEffectDur;
+    [ContextMenu("VisualEffetTest")]
+    public void VisualEffectTest()
     {
-        CreateVisualEffect(LoadManager.loadManager.skillVisualEffectDict[visualEffectStr], enemies[0], true);
+        List<CharacterBase> temp = new(enemies);
+        temp.AddRange(friendlies);
+        foreach (CharacterBase x in temp)
+        {
+            Transform target;
+            if (LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].fromRoot)
+            {
+                target = x.rootTargetTransform;
+            }
+            else
+            {
+                target = x.skillTargetTransform;
+            }
+            GameObject effectObj = Instantiate(LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].effectObject, target);
+            int rangeX = UnityEngine.Random.Range(-2, 2);
+            int rangeY = UnityEngine.Random.Range(-2, 2);
+            if (!LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].fromRoot)
+                effectObj.transform.position += new Vector3(rangeX, rangeY);
+            if (LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].sound != string.Empty)
+            {
+                SoundManager.soundManager.SfxPlay(LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].sound);
+            }
+            if (visualEffectDur == 0)
+                Destroy(effectObj, LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].duration);
+            else
+                Destroy(effectObj, visualEffectDur);
+        }
     }
 }

@@ -22,6 +22,7 @@ public class AwakeScenario : MonoBehaviour
     private void Start()
     {
         SettingManager.settingManager.buttonSetting.SetActive(false);
+        SceneManager.LoadScene("Start");
     }
 
     private IEnumerator ShowJhLogo()

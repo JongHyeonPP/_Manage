@@ -2,6 +2,7 @@ using BattleCollection;
 using EnumCollection;
 using Firebase.Firestore;
 using LobbyCollection;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -54,9 +55,9 @@ public class GameManager : MonoBehaviour
     public int nodeLevel = 0;
     public string scene;
     public string history;
+    public string itemData;
     void Awake()//매니저 세팅은 Awake
     {
-
         if (!gameManager)
         {
             gameManager = this;
@@ -69,10 +70,6 @@ public class GameManager : MonoBehaviour
             //uid = "FMefxTlgP9aHsgfE0Grc";
             uid = "FMefxTlgP9aHsgfE0Grc";
         }
-
-
-
-
     }
     async void Start()
     {
@@ -453,18 +450,26 @@ public class GameManager : MonoBehaviour
     }
     public async void GameOver()
     {
-        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        //await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        //{
+        //    BattleScenario.ClearEnemy();
+        //    BattleScenario.ClearFriendly();
+        //    DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
+        //    documentRef.DeleteAsync();
+        //});
+        StartCoroutine(GameOverCor());
+
+        IEnumerator GameOverCor()
         {
-            BattleScenario.ClearEnemy();
-            BattleScenario.ClearFriendly();
-            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
-            documentRef.DeleteAsync();
-        });
-        canvasGrid.gameObject.SetActive(false);
-        uiCamera.SetActive(false);
-        scene = null;
-        progressDoc = null;
-        battleScenario.panelGameOver.gameObject.SetActive(true);
+            foreach (var x in BattleScenario.enemies)
+                x.StopBattle();
+            yield return new WaitForSeconds(5f);
+            canvasGrid.gameObject.SetActive(false);
+            uiCamera.SetActive(false);
+            scene = null;
+            progressDoc = null;
+            battleScenario.panelGameOver.gameObject.SetActive(true);
+        }
     }
     public void InitSeed()
     {

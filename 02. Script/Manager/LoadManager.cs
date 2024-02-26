@@ -54,10 +54,12 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
         {
             Dictionary<string, object> durationData = await DataManager.dataManager.GetField("VisualEffect", _type);
             GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/" + _type);
-            float duration = 1f;
-            string sound = string.Empty;
+            
             foreach (GameObject visualEffect in visualEffects)
             {
+                float duration = 1f;
+                string sound = string.Empty;
+                bool fromRoot = false;
                 if (durationData.TryGetValue(visualEffect.name, out object obj0))
                 {
                     object obj1;
@@ -70,8 +72,12 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                     {
                         sound = (string)obj1;
                     }
+                    if (ve.TryGetValue("FromRoot", out obj1))
+                    {
+                        fromRoot = (bool)obj1;
+                    }
                 }
-                _dict.Add(visualEffect.name, new VisualEffect(visualEffect, duration, sound));
+                _dict.Add(visualEffect.name, new VisualEffect(visualEffect, duration, sound, fromRoot));
             }
         }
 

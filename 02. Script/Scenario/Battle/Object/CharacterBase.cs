@@ -57,12 +57,12 @@ abstract public class CharacterBase : MonoBehaviour
     private readonly float ARRIVAL_TIME = 2f;
     public SpriteRenderer weaponRenderer;//Right
     public SpriteRenderer shieldRenderer;//Left
-    public Transform skillTarget;
+    public Transform rootTargetTransform;
+    public Transform skillTargetTransform;
     public abstract void SetAnimParam();
     public void InitCharacter()
     {
-        skillTarget = transform.GetChild(0).GetChild(0);
-
+        rootTargetTransform = Instantiate(new GameObject("RootTarget"), transform.GetChild(0)).transform;
         hpObject = Instantiate(GameManager.gameManager.objectHpBar, transform);
         hpObject.transform.localScale = Vector3.one;
         hpObject.transform.GetComponent<RectTransform>().localPosition = new(0f, -15f, 0f);
@@ -421,7 +421,7 @@ abstract public class CharacterBase : MonoBehaviour
     {
         List<SkillActiveForm> skillActiveForms = new();
         List<Skill> skillsAndDa = new(skills);
-        //skillsAndDa.Add(defaultAttack);//기본 공격
+        skillsAndDa.Add(defaultAttack);//기본 공격
         foreach (Skill skill in skillsAndDa)
         {
             SkillActiveForm skillActiveForm = null;
@@ -701,7 +701,7 @@ abstract public class CharacterBase : MonoBehaviour
     {
         public CharacterBase caster;
         public List<EffectActiveForm> actvieEffects = new();
-        readonly float skillCastTime = 0.5f;
+        readonly float skillCastTime = 1f;
         public Skill skill;
         public SkillActiveForm(CharacterBase _caster, Skill _skill)
         {
@@ -746,7 +746,7 @@ abstract public class CharacterBase : MonoBehaviour
                     float repeatValue = caster.GetRegularValue(EffectType.Repeat);
                     for (int i = 0; i < ((repeatValue>0)?2:1); i++)
                     {
-
+                        List<CharacterBase> skillTargets = new();
                         foreach (EffectActiveForm effectForm in actvieEffects)
                         {
                             CharacterBase effectTarget;
@@ -767,15 +767,25 @@ abstract public class CharacterBase : MonoBehaviour
                             }
                             if (effectTarget != null)
                             {
-                                effectForm.ActiveEffect0nTarget(effectTarget, i == 1 ? repeatValue : 1f);
-                                //Skill
-                                if (skill.visualEffect != null)
-                                    GameManager.battleScenario.CreateVisualEffect(skill.visualEffect, effectTarget, true);
-                                //Weapon
-                                if (caster.weapon != null)
-                                    caster.StartCoroutine(WeaponVisualEffect());
+                                List<CharacterBase> tempTargets =  effectForm.ActiveEffect0nTarget(effectTarget, i == 1 ? repeatValue : 1f);
+                                foreach (var x in tempTargets)
+                                {
+                                    if (!skillTargets.Contains(x))
+                                    {
+                                        skillTargets.Add(x);
+                                    }
+                                }
                             }
                         }
+                        //Skill
+                        if (skill.visualEffect != null)
+                        {
+                            foreach(CharacterBase target in skillTargets)
+                                GameManager.battleScenario.CreateVisualEffect(skill.visualEffect, target, true);
+                        }
+                        //Weapon
+                        if (caster.weapon != null)
+                            caster.StartCoroutine(WeaponVisualEffect());
                         if (skill.isAnim)
                         {
                             SkillAnim();
@@ -847,7 +857,7 @@ abstract public class CharacterBase : MonoBehaviour
             caster = _caster;
             isTargetEnemy = _isTargetEnemy;
         }
-        public void ActiveEffect0nTarget(CharacterBase _target, float _repeatValue = 1f)
+        public List<CharacterBase> ActiveEffect0nTarget(CharacterBase _target, float _repeatValue = 1f)
         {
             float calcValue = effect.value;
             calcValue *= _repeatValue;
@@ -884,6 +894,7 @@ abstract public class CharacterBase : MonoBehaviour
                     caster.StartCoroutine(RoopEffect(calcValue, target));
                 }
             }
+            return targets;
         }
 
 

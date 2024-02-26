@@ -8,14 +8,15 @@ public class EnemyScript : CharacterBase
     public static readonly Color TARGET_COLOR = new(1f, 0f, 0f, 0.5f);
     public static readonly float DEFAULT_PROB = 0.6f;
     public static readonly float INCREASE_PROB = 0.1f;
-    private void Awake()
-    {
-        IsEnemy = true;
-    }
+
     public void InitEnemy(EnemyClass _enemyClass, ObjectGrid _grid, bool _isMonster)
     {
+        IsEnemy = true;
         isMonster = _isMonster;
         InitCharacter();
+        skillTargetTransform = transform.GetChild(0).GetChild(0);
+        rootTargetTransform.localScale = skillTargetTransform.localScale = new Vector3(1f, 1f, 0f);
+        skillTargetTransform.localScale = skillTargetTransform.localScale = new Vector3(1f, 1f, 0f);
         maxHp = Hp = maxHpInBattle =  _enemyClass.hp;
         ability = abilityInBattle = _enemyClass.ability;
         resist = resistInBattle = _enemyClass.resist;

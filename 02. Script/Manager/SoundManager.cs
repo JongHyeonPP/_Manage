@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Linq;
 using EnumCollection;
 public class SoundManager : MonoBehaviour
 {
@@ -14,18 +13,20 @@ public class SoundManager : MonoBehaviour
     public Slider sliderAll;
     public Slider sliderSfx;
     public Slider sliderBgm;
-    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioSource bgmSource;
+    [SerializeField] private AudioSource sfxSource;
     [SerializeField] private Dictionary<string, AudioClip> bgmList;
     [SerializeField] private Dictionary<string, AudioClip> sfxList;
     readonly string bgmPath = "Sound/Bgm";
-    readonly string sfxPath = "Sound/Bgm";
+    readonly string sfxPath = "Sound/Sfx";
     private void Awake()
     {
         if (!soundManager)
         {
             soundManager = this;
             SceneManager.sceneLoaded += OnSceneLoaded;
-            audioSource = GetComponent<AudioSource>();
+            bgmSource = GetComponents<AudioSource>()[0];
+            sfxSource = GetComponents<AudioSource>()[1];
             bgmList = new ();
             foreach (AudioClip x in Resources.LoadAll<AudioClip>(bgmPath))
             {
@@ -78,12 +79,12 @@ public class SoundManager : MonoBehaviour
     {
         if (bgmList.TryGetValue(arg0.name, out AudioClip audioClip))
         {
-            audioSource.clip = bgmList[arg0.name];
-            audioSource?.Play();
+            bgmSource.clip = audioClip;
+            bgmSource.Play();
         }
     }
     public void SfxPlay(string _name)
     {
-        audioSource.PlayOneShot(sfxList[_name]);
+        sfxSource.PlayOneShot(sfxList[_name]);
     }
 }
