@@ -40,14 +40,12 @@ public class GameManager : MonoBehaviour
         set { Time.timeScale = value ? 0 : 1; isPaused = value; }
     }
     public static BattleScenario battleScenario;
-    public static LobbyScenario_P lobbyScenario;
+    public static LobbyScenario lobbyScenario;
     public static StartScenario startScenario;
 
     #region Battle
     [Header("Battle")]
     public Transform canvasGrid;
-
-    private GameObject scenarioObject;
     public GameObject objectHpBar;
     #endregion
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
@@ -67,7 +65,7 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             uiCamera.SetActive(false);
             //Until Steam API
-            //uid = "FMefxTlgP9aHsgfE0Grc";
+            //uid = "biPu6Zp5w9j4F6iR2AQW";
             uid = "FMefxTlgP9aHsgfE0Grc";
         }
     }
@@ -125,30 +123,8 @@ public class GameManager : MonoBehaviour
     }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
-        battleScenario = null;
-        lobbyScenario = null;
-        startScenario = null;
-        scenarioObject = GameObject.FindWithTag("SCENARIO");
-
-
-        switch (_arg0.name)
-        {
-            case "Start":
-                startScenario = scenarioObject.GetComponent<StartScenario>();
-                    //startScenario.ActiveLoadBtn(false);
-                break;
-            case "Battle":
-                battleScenario = scenarioObject.GetComponent<BattleScenario>();
-                break;
-            case "Lobby":
-                lobbyScenario = scenarioObject.GetComponent<LobbyScenario_P>();
-                DataManager.dataManager.SetDocumentData("Scene", "Lobby", "Progress", Uid);
-                break;
-            case "stage 0":
-                DataManager.dataManager.SetDocumentData("Scene", "stage 0", "Progress", Uid);
-                break;
-        }
-        //Skill currentSkill = CharacterManager.characterManager.GetCharacter(0).ChangeSkill(0, ½ºÅ³);
+        if (!(_arg0.name != "Awake" || _arg0.name != "Start"))
+            DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
     }
     private void InitGrids()
     {
@@ -315,6 +291,8 @@ public class GameManager : MonoBehaviour
         int num = 0;
         foreach (var x in _skillNames)
         {
+            if (string.IsNullOrEmpty(x))
+                continue;
             switch (x.Split("_")[0])
             {
                 case "Power":

@@ -75,4 +75,8 @@ namespace EnumCollection
     {
         Normal, Rare, Unique
     }
+    public enum LobbyCase : byte
+    {
+        Pub, Guild, Incruit, Chest, Depart
+    }
 }

@@ -48,6 +48,7 @@ public class BattleScenario : MonoBehaviour
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
     private async void Awake()
     {
+        GameManager.battleScenario = this;
         friendlyGrids = FriendlyGrids;
         enemyGrids = EnemyGrids;
 
@@ -161,7 +162,8 @@ public class BattleScenario : MonoBehaviour
                 x.skills.Add(new(x.job.effects));
             foreach (string skillName in characterData.skillNames)
             {
-                if (skillName.Length > 0)
+                if (string.IsNullOrEmpty(skillName))
+                    continue;
                     x.skills.Add(GameManager.LocalizeSkill(skillName));
             }
             //Weapon
