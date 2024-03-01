@@ -40,7 +40,7 @@ public class GameManager : MonoBehaviour
         set { Time.timeScale = value ? 0 : 1; isPaused = value; }
     }
     public static BattleScenario battleScenario;
-    public static LobbyScenario lobbyScenario;
+    public static LobbyScenario_P lobbyScenario;
     public static StartScenario startScenario;
 
     #region Battle
@@ -141,7 +141,7 @@ public class GameManager : MonoBehaviour
                 battleScenario = scenarioObject.GetComponent<BattleScenario>();
                 break;
             case "Lobby":
-                lobbyScenario = scenarioObject.GetComponent<LobbyScenario>();
+                lobbyScenario = scenarioObject.GetComponent<LobbyScenario_P>();
                 DataManager.dataManager.SetDocumentData("Scene", "Lobby", "Progress", Uid);
                 break;
             case "stage 0":
