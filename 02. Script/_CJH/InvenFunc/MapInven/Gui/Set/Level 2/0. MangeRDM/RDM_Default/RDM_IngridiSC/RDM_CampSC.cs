@@ -20,5 +20,6 @@ public class RDM_CampSC : RDM_Default
     public void BtnEvent_Cook()
     {
         this.GetInvenItem_byItemIndex();
+        _GUI_IngridiSlotManager.RefreshMyGUI();
     }
 }

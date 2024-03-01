@@ -36,6 +36,11 @@ public class RBD_IngridimentSlot : MonoBehaviour, IResponedByDrop
     public void SetDefault()
     {
         myGUI_Slot.SetDefault();
+        if (_GUI_ItemUnit != null)
+        {
+            Object.Destroy(_GUI_ItemUnit.gameObject);
+            _GUI_ItemUnit = null;
+        }
         myGUI_Inven = null;
     }
 }

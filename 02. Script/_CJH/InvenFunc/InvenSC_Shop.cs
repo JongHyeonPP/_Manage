@@ -42,16 +42,19 @@ public class InvenSC_Shop : MonoBehaviour
 
 
     public void setGUI_bySGT()
-    {  
-        for (int i = 0; i < ItemList_Data.Count; i++)
+    {
+        if (ItemList_Data != null)
         {
-            SlotGUI_InvenSlot temp = invenGUI_Manager.GetSlotGUI_byAddr(ItemList_Data[i].invenAddr);
-
-            if (temp)
+            for (int i = 0; i < ItemList_Data.Count; i++)
             {
-                GUI_ItemUnit insObj = invenData_SGT.spriteDataSet.GetGUI_byItemData(ItemList_Data[i].itemData, invenGUI_Manager._InsTrans);
-                temp.SetGUI_byItemGUI(insObj);
-                temp.SetItemData_byData(ItemList_Data[i]);
+                SlotGUI_InvenSlot temp = invenGUI_Manager.GetSlotGUI_byAddr(ItemList_Data[i].invenAddr);
+
+                if (temp)
+                {
+                    GUI_ItemUnit insObj = invenData_SGT.spriteDataSet.GetGUI_byItemData(ItemList_Data[i].itemData, invenGUI_Manager._InsTrans);
+                    temp.SetGUI_byItemGUI(insObj);
+                    temp.SetItemData_byData(ItemList_Data[i]);
+                }
             }
         }
     }

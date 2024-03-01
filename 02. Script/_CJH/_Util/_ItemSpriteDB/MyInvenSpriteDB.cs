@@ -1,10 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class MyInvenSpriteDB : MonoBehaviour
 {
-    public InvenSpriteDB_Node rootBranch;
+    public InvenSpriteDB_Node DB_ItemSpriteRoot;
+    [SerializeField] internal Values_DiceColor _Value_Dice;
     public GUI_ItemUnit invenPrefab;
 
 
@@ -22,7 +25,7 @@ public class MyInvenSpriteDB : MonoBehaviour
 
         InvenSpriteDB_Node getBranch_byItemData(List<int> itemData)
         {
-            InvenSpriteDB_Node temp = rootBranch;
+            InvenSpriteDB_Node temp = DB_ItemSpriteRoot;
 
             for (int i = 0; i < itemData.Count; i++)
             {
@@ -55,7 +58,7 @@ public class MyInvenSpriteDB : MonoBehaviour
 
         InvenSpriteDB_Node getBranch_byItemData(List<int> itemData)
         {
-            InvenSpriteDB_Node temp = rootBranch;
+            InvenSpriteDB_Node temp = DB_ItemSpriteRoot;
 
             for (int i = 0; i < itemData.Count-1; i++)
             {
@@ -75,4 +78,10 @@ public class MyInvenSpriteDB : MonoBehaviour
         }
 
     }
+}
+[Serializable]
+internal class Values_DiceColor
+{
+    public InvenSpriteDB_Node DB_DiceSpriteRoot;
+    public Color[] color_Case;
 }

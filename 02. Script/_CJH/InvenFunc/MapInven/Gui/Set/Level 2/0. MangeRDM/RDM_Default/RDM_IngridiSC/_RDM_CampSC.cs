@@ -6,17 +6,17 @@ using UnityEngine.UIElements;
 
 public static class _RDM_CampSC
 {
-    internal static void SetIngridiment_byInvenSlot(this RDM_CampSC _CookSC, SlotGUI_InvenSlot _src, RBD_IngridimentSlot _dst)
+    internal static void SetIngridiment_byInvenSlot(this RDM_CampSC _CampSC, SlotGUI_InvenSlot _src, RBD_IngridimentSlot _dst)
     {
         var _SGT_GUI_ItemData = SGT_GUI_ItemData.GetSGT();
         GUI_ItemUnit _itemGUI_Src = _src._itemGUI;
-        int isCrash = _CookSC._GUI_IngridiSlotManager._values.IsDisAvabibleValue(_itemGUI_Src._myData.index);
+        int isCrash = _CampSC._GUI_IngridiSlotManager._values.IsDisAvabibleValue(_itemGUI_Src._myData.index);
         
         if(isCrash > -1)
         {
-            _CookSC._GUI_IngridiSlotManager._values.RBD_Slots[isCrash].SetDefault();
+            _CampSC._GUI_IngridiSlotManager._values.RBD_Slots[isCrash].SetDefault();
         }
-
+        _dst.SetDefault();
         _dst.myGUI_Slot.value = _itemGUI_Src._myData.index;
         _dst.myGUI_Inven = _src;
 
@@ -31,12 +31,13 @@ public static class _RDM_CampSC
         }
 
         _src._itemGUI.SetSizeAuto();
+        _CampSC._GUI_IngridiSlotManager.RefreshMyGUI();
         return;
     }
 
-    internal static void GetInvenItem_byItemIndex(this RDM_CampSC _CookSC)
+    internal static void GetInvenItem_byItemIndex(this RDM_CampSC _CampSC)
     {
-        GUI_IngridiSlotManager _m = _CookSC._GUI_IngridiSlotManager;
+        GUI_IngridiSlotManager _m = _CampSC._GUI_IngridiSlotManager;
         if (false)
         {
             // Check ingridiment is Ready
@@ -50,8 +51,9 @@ public static class _RDM_CampSC
             int[] temp = _m._values.GetCookSlotsItemIndex();
 
             List<ItemUnit> invenGUI = new();
-            List<SlotGUI_InvenSlot> _ItemList_Data = _CookSC.invenSC.invenGUI_Manager.myInvenSet[0].MySlotList;
+            List<SlotGUI_InvenSlot> _ItemList_Data = _CampSC.invenSC.invenGUI_Manager.myInvenSet[0].MySlotList;
             
+            // filtering 2
             for (int i = 0; i < temp.Length; i++)
             {
                 if (temp[i] == -1)
@@ -59,13 +61,15 @@ public static class _RDM_CampSC
                 invenGUI.Add(_ItemList_Data[temp[i]].GetMyItemGUI()._itemGUI._myData);
             }
 
+            // Delete Filtered
             for (int i = 0; i < invenGUI.Count; i++)
             {
                 List<int> addr = invenGUI[i].invenAddr;
 
-                SlotGUI_InvenSlot targetInvenSlot = _CookSC._GUI_InvenSetManager.GetSlotGUI_byAddr(addr);
+                SlotGUI_InvenSlot targetInvenSlot = _CampSC._GUI_InvenSetManager.GetSlotGUI_byAddr(addr);
 
                 targetInvenSlot.SetItemData_byData(null);
+                _CampSC.invenSC.invenData_SGT.itemUnits.Remove(invenGUI[i]);
             }
         }
 
@@ -75,7 +79,8 @@ public static class _RDM_CampSC
             _m.CookFunc_onIngridiment();
         }
 
-        _CookSC._GUI_ResultCookSet.FillUpResultCook();
+        _CampSC._GUI_ResultCookSet.FillUpResultCook();
+        _CampSC._GUI_IngridiSlotManager.Event_Reset();
         return;
     }
 }

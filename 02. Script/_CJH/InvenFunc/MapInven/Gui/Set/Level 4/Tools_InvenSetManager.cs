@@ -9,19 +9,25 @@ internal static class Tools_InvenSetManager
         GUI_ItemUnit obj = Object.Instantiate(_dataSet.invenPrefab, _trans);
         obj.SetImageGUI_Sprite(_dataSet.GetSprite_byItemData(_itemData));
 
-        string temp = "Lv ";
         if (true)
         {
             if (_itemData[0] == 0)
             {
-                temp += _itemData[1];
+                Sprite target = _dataSet._Value_Dice.DB_DiceSpriteRoot.myData[_itemData[_itemData.Count - 1]];
+                Color target2 = _dataSet._Value_Dice.color_Case[_itemData[_itemData.Count - 2]];
+                if (_itemData[1] == 0)
+                    obj.SetGui_ToIngredient(target, target2);
+                else
+                    obj.SetGui_ToIngredient(target, target2);
             }
-            else {
+            else
+            {
+                string temp = "Lv ";
                 temp += _itemData[_itemData.Count - 1];
+                obj.SetNameText(temp);
             }
         }
 
-        obj.SetNameText(temp);
         obj.SetSizeAuto(_trans);
         return obj;
     }
@@ -30,7 +36,6 @@ internal static class Tools_InvenSetManager
     {
         int equipIndex = _addrData[0];
         int invenIndex = _addrData[1]; 
-        Debug.Log(equipIndex + " / " + invenIndex);
         if (_inven.myInvenSet.Count <= equipIndex)
             return null;
         return _inven.myInvenSet[equipIndex].MySlotList[invenIndex];

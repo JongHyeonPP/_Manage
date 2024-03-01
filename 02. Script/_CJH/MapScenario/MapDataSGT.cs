@@ -28,7 +28,7 @@ public class MapDataSGT : MonoBehaviour
             DontDestroyOnLoad(this);
 
             CurrMS = _scenario;
-            _UpdateData(_scenario);
+            //_UpdateData(_scenario);
             return true;
         }
         else if (mapSingleton == this)

@@ -1,7 +1,6 @@
     using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class CJH_CharacterData : MonoBehaviour
@@ -10,38 +9,53 @@ public class CJH_CharacterData : MonoBehaviour
     private static CJH_CharacterData _ins;
     public List<CharEquipZone> viewData;
 
-    public void InitSGT(ref CJH_CharacterData _localData)
+    static public CJH_CharacterData getSGT()
     {
-        if (_ins == null)
-        {
+        return _ins;
+    }
+
+    public void InitData()
+    {
+        if (_ins != null)
+            Debug.Log("????");
+        else
             _ins = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+
+        var _CharacterManager = CharacterManager.characterManager;
+        if (_data.Count != 0)
+            return;
+
+        _data.Clear();
+        var data = _CharacterManager.GetCharacters();
+        for (int i = 0; i < data.Count; i++)
         {
-            Destroy(_localData.gameObject);
-            _localData = _ins;
+            CharacterData target = data[i];
+            _data.Add(new CharacterData(
+                target.docId,
+                target.jobId,
+                target.maxHp,
+                target.hp,
+                target.ability,
+                target.resist,
+                target.speed,
+                target.index,
+                target.skillNames,
+                target.weaponCur
+                ));
         }
     }
 
-    static public CJH_CharacterData getSGT() {
-        if (_ins == null)
-            return null;
-        else
-            return _ins;
-    }
-
-    static public CharacterData getCharData(int _value)
+    public CharacterData getCharData(int _value)
     {
         if (_ins == null)
         {
-            Debug.Log("???");
             return null;
         }
 
         return _ins._data[_value];
     }
-    static public void SetEvent(int _value)
+
+    public void SetEvent(int _value)
     {
         if (_ins == null)
             return;

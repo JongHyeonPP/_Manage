@@ -15,8 +15,6 @@ public class SwapCharEquipSet : MonoBehaviour
     private void Start()
     {
         SwapActiveObj_byIndex(_currIndex);
-
-
     }
 
     public void SwapActiveObj_byIndex(int _index)

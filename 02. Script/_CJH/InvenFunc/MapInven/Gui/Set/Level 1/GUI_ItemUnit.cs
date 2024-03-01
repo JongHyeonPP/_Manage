@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
 public class GUI_ItemUnit : MonoBehaviour
 {
@@ -28,6 +27,16 @@ public class GUI_ItemUnit : MonoBehaviour
     {
         _GUI.nameText.text = input;
     }
+
+    public void SetGui_ToIngredient(Sprite _TargetDiceSpr,Color _TargetColor)
+    {
+        _GUI.img_equip.gameObject.SetActive(false);
+        _GUI.img_DiceSub.gameObject.SetActive(true);
+        _GUI.img_DiceMain.gameObject.SetActive(true);
+        _GUI.img_DiceMain.sprite = _TargetDiceSpr;
+        _GUI.img_DiceSub.color = _TargetColor;
+    }
+
     public string GetNameText()
     {
         return _GUI.nameText.text;
@@ -73,4 +82,5 @@ internal class Values_GUI
     public TextMeshProUGUI nameText;
     public Image img_Main;
     public Material color_Focused, color_Default,color_Cash;
+    public Image img_equip, img_DiceMain, img_DiceSub;
 }

@@ -155,7 +155,6 @@ public class _ValueSet_EventCoef : MonoBehaviour
     }
     internal List<int> SetDetailEventList(List<int> _eventData, Vector2Int _childRange,Vector2Int focusingPosV2)
     {
-        Debug.Log("set Event");
         int count = _childRange.y - _childRange.x + 1;
         List<int> rtnList = new List<int>();
 

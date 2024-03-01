@@ -22,11 +22,12 @@ public class CharEquipZone : MonoBehaviour
             cash.viewData[myCharIndex] = this;
         }
 
-        CharacterData cm = CJH_CharacterData.getCharData(myCharIndex);
+        var _CJH_CharacterData = CJH_CharacterData.getSGT();
+        CharacterData cm = _CJH_CharacterData.getCharData(myCharIndex);
 
-        charName.text = "Hp : " + cm.hp + " / " + cm.maxHp;
-        stat_0.text = cm.ability + " ";
-        stat_1.text = cm.resist + " ";
-        stat_2.text = cm.speed + " ";
+        charName.text = "Hp : " + cm.hp.ToString("0.00") + " / " + cm.maxHp.ToString("0.00");
+        stat_0.text = cm.ability.ToString("0.00") + " ";
+        stat_1.text = cm.resist.ToString("0.00") + " ";
+        stat_2.text = cm.speed.ToString("0.00") + " ";
     }
 }

@@ -43,10 +43,12 @@ public class SceneToSceneFuncSGT : MonoBehaviour
 
     static public void ArriveScene_Map(ProgressMap_preInput _returnFunc = null)
     {
+
         if (Instance == null)
         {
             Debug.Log("Tlqkf null"); return;
         }
+
         if (Instance.gameObject.activeSelf == false)
             Instance.gameObject.SetActive(true);
 
@@ -65,15 +67,15 @@ public class SceneToSceneFuncSGT : MonoBehaviour
     {
         if (_returnFunc == null)
         {
-            _returnFunc = () => {; };
+            _returnFunc = () => {;};
         }
 
         returnFunc = _returnFunc;
         
         _myCamera.enabled = (true);
-        returnFunc += () => _myCamera.enabled = (false);
-
         EventSysyemObj.SetActive(false);
+
+        returnFunc += () => _myCamera.enabled = (false);
         returnFunc += () => EventSysyemObj.SetActive(true);
 
         StartCoroutine(ArriveSceneCor());
@@ -111,6 +113,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
             _ArriveObj_Map.SetActive(false);
             EventSysyemObj.SetActive(true);
             returnFunc();
+            returnFunc = null;
             yield return null;
         }
     }
@@ -125,7 +128,10 @@ public class SceneToSceneFuncSGT : MonoBehaviour
         }
 
         returnFunc = _returnFunc;
+
+        _myCamera.enabled = (true);
         myChild_toActive.SetActive(true);
+        //returnFunc += () => _myCamera.enabled = (false);
         returnFunc += () => Instance.gameObject.SetActive(false);
         returnFunc += () => gameObject.SetActive(false);
         StartCoroutine(ExitSceneCor());
@@ -143,7 +149,7 @@ public class SceneToSceneFuncSGT : MonoBehaviour
             {
                 timer += Time.deltaTime;
                 float coef = timer / reachTime;
-                _ExitMaterial_Map.SetFloat("_RevertCoex", Mathf.Pow(coef, 0.7f));
+                _ExitMaterial_Map.SetFloat("_RevertCoex", Mathf.Pow(coef, 1f));
 
                 if (timer > reachTime)
                     break;
@@ -152,12 +158,10 @@ public class SceneToSceneFuncSGT : MonoBehaviour
             }
 
             timer = 0;
+            returnFunc();//12
             _ExitObj_Map.SetActive(false);
             _ClosedSceneObj_Map.SetActive(true);
-
             EventSysyemObj.SetActive(false);
-            returnFunc();
-
             yield return null;
         }
     }

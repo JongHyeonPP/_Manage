@@ -17,6 +17,7 @@ public class SGT_GUI_ItemData : MonoBehaviour
         {
             DontDestroyOnLoad(_localData);
             dataSGT = _localData;
+            itemUnits = _InvenDataEncoder.GetData_toItemList();
         }
         else
         {
@@ -36,6 +37,8 @@ public class SGT_GUI_ItemData : MonoBehaviour
         itemUnits.Add(data);
     }
 
+
+
     static public SGT_GUI_ItemData GetSGT()
     {
         return dataSGT;
@@ -44,6 +47,9 @@ public class SGT_GUI_ItemData : MonoBehaviour
     static internal void GetCharInvenSGT(int _CharIndex, ref string[] skillEquipped, ref string[] weaponEquipped)
     {
         List<ItemUnit> _itemUnits = dataSGT.itemUnits;
+
+        if (weaponEquipped == null)
+            weaponEquipped = new string[1] { "Null" };
 
         for (int i = 0; i < _itemUnits.Count; i++)
         {

@@ -12,7 +12,7 @@ public class InvenSC_Map : MonoBehaviour
     void Awake()
     {
         invenData_SGT.InitSGT(ref invenData_SGT);
-        charData_SGT.InitSGT(ref charData_SGT);
+        charData_SGT.InitData();
 
         ItemList_Data = invenData_SGT.itemUnits;
     }
@@ -57,7 +57,7 @@ public class InvenSC_Map : MonoBehaviour
     }
 
 
-    private void addGUI_byData(ItemUnit data)
+    internal void addGUI_byData(ItemUnit data)
     {
         SlotGUI_InvenSlot targetSlot = invenGUI_Manager.GetSlotGUI_byAddr(data.invenAddr);
         GUI_ItemUnit ins_ItemGUI = invenData_SGT.spriteDataSet.GetGUI_byItemData(data.itemData, invenGUI_Manager._InsTrans);
