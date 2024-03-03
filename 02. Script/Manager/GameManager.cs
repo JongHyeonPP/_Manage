@@ -65,7 +65,7 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             uiCamera.SetActive(false);
             //Until Steam API
-            //uid = "biPu6Zp5w9j4F6iR2AQW";
+            //uid = "KF5U1XMs5cy7n13dgKjF";
             uid = "FMefxTlgP9aHsgfE0Grc";
         }
     }

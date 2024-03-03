@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 static public class SyncDataFunc_Map
