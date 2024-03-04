@@ -3809,7 +3809,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 227577116790726013, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SfxControl
+      value: BgmControl
       objectReference: {fileID: 0}
     - target: {fileID: 227577116790726013, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -3842,6 +3842,10 @@ PrefabInstance:
     - target: {fileID: 1209757616641063602, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1394638195610709975, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_Name
+      value: Slider_Sfx
       objectReference: {fileID: 0}
     - target: {fileID: 1494667661763434752, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMax.x
@@ -3929,7 +3933,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2757950068994145400, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: BgmControl
+      value: SfxControl
       objectReference: {fileID: 0}
     - target: {fileID: 2757950068994145400, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -3966,6 +3970,10 @@ PrefabInstance:
     - target: {fileID: 3272411270760051439, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 3426103615824730598, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_CellSize.x
+      value: 234.57
       objectReference: {fileID: 0}
     - target: {fileID: 3525626822257147890, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMax.x
@@ -4014,6 +4022,10 @@ PrefabInstance:
     - target: {fileID: 3808106103378758574, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -0.0000076293945
+      objectReference: {fileID: 0}
+    - target: {fileID: 3905870865159950034, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_Name
+      value: Slider_Bgm
       objectReference: {fileID: 0}
     - target: {fileID: 4251209796891375250, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMax.x
@@ -4371,6 +4383,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5553406475411425293, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_text
+      value: BGM
+      objectReference: {fileID: 0}
     - target: {fileID: 5778284696780767647, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -4418,6 +4434,10 @@ PrefabInstance:
     - target: {fileID: 7232895819390427199, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMin.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529764671578564872, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_text
+      value: SFX
       objectReference: {fileID: 0}
     - target: {fileID: 8020818727126134440, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMax.x
