@@ -53,7 +53,7 @@ public class GameManager : MonoBehaviour
     public int nodeLevel = 0;
     public string scene;
     public string history;
-    public string itemData;
+    public string invenData;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -65,8 +65,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             uiCamera.SetActive(false);
             //Until Steam API
-            //uid = "KF5U1XMs5cy7n13dgKjF";
-            uid = "FMefxTlgP9aHsgfE0Grc";
+            uid = "KF5U1XMs5cy7n13dgKjF";
+            //uid = "FMefxTlgP9aHsgfE0Grc";
         }
     }
     async void Start()
@@ -192,6 +192,7 @@ public class GameManager : MonoBehaviour
         await LoadFriendly();
         if (scene == "Battle")
             await LoadEnemies((string)progressDoc["EnemyCase"]);
+        invenData = (string)progressDoc["InvenData"];
         SceneManager.LoadScene(scene);
     }
     public void NewGame()
@@ -207,10 +208,6 @@ public class GameManager : MonoBehaviour
             DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
             return Task.CompletedTask;
         });
-    }
-    private async Task LoadInventory()
-    {
-     
     }
     private async Task LoadFriendly()
     {

@@ -87,4 +87,13 @@ public class SoundManager : MonoBehaviour
     {
         sfxSource.PlayOneShot(sfxList[_name]);
     }
+    public void ReturnToOriginSet(float _all, float _sfx, float _bgm)
+    {
+        sliderAll.value = _all;
+        sliderSfx.value = _sfx;
+        sliderBgm.value = _bgm;
+        ALLControl();
+        SfxControl();
+        BgmControl();
+    }
 }

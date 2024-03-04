@@ -54,8 +54,8 @@ public class SettingManager : MonoBehaviour
             textSfx = panelRight.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetComponent<TMP_Text>();
             textBgm = panelRight.GetChild(0).GetChild(1).GetChild(2).GetChild(1).GetComponent<TMP_Text>();
             textLanguage = panelRight.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-            textConfirm = panelSetting.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-            textCancel = panelSetting.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
+            textConfirm = panelSetting.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+            textCancel = panelSetting.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
             dropdownResolution = panelLeft.GetChild(0).GetChild(1).GetComponent<TMP_Dropdown>();
             dropdownLanguage = panelRight.GetChild(1).GetChild(1).GetComponent<TMP_Dropdown>();
 
@@ -297,7 +297,7 @@ public class SettingManager : MonoBehaviour
                     resolutions.Add(item);
                 }
             }
-            SettingManager.settingManager.dropdownResolution.options.Clear();
+            settingManager.dropdownResolution.options.Clear();
 
             int temp = 0;
             foreach (Resolution item in resolutions)
@@ -306,18 +306,18 @@ public class SettingManager : MonoBehaviour
                     //옵션 세팅
                     TMP_Dropdown.OptionData option = new TMP_Dropdown.OptionData();
                     option.text = item.width + "x" + item.height;
-                    SettingManager.settingManager.dropdownResolution.options.Add(option);
+                    settingManager.dropdownResolution.options.Add(option);
                     //로컬 값이 없다면 기본 화면 해상도를 선택
 
                     if (item.width == Screen.width && item.height == Screen.height)
                     {
-                        SettingManager.settingManager.dropdownResolution.value = originResolution = temp;
+                        settingManager.dropdownResolution.value = originResolution = temp;
                     }
                     temp++;
                 }
             }
-            SettingManager.settingManager.dropdownResolution.RefreshShownValue();
-            SettingManager.settingManager.toggleFullScreen.isOn = Screen.fullScreenMode.Equals(FullScreenMode.FullScreenWindow);
+            settingManager.dropdownResolution.RefreshShownValue();
+            settingManager.toggleFullScreen.isOn = Screen.fullScreenMode.Equals(FullScreenMode.FullScreenWindow);
             originScreenMode = Screen.fullScreenMode;
         }
         private void InitSound()
@@ -338,8 +338,8 @@ public class SettingManager : MonoBehaviour
         }
         private void InitLanguage()
         {
-            SettingManager.settingManager.ExecuteLangaugeChange(originSet.language);
-            SettingManager.settingManager.dropdownLanguage.value = (int)originSet.language;
+            settingManager.ExecuteLangaugeChange(originSet.language);
+            settingManager.dropdownLanguage.value = (int)originSet.language;
         }
         internal void ResolutionOptionChange(int _x)
         {
@@ -349,7 +349,7 @@ public class SettingManager : MonoBehaviour
         internal void LanguageOptionChange(Language _language)
         {
             GameManager.language = _language;
-            SettingManager.settingManager.ExecuteLangaugeChange(_language);
+            settingManager.ExecuteLangaugeChange(_language);
             newSet.language = _language;
         }
         internal void FullScreenToggle(bool _isFull)
@@ -362,7 +362,7 @@ public class SettingManager : MonoBehaviour
             DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxVolume", newSet.sfxVolume);
             DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmVolume", newSet.bgmVolume);
             DataManager.dataManager.SetConfigData(DataSection.Language, "Language", newSet.language);
-            SettingManager.settingManager.panelSetting.SetActive(false);
+            settingManager.panelSetting.SetActive(false);
             originResolution = newResolution;
             originSet = newSet;
             originScreenMode = Screen.fullScreenMode;
@@ -370,12 +370,13 @@ public class SettingManager : MonoBehaviour
         internal void CancelBtnClick()
         {
             Screen.SetResolution(resolutions[originResolution].width, resolutions[originResolution].height, originScreenMode);
-            SettingManager.settingManager.panelSetting.SetActive(false);
-            SettingManager.settingManager.dropdownResolution.value = originResolution;
-            SettingManager.settingManager.toggleFullScreen.isOn = originScreenMode == FullScreenMode.FullScreenWindow;
+            panelSetting.SetActive(false);
+            settingManager.dropdownResolution.value = originResolution;
+            settingManager.toggleFullScreen.isOn = originScreenMode == FullScreenMode.FullScreenWindow;
 
-            SettingManager.settingManager.dropdownLanguage.value = (int)originSet.language;
+            settingManager.dropdownLanguage.value = (int)originSet.language;
             newSet = originSet;
+            SoundManager.soundManager.ReturnToOriginSet(originSet.allVolume, originSet.sfxVolume, originSet.bgmVolume);
         }
         internal void SettingBtnClick()
         {
