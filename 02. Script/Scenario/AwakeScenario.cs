@@ -10,7 +10,6 @@ public class AwakeScenario : MonoBehaviour
     private readonly float fadeOutTime = 1f;
     private readonly float totalPlayTime = 5f;
     private readonly float waitTime = 1f;
-
     private void Awake()
     {
         Color imageColor = logoImage.color;

@@ -43,8 +43,7 @@ public class GameManager : MonoBehaviour
     public static LobbyScenario lobbyScenario;
     public static StartScenario startScenario;
 
-    #region Battle
-    [Header("Battle")]
+    #region CanvasGrid
     public Transform canvasGrid;
     public GameObject objectHpBar;
     #endregion
@@ -61,9 +60,9 @@ public class GameManager : MonoBehaviour
             gameManager = this;
             SceneManager.sceneLoaded += OnSceneLoaded;
             DontDestroyOnLoad(gameObject);
-            InitGrids();
             DontDestroyOnLoad(uiCamera);
-            uiCamera.SetActive(false);
+            DontDestroyOnLoad(canvasGrid);
+            InitGrids();
             //Until Steam API
             uid = "KF5U1XMs5cy7n13dgKjF";
             //uid = "FMefxTlgP9aHsgfE0Grc";
@@ -128,7 +127,6 @@ public class GameManager : MonoBehaviour
     }
     private void InitGrids()
     {
-        DontDestroyOnLoad(canvasGrid);
         canvasGrid.gameObject.SetActive(false);
         Transform panelFriendly = canvasGrid.GetChild(0);
 
@@ -440,7 +438,6 @@ public class GameManager : MonoBehaviour
                 x.StopBattle();
             yield return new WaitForSeconds(5f);
             canvasGrid.gameObject.SetActive(false);
-            uiCamera.SetActive(false);
             scene = null;
             progressDoc = null;
             battleScenario.panelGameOver.gameObject.SetActive(true);

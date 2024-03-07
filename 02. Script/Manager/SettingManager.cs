@@ -54,8 +54,8 @@ public class SettingManager : MonoBehaviour
             textSfx = panelRight.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetComponent<TMP_Text>();
             textBgm = panelRight.GetChild(0).GetChild(1).GetChild(2).GetChild(1).GetComponent<TMP_Text>();
             textLanguage = panelRight.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-            textConfirm = panelSetting.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-            textCancel = panelSetting.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+            textCancel = panelSetting.transform.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+            textConfirm = panelSetting.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
             dropdownResolution = panelLeft.GetChild(0).GetChild(1).GetComponent<TMP_Dropdown>();
             dropdownLanguage = panelRight.GetChild(1).GetChild(1).GetComponent<TMP_Dropdown>();
 

@@ -14,8 +14,6 @@ public class BattleScenarioTest : MonoBehaviour
     private BattleScenario battleScenario;
     private void Start()
     {
-        botText = canvasTest.GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        moveText = canvasTest.GetChild(0).GetChild(2).GetChild(0).GetComponent<TMP_Text>();
         battleScenario = GameManager.battleScenario;
         for (int i = 0; i < 9; i++)
         {

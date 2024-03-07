@@ -6,13 +6,19 @@ using UnityEngine;
 public class LobbyScenario : MonoBehaviour
 {
     public GameObject selectLight;
+    public GameObject buttonNext;
+    public List<GameObject> phaseList;
     private void Awake()
     {
         GameManager.lobbyScenario = this;
         selectLight.SetActive(false);
+        phaseList[0].SetActive(true);
+        phaseList[0].SetActive(true);
+        phaseList[1].SetActive(false);
     }
     public void OnPointerClick(LobbyCase _lobbyCase)
     {
+        Debug.Log(_lobbyCase + " Clicked");
         switch (_lobbyCase)
         {
             case LobbyCase.Pub:
@@ -23,9 +29,6 @@ public class LobbyScenario : MonoBehaviour
                 break;
             case LobbyCase.Incruit:
                 IncruitCase();
-                break;
-            case LobbyCase.Chest:
-                ChestCase();
                 break;
             case LobbyCase.Depart:
                 DepartCase();
@@ -44,12 +47,14 @@ public class LobbyScenario : MonoBehaviour
     {
     
     }
-    private void ChestCase()
-    {
-    
-    }
     private void DepartCase()
     {
     
+    }
+    public void NextPhase()
+    {
+        phaseList[0].SetActive(false);
+        phaseList[1].SetActive(true);
+        buttonNext.SetActive(false);
     }
 }

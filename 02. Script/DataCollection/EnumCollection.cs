@@ -77,6 +77,6 @@ namespace EnumCollection
     }
     public enum LobbyCase : byte
     {
-        Pub, Guild, Incruit, Chest, Depart
+        Pub, Guild, Incruit, Depart
     }
 }

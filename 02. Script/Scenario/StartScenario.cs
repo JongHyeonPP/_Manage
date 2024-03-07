@@ -28,14 +28,10 @@ public class StartScenario : MonoBehaviour
         panelMainMenu = canvasStart.GetChild(1);
         panelDifficultySelect = canvasStart.GetChild(2);
 
-        textNewGame = panelMainMenu.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
-        textLoadGame = panelMainMenu.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textSetting = panelMainMenu.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
-        textExit = panelMainMenu.GetChild(3).GetChild(0).GetComponent<TMP_Text>();
-        textNewGame.color = Color.white;
-        textLoadGame.color = Color.white;
-        textNewGame.color = Color.white;
-        textNewGame.color = Color.white;
+        textNewGame = panelMainMenu.GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textLoadGame = panelMainMenu.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textSetting = panelMainMenu.GetChild(2).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textExit = panelMainMenu.GetChild(3).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
 
 
         textEasy = panelDifficultySelect.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetComponent<TMP_Text>();

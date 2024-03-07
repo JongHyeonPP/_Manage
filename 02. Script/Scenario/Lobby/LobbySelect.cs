@@ -7,7 +7,7 @@ public class LobbySelect : MonoBehaviour
 {
     public LobbyCase lobbyCase;
     private GameObject selectLight;
-    private void Awake()
+    private void Start()
     {
         selectLight = GameManager.lobbyScenario.selectLight;
     }
