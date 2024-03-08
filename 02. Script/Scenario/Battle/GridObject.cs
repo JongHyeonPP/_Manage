@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static UnityEngine.EventSystems.EventTrigger;
 
-public class ObjectGrid : MonoBehaviour
+public class GridObject : MonoBehaviour
 {
     public CharacterBase owner = null;
     public int index;
@@ -15,7 +15,13 @@ public class ObjectGrid : MonoBehaviour
     public delegate void PassiveEffectHandler(CharacterBase _target);
     public PassiveEffectHandler EnterOnGrid;
     public PassiveEffectHandler ExitOnGrid;
-    public ObjectGrid SetClickEvent()
+    public GameObject borderImage { get; private set; }
+    public void InitObject()
+    {
+        borderImage = transform.GetChild(0).gameObject;
+        borderImage.SetActive(false);
+    }
+    public GridObject SetClickEvent()
     {
         Entry downEntry = new();
         // Button 이벤트 추가
@@ -26,7 +32,7 @@ public class ObjectGrid : MonoBehaviour
         
         return this;
     }
-    public ObjectGrid SetDownEvent()
+    public GridObject SetDownEvent()
     {
         if (eventTrigger == null)
         {
@@ -41,7 +47,7 @@ public class ObjectGrid : MonoBehaviour
         });
         return this;
     }
-    public ObjectGrid SetEnterEvent()
+    public GridObject SetEnterEvent()
     {
         if (eventTrigger == null)
         {
@@ -56,7 +62,7 @@ public class ObjectGrid : MonoBehaviour
         eventTrigger.triggers.Add(enterEntry);
         return this;
     }
-    public ObjectGrid SetDragEvent()
+    public GridObject SetDragEvent()
     {
         if (eventTrigger == null)
         {
@@ -75,7 +81,7 @@ public class ObjectGrid : MonoBehaviour
         eventTrigger.triggers.Add(dragEntry);
         return this;
     }
-    public ObjectGrid SetExitEvent()
+    public GridObject SetExitEvent()
     {
         if (eventTrigger == null)
         {
@@ -90,7 +96,7 @@ public class ObjectGrid : MonoBehaviour
         eventTrigger.triggers.Add(exitEntry);
         return this;
     }
-    public ObjectGrid SetUpEvent()
+    public GridObject SetUpEvent()
     {
         if (eventTrigger == null)
         {
@@ -119,6 +125,10 @@ public class ObjectGrid : MonoBehaviour
             GameManager.battleScenario.moveGauge = 0f;
         }
         GameManager.battleScenario.OnGridPointerDown();
+        //foreach (var x in BattleScenario.FriendlyGrids)
+        //{
+        //    x.borderImage.SetActive(true);
+        //}
     }
 
     internal void OnGridPointerDrag(Vector2 _dragPosition)
@@ -135,13 +145,19 @@ public class ObjectGrid : MonoBehaviour
         owner.transform.localPosition = localPoint;
     }
 
-    internal void OnGridPointerEnter(ObjectGrid _grid)
+    internal void OnGridPointerEnter(GridObject _grid)
     {
         if (!GameManager.battleScenario.isDragging) return;
         GameManager.battleScenario.gridOnPointer = _grid;
+        borderImage.SetActive(true);
     }
 
-    internal void OnGridPointerExit() => GameManager.battleScenario.gridOnPointer = null;
+    internal void OnGridPointerExit()
+    {
+        GameManager.battleScenario.gridOnPointer = null;
+        if(owner == null)
+            borderImage.SetActive(false);
+    }
     internal void OnGridPointerUp()
     {
         EventSystem.current.SetSelectedGameObject(null);
@@ -152,6 +168,10 @@ public class ObjectGrid : MonoBehaviour
         else
         {
             GameManager.battleScenario.MoveCharacterByGrid(this, GameManager.battleScenario.gridOnPointer);
+            foreach (var x in BattleScenario.FriendlyGrids)
+            {
+                x.borderImage.SetActive(!(x.owner == null));
+            }
         }
         GameManager.battleScenario.gridOnPointer = null;
         GameManager.battleScenario.isDragging = false;

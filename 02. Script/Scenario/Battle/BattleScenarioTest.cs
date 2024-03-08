@@ -58,7 +58,7 @@ public class BattleScenarioTest : MonoBehaviour
             
         }
     }
-    private void OnCharacterGridClicked(ObjectGrid _grid, bool _isEnemyGrid)
+    private void OnCharacterGridClicked(GridObject _grid, bool _isEnemyGrid)
     {
         if (testPattern != TestPattern.Default)
         {

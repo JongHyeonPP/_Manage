@@ -45,7 +45,8 @@ public class GameManager : MonoBehaviour
 
     #region CanvasGrid
     public Transform canvasGrid;
-    public GameObject objectHpBar;
+    public GameObject prefabHpBar;
+    public GameObject prefabGridObject;
     #endregion
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
     EventTrigger eventTrigger;
@@ -132,8 +133,7 @@ public class GameManager : MonoBehaviour
 
         GridLayoutGroup groupFrinedly = panelFriendly.GetComponent<GridLayoutGroup>();
         panelFriendly.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3 + BattleScenario.gridCorrection, groupFrinedly.cellSize.y * 3 + BattleScenario.gridCorrection);
-        var trigger =  panelFriendly.gameObject.AddComponent<EventTrigger>();
-
+        EventTrigger trigger =  panelFriendly.gameObject.AddComponent<EventTrigger>();
 
         Entry enterEntry = new();
         trigger.triggers.Add(enterEntry);
@@ -142,6 +142,7 @@ public class GameManager : MonoBehaviour
         {
             battleScenario.isInFriendly = true;
         });
+
         Entry exitEntry = new();
         trigger.triggers.Add(exitEntry);
         exitEntry.eventID = EventTriggerType.PointerExit;
@@ -167,13 +168,17 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < 9; i++)
         {
-            ObjectGrid friendlyGrid = panelFriendly.GetChild(i).gameObject.AddComponent<ObjectGrid>();
+            GameObject friendlyObject = Instantiate(prefabGridObject, panelFriendly);
+            GridObject friendlyGrid = friendlyObject.GetComponent<GridObject>();
+            friendlyGrid.InitObject();
             friendlyGrid.isEnemy = false;
             friendlyGrid.index = i;
             BattleScenario.FriendlyGrids.Add(friendlyGrid);
             friendlyGrid.SetClickEvent().SetDownEvent().SetDragEvent().SetEnterEvent().SetExitEvent().SetUpEvent();
 
-            ObjectGrid enemyGrid = panelEnemy.GetChild(i).gameObject.AddComponent<ObjectGrid>();
+            GameObject enemyObject = Instantiate(prefabGridObject, panelEnemy);
+            GridObject enemyGrid = enemyObject.GetComponent<GridObject>();
+            enemyGrid.InitObject();
             enemyGrid.isEnemy = true;
             enemyGrid.index = i;
             BattleScenario.EnemyGrids.Add(enemyGrid);
@@ -272,7 +277,7 @@ public class GameManager : MonoBehaviour
             }
             else
                 weaponName = string.Empty;
-            ObjectGrid _grid = BattleScenario.FriendlyGrids[(int)(long)tempDict["Index"]];
+            GridObject _grid = BattleScenario.FriendlyGrids[(int)(long)tempDict["Index"]];
             string jobId = GetJobId(skillNames);
             InitFriendlyObject(snapShot.Id, jobId, _grid);
             CharacterData characterData = new(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, (int)(long)tempDict["Index"], skillNames, weaponName);
@@ -311,7 +316,7 @@ public class GameManager : MonoBehaviour
         else
             return "000";
     }
-    public void InitFriendlyObject(string _docId,string _jobId, ObjectGrid _grid)
+    public void InitFriendlyObject(string _docId,string _jobId, GridObject _grid)
     {
         GameObject friendlyObject = InitCharacterObject(_grid, false, _jobId);
         FriendlyScript friendlyScript = friendlyObject.AddComponent<FriendlyScript>();
@@ -363,7 +368,7 @@ public class GameManager : MonoBehaviour
                 List<KeyValuePair<string, EnemyClass>> typeValues = values.Where(item => item.Value.enemyLevel == piece.enemyLevel).ToList();
                 id = typeValues[Random.Range(0, typeValues.Count)].Key;
             }
-            ObjectGrid grid = BattleScenario.EnemyGrids[piece.index];
+            GridObject grid = BattleScenario.EnemyGrids[piece.index];
             GameObject enemyObject;
             EnemyClass enemyClass = enemyDict[id];
             enemyObject = InitCharacterObject(grid, true, id, enemyClass.isMonster);
@@ -373,11 +378,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public GameObject InitCharacterObject(ObjectGrid _grid, bool _isEnemy, string _characterId, bool _isMonster = false)
+    public GameObject InitCharacterObject(GridObject _grid, bool _isEnemy, string _characterId, bool _isMonster = false)
     {
         string type = _isEnemy ? "Enemy" : "Friendly";
         GameObject characterObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/{0}/{1}", type, _characterId)));
         characterObject.transform.SetParent(_grid.transform);
+        _grid.borderImage.SetActive(true);
         if (_isMonster)
         {
             Transform objTransform = characterObject.transform;
@@ -394,7 +400,7 @@ public class GameManager : MonoBehaviour
         else
         {
             characterObject.transform.GetChild(0).localScale = Vector3.one * 80;
-            _grid.GetComponent<Image>().enabled = true;
+            
             RectTransform rectTransform = characterObject.GetComponent<RectTransform>();
             rectTransform.anchoredPosition3D = new Vector3(0, 0, 0);
             rectTransform.localScale = new Vector2(1, 1);

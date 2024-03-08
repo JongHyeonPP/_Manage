@@ -18,9 +18,7 @@ public class BattleScenario : MonoBehaviour
     public BattleDifficulty battleDifficulty;
     public static List<CharacterBase> enemies;
     public static List<CharacterBase> friendlies;
-    private static List<ObjectGrid> friendlyGrids;
-    private static List<ObjectGrid> enemyGrids;
-    public ObjectGrid gridOnPointer;
+    public GridObject gridOnPointer;
     public bool isDragging = false;
     #region UI
     public Transform canvasBattle;
@@ -40,8 +38,8 @@ public class BattleScenario : MonoBehaviour
     public static BattlePatern battlePatern;
     public float moveGauge;
     private Coroutine regularEffectCor;
-    public static List<ObjectGrid> FriendlyGrids { get; private set; } = new();
-    public static List<ObjectGrid> EnemyGrids { get; private set; } = new();
+    public static List<GridObject> FriendlyGrids { get; private set; } = new();
+    public static List<GridObject> EnemyGrids { get; private set; } = new();
     public float RewardAscend = 0;
     public static readonly float gridCorrection = 20f;
     public Transform prefabSet;
@@ -49,8 +47,6 @@ public class BattleScenario : MonoBehaviour
     private async void Awake()
     {
         GameManager.battleScenario = this;
-        friendlyGrids = FriendlyGrids;
-        enemyGrids = EnemyGrids;
 
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
         panelClear = canvasBattle.GetChild(1);
@@ -129,7 +125,7 @@ public class BattleScenario : MonoBehaviour
         GameManager.IsPaused = true;
 
     }
-    public void MoveCharacterByGrid(ObjectGrid _startGrid, ObjectGrid _targetGrid)
+    public void MoveCharacterByGrid(GridObject _startGrid, GridObject _targetGrid)
     {
         CharacterBase targetCharacter = null;
         if (_targetGrid.owner)
@@ -219,7 +215,7 @@ public class BattleScenario : MonoBehaviour
         battlePatern = BattlePatern.OnReady;
     }
 
-    public void OnGridPointerEnter(ObjectGrid _grid)
+    public void OnGridPointerEnter(GridObject _grid)
     {
         Image gridImage = _grid.GetComponent<Image>();
         //봇 생성 모드라면
@@ -239,7 +235,7 @@ public class BattleScenario : MonoBehaviour
     }
     public void RefreshGrid(bool _isEnemyGrid)
     {
-        foreach (var x in _isEnemyGrid ? enemyGrids : friendlyGrids)
+        foreach (var x in _isEnemyGrid ? EnemyGrids : FriendlyGrids)
         {
             x.GetComponent<Image>().color = defaultGridColor;
         }

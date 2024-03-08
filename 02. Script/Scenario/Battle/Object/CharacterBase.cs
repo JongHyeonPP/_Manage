@@ -52,7 +52,7 @@ abstract public class CharacterBase : MonoBehaviour
     private List<EffectPassiveFormDot> passiveAtDotOpponent = new();
     private List<EffectPassiveFormDot> passiveAtDotAlly = new();
     public Animator animator;
-    public ObjectGrid grid;
+    public GridObject grid;
     private Coroutine moveCoroutine;
     private readonly float ARRIVAL_TIME = 2f;
     public SpriteRenderer weaponRenderer;//Right
@@ -63,7 +63,7 @@ abstract public class CharacterBase : MonoBehaviour
     public void InitCharacter()
     {
         rootTargetTransform = Instantiate(new GameObject("RootTarget"), transform.GetChild(0)).transform;
-        hpObject = Instantiate(GameManager.gameManager.objectHpBar, transform);
+        hpObject = Instantiate(GameManager.gameManager.prefabHpBar, transform);
         hpObject.transform.localScale = Vector3.one;
         hpObject.transform.GetComponent<RectTransform>().localPosition = new(0f, -15f, 0f);
 
@@ -115,7 +115,7 @@ abstract public class CharacterBase : MonoBehaviour
 
         return calcValue;
     }
-    public void MoveToTargetGrid(ObjectGrid _grid, bool _isInstant = false)
+    public void MoveToTargetGrid(GridObject _grid, bool _isInstant = false)
     {
         bool isInstant;
         if (!_isInstant)
@@ -359,13 +359,13 @@ abstract public class CharacterBase : MonoBehaviour
         if (necro > 0)
         {
             grid.owner = null;
-            List<ObjectGrid> gridCandiBase = IsEnemy ? BattleScenario.FriendlyGrids : BattleScenario.EnemyGrids;
-            List<ObjectGrid> gridCandi = gridCandiBase.Where(item => item.owner == null).ToList();
+            List<GridObject> gridCandiBase = IsEnemy ? BattleScenario.FriendlyGrids : BattleScenario.EnemyGrids;
+            List<GridObject> gridCandi = gridCandiBase.Where(item => item.owner == null).ToList();
             if (gridCandi.Count > 0)
             {
                 (IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies).Remove(this);
                 (IsEnemy ? BattleScenario.friendlies : BattleScenario.enemies).Add(this);
-                ObjectGrid targetGrid = gridCandi[Random.Range(0, gridCandi.Count)];
+                GridObject targetGrid = gridCandi[Random.Range(0, gridCandi.Count)];
                 MoveToTargetGrid(targetGrid, true);
                 IsEnemy = !IsEnemy;
                 foreach (EffectPassiveForm passive in passiveEffectsAtGrid)
@@ -588,7 +588,7 @@ abstract public class CharacterBase : MonoBehaviour
         SkillEffect effect;
         float value;//최초 Value 고정
         CharacterBase caster;
-        public List<ObjectGrid> targetGrids = new();
+        public List<GridObject> targetGrids = new();
         bool isTargetEnemy;
         public EffectPassiveForm(SkillEffect _effect, bool _isTargetEnemy, CharacterBase _caster, float _value)
         {
@@ -665,11 +665,11 @@ abstract public class CharacterBase : MonoBehaviour
         }
         return targets;
     }
-    public static List<ObjectGrid> GetGridsByRange(EffectRange _range, CharacterBase _target, bool _isTargetEnemy)
+    public static List<GridObject> GetGridsByRange(EffectRange _range, CharacterBase _target, bool _isTargetEnemy)
     {
-        List<ObjectGrid> targetGrids = null;
+        List<GridObject> targetGrids = null;
         bool orderDir = _isTargetEnemy ^ _target.IsEnemy;
-        List<ObjectGrid> gridsBase = (orderDir ? BattleScenario.EnemyGrids : BattleScenario.FriendlyGrids);
+        List<GridObject> gridsBase = (orderDir ? BattleScenario.EnemyGrids : BattleScenario.FriendlyGrids);
         switch (_range)
         {
             case EffectRange.Row:

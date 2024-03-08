@@ -9,7 +9,7 @@ public class EnemyScript : CharacterBase
     public static readonly float DEFAULT_PROB = 0.6f;
     public static readonly float INCREASE_PROB = 0.1f;
 
-    public void InitEnemy(EnemyClass _enemyClass, ObjectGrid _grid, bool _isMonster)
+    public void InitEnemy(EnemyClass _enemyClass, GridObject _grid, bool _isMonster)
     {
         IsEnemy = true;
         isMonster = _isMonster;
