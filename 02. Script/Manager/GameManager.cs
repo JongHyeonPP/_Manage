@@ -27,12 +27,12 @@ public class GameManager : MonoBehaviour
     public Dictionary<string, object> userDoc;
     public Dictionary<string, object> progressDoc;
     public static int seed { get; private set; }
-    public float fame;
+    public int fame;
     public float gold;
     public float fameAscend = 0f;
     public float goldAscend = 0f;
-    public Dictionary<string, int> guildLevelDict = new();//DocId : Level
-    public Dictionary<GuildEffectType, float> guildValueDict = new();
+    public Dictionary<string, int> upgradeLevelDict = new();//DocId : Level
+    public Dictionary<UpgradeEffectType, float> upgradeValueDict = new();
     private static bool isPaused = false;
     public static bool IsPaused
     {
@@ -64,8 +64,9 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
+            uiCamera.SetActive(false);
             //Until Steam API
-            uid = "KF5U1XMs5cy7n13dgKjF";
+            uid = "KF5U1XMs5cy7n13dgKjF";//종현
             //uid = "FMefxTlgP9aHsgfE0Grc";
         }
     }
@@ -78,46 +79,46 @@ public class GameManager : MonoBehaviour
     public async Task LoadUserDoc()
     {
         userDoc = await DataManager.dataManager.GetField("User", Uid);
-        Dictionary<string, object> guildDict;
-        if (userDoc.TryGetValue("Guild", out object guildObj))
+        Dictionary<string, object> upgradeDict;
+        if (userDoc.TryGetValue("Upgrade", out object upgradeObj))
         {
-            guildDict = guildObj as Dictionary<string, object>;
+            upgradeDict = upgradeObj as Dictionary<string, object>;
         }
         else
         {
-            guildDict = new();
+            upgradeDict = new();
         }
-        fame = GetFloatValue(userDoc["Fame"]);
+        fame = (int)(long)userDoc["Fame"];
         bool needToSet = false;
         
-        foreach (KeyValuePair<string, GuildClass> kvp in LoadManager.loadManager.guildDict)
+        foreach (KeyValuePair<string, UpgradeClass> kvp in LoadManager.loadManager.upgradeDict)
         {
-            if (guildDict.TryGetValue(kvp.Key, out object userObj))
+            if (upgradeDict.TryGetValue(kvp.Key, out object userObj))
             {
                 int level = (int)(long)userObj;
-                guildLevelDict.Add(kvp.Key, level);
+                upgradeLevelDict.Add(kvp.Key, level);
                 if (level != 0)
                 {
-                    GuildEffectType type = kvp.Value.type;
-                    if (!guildValueDict.ContainsKey(type))
+                    UpgradeEffectType type = kvp.Value.type;
+                    if (upgradeValueDict.ContainsKey(type))
+                        upgradeValueDict[type] += kvp.Value.content[level - 1].Item2;
+                    else
                     {
 
-                        guildValueDict.Add(type, kvp.Value.content[level - 1].value);//1 Level이면 0번 째 Value를 챙겨야 함
+                        upgradeValueDict.Add(type, kvp.Value.content[level - 1].Item2);//1 Level이면 0번 째 Value를 챙겨야 함
                     }
-                    else
-                        guildValueDict[type] += kvp.Value.content[level - 1].value;
                 }
             }
             else
             {
                 needToSet = true;
-                guildLevelDict.Add(kvp.Key, 0);
+                upgradeLevelDict.Add(kvp.Key, 0);
             }
         }
         if (needToSet)
         {
-            Dictionary<string, object> objDict = DataManager.dataManager.ConvertToObjDictionary(guildLevelDict);
-            DataManager.dataManager.SetDocumentData("Guild", objDict, "User", Uid);
+            Dictionary<string, object> objDict = DataManager.dataManager.ConvertToObjDictionary(upgradeLevelDict);
+            DataManager.dataManager.SetDocumentData("Upgrade", objDict, "User", Uid);
         }
         
     }
@@ -125,6 +126,10 @@ public class GameManager : MonoBehaviour
     {
         if (!(_arg0.name != "Awake" || _arg0.name != "Start"))
             DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
+        if (_arg0.name == "Battle")
+            uiCamera.SetActive(true);
+        else
+            uiCamera.SetActive(false);
     }
     private void InitGrids()
     {
@@ -383,7 +388,6 @@ public class GameManager : MonoBehaviour
         string type = _isEnemy ? "Enemy" : "Friendly";
         GameObject characterObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/{0}/{1}", type, _characterId)));
         characterObject.transform.SetParent(_grid.transform);
-        _grid.borderImage.SetActive(true);
         if (_isMonster)
         {
             Transform objTransform = characterObject.transform;
@@ -455,5 +459,10 @@ public class GameManager : MonoBehaviour
         Random.InitState(seed);
         DataManager.dataManager.SetDocumentData("Seed", seed, "Progress", Uid);
         Debug.Log("Seed : " + seed);
+    }
+    public async void SetInvenData(string _invenData)
+    {
+        invenData = _invenData;
+        await DataManager.dataManager.SetDocumentData("InvenData", _invenData, string.Format("{0}/{1}", "Progress", Uid));
     }
 }

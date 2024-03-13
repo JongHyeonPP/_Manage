@@ -233,7 +233,8 @@ public class LobbyScenario_P : MonoBehaviour
     //            talents.Add(noTalent);
     //        candidate.candiInfo = new CandiInfo(hp, ability, resist, speed, name, talents);
     //    }
-    //    SettingManager.onLanguageChange += LanguageChange1;
+    //    SettingManager.onLanguageChange +=
+    //    ;
 
     //    float GetTalentRange(int _defaultValue, GuildEffectType _guildEffect)
     //    {

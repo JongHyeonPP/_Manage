@@ -4,7 +4,7 @@ namespace EnumCollection
     {
         SoundSetting, Language
     }
-    public enum EVolume:byte
+    public enum VolumeType:byte
     {
         All, Sfx, Bgm
     }
@@ -29,10 +29,9 @@ namespace EnumCollection
         
         AttAscend_Torment, ResilienceAscend
     }
-    public enum GuildEffectType : byte
+    public enum UpgradeEffectType : byte
     {
-        AllocateNumberUp, AbilityUp, HpUp, ResistUp, TalentLevelUp, TalentNumUp,
-        SpeedUp
+        AllocateNumberUp, PowerUp, TalentNumUp, FameUp, GoldUp
     }
     public enum EffectRange : byte
     {
@@ -77,6 +76,6 @@ namespace EnumCollection
     }
     public enum LobbyCase : byte
     {
-        Pub, Guild, Incruit, Depart
+        None, Pub, Guild, Incruit, Depart
     }
 }

@@ -122,13 +122,10 @@ public class GridObject : MonoBehaviour
         if (BattleScenario.battlePatern == BattlePatern.Battle)
         {
             if (GameManager.battleScenario.moveGauge < 10f) return;
-            GameManager.battleScenario.moveGauge = 0f;
         }
         GameManager.battleScenario.OnGridPointerDown();
-        //foreach (var x in BattleScenario.FriendlyGrids)
-        //{
-        //    x.borderImage.SetActive(true);
-        //}
+        if (!isEnemy)
+            borderImage.SetActive(true);
     }
 
     internal void OnGridPointerDrag(Vector2 _dragPosition)
@@ -149,32 +146,37 @@ public class GridObject : MonoBehaviour
     {
         if (!GameManager.battleScenario.isDragging) return;
         GameManager.battleScenario.gridOnPointer = _grid;
-        borderImage.SetActive(true);
+        if (!isEnemy)
+            borderImage.SetActive(true);
     }
 
     internal void OnGridPointerExit()
     {
         GameManager.battleScenario.gridOnPointer = null;
-        if(owner == null)
-            borderImage.SetActive(false);
+        borderImage.SetActive(false);
     }
     internal void OnGridPointerUp()
     {
         EventSystem.current.SetSelectedGameObject(null);
-        if (!owner) return;
-        if (!GameManager.battleScenario.isDragging) return;
-        if (!GameManager.battleScenario.gridOnPointer || isEnemy != GameManager.battleScenario.gridOnPointer.isEnemy)//잘못된 위치에서 놨다면 돌아가도록
+        borderImage.SetActive(false);
+        if (!owner || !GameManager.battleScenario.isDragging) return;
+        if (GameManager.battleScenario.gridOnPointer == null || GameManager.battleScenario.gridOnPointer == this|| !GameManager.battleScenario.gridOnPointer || isEnemy != GameManager.battleScenario.gridOnPointer.isEnemy)
+        {
             GameManager.battleScenario.MoveCharacterByGrid(this, this);
+        }
         else
         {
             GameManager.battleScenario.MoveCharacterByGrid(this, GameManager.battleScenario.gridOnPointer);
-            foreach (var x in BattleScenario.FriendlyGrids)
+
+            if (BattleScenario.battlePatern != BattlePatern.OnReady)
             {
-                x.borderImage.SetActive(!(x.owner == null));
+                GameManager.battleScenario.moveGauge = 0f;
             }
         }
+
         GameManager.battleScenario.gridOnPointer = null;
         GameManager.battleScenario.isDragging = false;
         GameManager.IsPaused = false;
     }
+
 }

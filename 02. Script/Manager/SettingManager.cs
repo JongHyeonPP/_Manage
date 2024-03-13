@@ -1,16 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 using EnumCollection;
 using System;
-using BattleCollection;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Audio;
+using UnityEngine.UI;
 
 public class SettingManager : MonoBehaviour
 {
-    public delegate void OnLanguageChange(Language language);
-    public static event OnLanguageChange onLanguageChange;
+    public delegate void LanguageChange(Language language);
+    public static event LanguageChange LanguageChangeEvent;
 
     public static SettingManager settingManager;
     private SettingClass settingClass;
@@ -19,18 +18,22 @@ public class SettingManager : MonoBehaviour
     public Toggle toggleFullScreen;
     public GameObject panelSetting;
     public GameObject buttonSetting;
+    public Transform parentSlider;
+    private Dictionary<VolumeType, VolumeSlider> volumeSliders = new();
+    public List<VolumeType> volumeTypes;
+    public AudioMixer masterMixer;
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
-    TMP_Text 
-        textResolution, 
-        textFullScreen, 
-        textConvenience, 
-        textQuickBattle, 
-        textSound, 
-        textAll, 
-        textSfx, 
-        textBgm, 
-        textLanguage, 
-        textConfirm, 
+    TMP_Text
+        textResolution,
+        textFullScreen,
+        textConvenience,
+        textQuickBattle,
+        textSound,
+        textAll,
+        textSfx,
+        textBgm,
+        textLanguage,
+        textConfirm,
         textCancel;
     private void Awake()
     {
@@ -39,9 +42,9 @@ public class SettingManager : MonoBehaviour
             settingClass = new SettingClass();
             settingManager = this;
             DontDestroyOnLoad(GameObject.FindWithTag("CANVASSETTING"));
-
+            volumeTypes = new List<VolumeType>((VolumeType[])Enum.GetValues(typeof(VolumeType)));
             panelSetting.SetActive(false);
-            onLanguageChange += LanguageChange;
+            LanguageChangeEvent += OnLanguageChange;
             //UI초기화
             Transform panelLeft = panelSetting.transform.GetChild(0).GetChild(0);
             Transform panelRight = panelSetting.transform.GetChild(0).GetChild(1);
@@ -58,100 +61,103 @@ public class SettingManager : MonoBehaviour
             textConfirm = panelSetting.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
             dropdownResolution = panelLeft.GetChild(0).GetChild(1).GetComponent<TMP_Dropdown>();
             dropdownLanguage = panelRight.GetChild(1).GetChild(1).GetComponent<TMP_Dropdown>();
-
-    //텍스트 초기화
-    texts =
-                new()
-                {
-                    {
-                        textResolution,
+            volumeSliders.Add(VolumeType.All, parentSlider.GetChild(0).GetComponent<VolumeSlider>());
+            volumeSliders.Add(VolumeType.Sfx, parentSlider.GetChild(1).GetComponent<VolumeSlider>());
+            volumeSliders.Add(VolumeType.Bgm, parentSlider.GetChild(2).GetComponent<VolumeSlider>());
+            
+            //텍스트 초기화
+            texts =
                         new()
                         {
-                            { Language.Ko, "해상도" },
-                            { Language.En, "Start" }
-                        }
-                    },
-                    {
-                        textFullScreen,
-                        new()
-                        {
-                            { Language.Ko, "전체 화면" },
-                            { Language.En, "Full Screen" }
-                        }
-                    },
-                    {
-                        textConvenience,
-                        new()
-                        {
-                            { Language.Ko, "편의 기능" },
-                            { Language.En, "Convenience" }
-                        }
-                    },
-                    {
-                        textQuickBattle,
-                        new()
-                        {
-                            { Language.Ko, "빠른 전투" },
-                            { Language.En, "Quick Battle" }
-                        }
-                    },
-                    {
-                        textSound,
-                        new()
-                        {
-                            { Language.Ko, "음향" },
-                            { Language.En, "Sound" }
-                        }
-                    },
-                    {
-                        textAll,
-                        new()
-                        {
-                            { Language.Ko, "전체" },
-                            { Language.En, "ALL" }
-                        }
-                    },
-                    {
-                        textSfx,
-                        new()
-                        {
-                            { Language.Ko, "효과음" },
-                            { Language.En, "SFX" }
-                        }
-                    },
-                    {
-                        textBgm,
-                        new()
-                        {
-                            { Language.Ko, "배경음" },
-                            { Language.En, "BGM" }
-                        }
-                    },
-                    {
-                        textLanguage,
-                        new()
-                        {
-                            { Language.Ko, "언어" },
-                            { Language.En, "Language" }
-                        }
-                    },
-                    {
-                        textConfirm,
-                        new()
-                        {
-                            { Language.Ko, "확인" },
-                            { Language.En, "Confirm" }
-                        }
-                    },
-                    {
-                        textCancel,
-                        new()
-                        {
-                            { Language.Ko, "취소" },
-                            { Language.En, "Cancel" }
-                        }
-                    }
-                };
+                            {
+                                textResolution,
+                                new()
+                                {
+                                    { Language.Ko, "해상도" },
+                                    { Language.En, "Start" }
+                                }
+                            },
+                            {
+                                textFullScreen,
+                                new()
+                                {
+                                    { Language.Ko, "전체 화면" },
+                                    { Language.En, "Full Screen" }
+                                }
+                            },
+                            {
+                                textConvenience,
+                                new()
+                                {
+                                    { Language.Ko, "편의 기능" },
+                                    { Language.En, "Convenience" }
+                                }
+                            },
+                            {
+                                textQuickBattle,
+                                new()
+                                {
+                                    { Language.Ko, "빠른 전투" },
+                                    { Language.En, "Quick Battle" }
+                                }
+                            },
+                            {
+                                textSound,
+                                new()
+                                {
+                                    { Language.Ko, "음향" },
+                                    { Language.En, "Sound" }
+                                }
+                            },
+                            {
+                                textAll,
+                                new()
+                                {
+                                    { Language.Ko, "전체" },
+                                    { Language.En, "ALL" }
+                                }
+                            },
+                            {
+                                textSfx,
+                                new()
+                                {
+                                    { Language.Ko, "효과음" },
+                                    { Language.En, "SFX" }
+                                }
+                            },
+                            {
+                                textBgm,
+                                new()
+                                {
+                                    { Language.Ko, "배경음" },
+                                    { Language.En, "BGM" }
+                                }
+                            },
+                            {
+                                textLanguage,
+                                new()
+                                {
+                                    { Language.Ko, "언어" },
+                                    { Language.En, "Language" }
+                                }
+                            },
+                            {
+                                textConfirm,
+                                new()
+                                {
+                                    { Language.Ko, "확인" },
+                                    { Language.En, "Confirm" }
+                                }
+                            },
+                            {
+                                textCancel,
+                                new()
+                                {
+                                    { Language.Ko, "취소" },
+                                    { Language.En, "Cancel" }
+                                }
+                            }
+                        };
 
 
         }
@@ -160,7 +166,7 @@ public class SettingManager : MonoBehaviour
     {
         //Debug.Log(Screen.currentResolution);
     }
-    private void LanguageChange(Language _language)
+    private void OnLanguageChange(Language _language)
     {
         foreach (KeyValuePair<TMP_Text, Dictionary<Language, string>> keyValue in texts)
         {
@@ -195,28 +201,70 @@ public class SettingManager : MonoBehaviour
     {
         settingClass.SettingBtnClick();
     }
-    public void ChangeSound(EVolume eVolume, float volume)
+    public void VolumeControl_Str(string _volumeStr)
     {
-        switch (eVolume)
+        switch (_volumeStr)
         {
-            case EVolume.All:
-                settingClass.newSet.allVolume = volume;
+            default:
+                VolumeControl(VolumeType.All);
                 break;
-            case EVolume.Sfx:
-                settingClass.newSet.sfxVolume = volume;
+            case "Sfx":
+                VolumeControl(VolumeType.Sfx);
                 break;
-            case EVolume.Bgm:
-                settingClass.newSet.bgmVolume = volume;
+            case "Bgm":
+                VolumeControl(VolumeType.Bgm);
                 break;
+
         }
     }
-    public void ExecuteLangaugeChange(Language _language) => onLanguageChange(_language);
+    public void VolumeControl(VolumeType _volumeType)
+    {
+        string str;
+        switch (_volumeType)
+        {
+            default:
+                str = "Master";
+                break;
+            case VolumeType.Sfx:
+                str = "SFX";
+                break;
+            case VolumeType.Bgm:
+                str = "BGM";
+                break;
+        }
+        float volume = settingManager.volumeSliders[_volumeType].slider.value;
+        if (volume == -30f)
+            volume = -80f;
+        settingClass.newSet.volume[_volumeType] = volume;
+        masterMixer.SetFloat(str, volume);
+    }
+    public void OnBtnClicked(VolumeType _volumeType, bool _onOff)
+    {
+        string str;
+        switch (_volumeType)
+        {
+            default:
+                str = "Master";
+                break;
+            case VolumeType.Sfx:
+                str = "SFX";
+                break;
+            case VolumeType.Bgm:
+                str = "BGM";
+                break;
+        }
+        settingClass.newSet.on[_volumeType] = !settingClass.newSet.on[_volumeType];
+        if (_onOff)
+            masterMixer.SetFloat(str, settingClass.newSet.volume[_volumeType]);
+        else
+            masterMixer.SetFloat(str, -80f);
+    }
+    public void ExecuteLangaugeChange(Language _language) => LanguageChangeEvent(_language);
     internal class SettingClass
     {
         List<Resolution> resolutions = new();
-        internal SettingStruct originSet;
-        internal SettingStruct newSet;
-        GameObject panelSetting;
+        internal SettingSet originSet;
+        internal SettingSet newSet;
         int originResolution;
         int newResolution;
         FullScreenMode originScreenMode;
@@ -226,36 +274,57 @@ public class SettingManager : MonoBehaviour
             InitScreen();
             InitSound();
             InitLanguage();
-            panelSetting = SettingManager.settingManager.panelSetting;
         }
         private void InitData()
         {
-            originSet = new SettingStruct();
-            newSet = new SettingStruct();
+            originSet = new SettingSet();
+            newSet = new SettingSet();
             #region Volume
-            try
+            foreach (VolumeType type in settingManager.volumeTypes)
             {
-                originSet.allVolume = float.Parse(DataManager.dataManager.GetConfigData(DataSection.SoundSetting, "AllVolume"));
-            }
-            catch
-            {
-                originSet.allVolume = -1;
-            }
-            try
-            {
-                originSet.sfxVolume = float.Parse(DataManager.dataManager.GetConfigData(DataSection.SoundSetting, "SfxVolume"));
-            }
-            catch
-            {
-                originSet.sfxVolume = -1;
-            }
-            try
-            {
-                originSet.bgmVolume = float.Parse(DataManager.dataManager.GetConfigData(DataSection.SoundSetting, "BgmVolume"));
-            }
-            catch
-            {
-                originSet.bgmVolume = -1;
+                string str_Vol;
+                switch (type)
+                {
+                    default:
+                        str_Vol = "AllVolume";
+                        break;
+                    case VolumeType.Sfx:
+                        str_Vol = "SfxVolume";
+                        break;
+                    case VolumeType.Bgm:
+                        str_Vol = "BgmVolume";
+                        break;
+                }
+                try
+                {
+                    originSet.volume[type] = float.Parse(DataManager.dataManager.GetConfigData(DataSection.SoundSetting, str_Vol));
+                    
+                }
+                catch
+                {
+                    originSet.volume[type] = 15f;
+                }
+                string str_On;
+                switch (type)
+                {
+                    default:
+                        str_On = "AllOn";
+                        break;
+                    case VolumeType.Sfx:
+                        str_On = "SfxOn";
+                        break;
+                    case VolumeType.Bgm:
+                        str_On = "BgmOn";
+                        break;
+                }
+                try
+                {
+                    originSet.on[type] = bool.Parse(DataManager.dataManager.GetConfigData(DataSection.SoundSetting, str_On));
+                }
+                catch
+                {
+                    originSet.on[type] = true;
+                }
             }
             #endregion
             try
@@ -275,15 +344,9 @@ public class SettingManager : MonoBehaviour
             {
                 originSet.language = Language.Ko;
             }
-            DeepCopy();
+            newSet = new(originSet);
         }
 
-        private void DeepCopy()
-        {
-            newSet.sfxVolume = originSet.sfxVolume;
-            newSet.bgmVolume = originSet.bgmVolume;
-            newSet.language = originSet.language;
-        }
         private void InitScreen()
         {
             int curWidth = 0;
@@ -322,19 +385,11 @@ public class SettingManager : MonoBehaviour
         }
         private void InitSound()
         {
-            if (originSet.allVolume == -1)
-                SoundManager.soundManager.sliderAll.value = -15f;
-            else
-                SoundManager.soundManager.sliderAll.value = originSet.allVolume;
-            if (originSet.sfxVolume == -1)
-                SoundManager.soundManager.sliderSfx.value = -15f;
-            else
-                SoundManager.soundManager.sliderSfx.value = originSet.sfxVolume;
-
-            if (originSet.bgmVolume == -1)
-                SoundManager.soundManager.sliderBgm.value = -15f;
-            else
-                SoundManager.soundManager.sliderBgm.value = originSet.bgmVolume;
+            foreach (VolumeType type in settingManager.volumeTypes)
+            {
+                settingManager.volumeSliders[type].slider.value = originSet.volume[type];
+                settingManager.volumeSliders[type].OnOff = originSet.on[type];
+            }
         }
         private void InitLanguage()
         {
@@ -358,9 +413,9 @@ public class SettingManager : MonoBehaviour
         }
         internal void ConfirmBtnClick()
         {
-            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllVolume", newSet.allVolume);
-            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxVolume", newSet.sfxVolume);
-            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmVolume", newSet.bgmVolume);
+            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllVolume", newSet.volume[VolumeType.All]);
+            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxVolume", newSet.volume[VolumeType.Sfx]);
+            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmVolume", newSet.volume[VolumeType.Bgm]);
             DataManager.dataManager.SetConfigData(DataSection.Language, "Language", newSet.language);
             settingManager.panelSetting.SetActive(false);
             originResolution = newResolution;
@@ -370,38 +425,49 @@ public class SettingManager : MonoBehaviour
         internal void CancelBtnClick()
         {
             Screen.SetResolution(resolutions[originResolution].width, resolutions[originResolution].height, originScreenMode);
-            panelSetting.SetActive(false);
+            settingManager.panelSetting.SetActive(false);
             settingManager.dropdownResolution.value = originResolution;
             settingManager.toggleFullScreen.isOn = originScreenMode == FullScreenMode.FullScreenWindow;
 
             settingManager.dropdownLanguage.value = (int)originSet.language;
-            newSet = originSet;
-            SoundManager.soundManager.ReturnToOriginSet(originSet.allVolume, originSet.sfxVolume, originSet.bgmVolume);
+            newSet = new(originSet);
+            foreach (VolumeType type in settingManager.volumeTypes)
+            {
+                settingManager.volumeSliders[type].slider.value = originSet.volume[type];
+                settingManager.VolumeControl(type);
+                settingManager.volumeSliders[type].OnOff = originSet.on[type];
+            }
+            
         }
+
         internal void SettingBtnClick()
         {
-            if (panelSetting.activeSelf)
+            if (settingManager.panelSetting.activeSelf)
             {
-                newSet = new();
+                newSet = new(originSet);
             }
-            panelSetting.SetActive(!panelSetting.activeSelf);
+            settingManager.panelSetting.SetActive(!settingManager.panelSetting.activeSelf);
         }
     }
 }
 
 
 
-public struct SettingStruct
+public class SettingSet
 {
-    public float allVolume;
-    public float sfxVolume;
-    public float bgmVolume;
     public Language language;
-    public SettingStruct(float _allVolume, float _sfxVolume, float _bgmVolume, Language _language)
+    public Dictionary<VolumeType, float> volume = new();
+    public Dictionary<VolumeType, bool> on = new();
+    public SettingSet()
     {
-        allVolume = _allVolume;
-        sfxVolume = _sfxVolume;
-        bgmVolume = _bgmVolume;
-        language = _language;
+    }
+    public SettingSet(SettingSet _origin)
+    {
+        foreach (VolumeType type in SettingManager.settingManager.volumeTypes)
+        {
+            volume[type] = _origin.volume[type];
+            on[type] = _origin.on[type];
+        }
+        language = _origin.language;
     }
 }

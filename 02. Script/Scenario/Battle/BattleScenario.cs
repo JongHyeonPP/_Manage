@@ -65,7 +65,7 @@ public class BattleScenario : MonoBehaviour
                     //    }
                     //},
                 };
-        SettingManager.onLanguageChange += LanguageChange;
+        SettingManager.LanguageChangeEvent += LanguageChange;
         LanguageChange(GameManager.language);
 
         

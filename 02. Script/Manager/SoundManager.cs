@@ -8,11 +8,6 @@ using EnumCollection;
 public class SoundManager : MonoBehaviour
 {
     public static SoundManager soundManager;
-    [Header("SoundSetting")]
-    public AudioMixer masterMixer;
-    public Slider sliderAll;
-    public Slider sliderSfx;
-    public Slider sliderBgm;
     [SerializeField] private AudioSource bgmSource;
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private Dictionary<string, AudioClip> bgmList;
@@ -39,38 +34,11 @@ public class SoundManager : MonoBehaviour
             }
         }
     }
-    private void Start()
-    {
-        //Slider Value Changed에서도 사용하는 메서드들
-        ALLControl();
-        BgmControl();
-        SfxControl();
-    }
-    public void ALLControl()
-    {
-        float sound = sliderAll.value;
-        if (sound == -30f)
-            sound = -80f;
-        SettingManager.settingManager.ChangeSound(EVolume.All, sound);
-        masterMixer.SetFloat("Master", sound);
-    }
-    public void BgmControl()
-    {
-        float sound = sliderBgm.value;
-        if (sound == -30f)
-            sound = -80f;
-        SettingManager.settingManager.ChangeSound(EVolume.Bgm, sound);
-        masterMixer.SetFloat("BGM", sound);
-    }
-    public void SfxControl()
-    {
-        float sound = sliderSfx.value;
-        if (sound == -30f)
-            sound = -80f;
-        SettingManager.settingManager.ChangeSound(EVolume.Sfx, sound);
-        masterMixer.SetFloat("SFX", sound);
-    }
 
+    public void OnOffSound(VolumeType eVolume, bool _onOff)
+    {
+
+    }
     public void ToggleAudioVolume()
     {
         AudioListener.volume = AudioListener.volume == 0 ? 1 : 0;
@@ -87,13 +55,5 @@ public class SoundManager : MonoBehaviour
     {
         sfxSource.PlayOneShot(sfxList[_name]);
     }
-    public void ReturnToOriginSet(float _all, float _sfx, float _bgm)
-    {
-        sliderAll.value = _all;
-        sliderSfx.value = _sfx;
-        sliderBgm.value = _bgm;
-        ALLControl();
-        SfxControl();
-        BgmControl();
-    }
+
 }

@@ -85,6 +85,7 @@ public class DataManager : MonoBehaviour
 
     public async void SetDocumentData(string _field, object _value, string _collectionRef, string _documentId)
     {
+        //기존 도큐먼트에 Set
         CollectionReference collectionRef = db.Collection(_collectionRef);
         DocumentReference documentRef = collectionRef.Document(_documentId);
         Dictionary<string, object> dict = new Dictionary<string, object> { { _field, _value } };
@@ -92,6 +93,7 @@ public class DataManager : MonoBehaviour
     }
     public async Task<string> SetDocumentData(string _field, object _value, string _collectionRef)
     {
+        //도큐먼트 만들면서 Set
         CollectionReference collectionRef = db.Collection(_collectionRef);
         DocumentReference documentRef = collectionRef.Document();
         Dictionary<string, object> dict = new Dictionary<string, object> { { _field, _value } };

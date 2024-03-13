@@ -2,6 +2,7 @@ using BattleCollection;
 using EnumCollection;
 using Firebase.Firestore;
 using LobbyCollection;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<string, SkillForm> skillsDict = new();//Key´Â DocumentÀÇ ID
     public Dictionary<string, JobClass> jobsDict = new();//Key´Â ½ºÅ³ÀÇ Index. Ex)200, 101
     public Dictionary<string, EnemyClass> enemyiesDict = new();//Key´Â DocumentÀÇ ID¸¦ int·Î parse
-    public Dictionary<string, GuildClass> guildDict = new();
+    public Dictionary<string, UpgradeClass> upgradeDict = new();
     public Dictionary<string, TalentFormStruct> talentDict = new();
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
     public Dictionary<string, WeaponClass> weaponDict = new();
@@ -39,7 +40,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         {
             await LoadVisualEffect();
             await InitSkill();
-            await Task.WhenAll(InitJob(), InitEnemy(), InitGuild(), InitTalent(), InitUserDoc(), InitEnemyCase(), InitWeapon());
+            await Task.WhenAll(InitJob(), InitEnemy(), InitUpgrade(), InitTalent(), InitUserDoc(), InitEnemyCase(), InitWeapon());
 
             Debug.Log("LoadComplete");
             isInit = true;
@@ -504,17 +505,17 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             }
         }
     }
-    private async Task InitGuild()
+    private async Task InitUpgrade()
     {
-        List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Guild");
+        List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Upgrade");
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
-            List<GuildContent> guildContents = new();
+            List<Tuple<int, float>> guildContents = new();
             foreach (object contentObj in dict["Content"] as List<object>)
             {
                 Dictionary<string, object> contentDict = contentObj as Dictionary<string, object>;
-                guildContents.Add(new((int)(long)contentDict["Price"], (int)(long)contentDict["Value"]));
+                guildContents.Add(new((int)(long)contentDict["Price"], GetFloatValue(contentDict["Value"])));
             }
             Dictionary<Language, string> name = new();
             foreach (var x in dict["Name"] as Dictionary<string, object>)
@@ -542,36 +543,30 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         break;
                 }
             }
-            GuildEffectType type;
+            UpgradeEffectType type;
             switch (dict["Type"])
             {
                 default:
                     Debug.LogError("InitDefault... " + dict["Type"]);
-                    type = GuildEffectType.AllocateNumberUp;
+                    type = UpgradeEffectType.AllocateNumberUp;
                     break;
                 case "AllocateNumberUp":
-                    type = GuildEffectType.AllocateNumberUp;
-                    break;
-                case "AbilityUp":
-                    type = GuildEffectType.AbilityUp;
-                    break;
-                case "HpUp":
-                    type = GuildEffectType.HpUp;
-                    break;
-                case "ResistUp":
-                    type = GuildEffectType.ResistUp;
-                    break;
-                case "TalentLevelUp":
-                    type = GuildEffectType.TalentLevelUp;
+                    type = UpgradeEffectType.AllocateNumberUp;
                     break;
                 case "TalentNumUp":
-                    type = GuildEffectType.TalentNumUp;
+                    type = UpgradeEffectType.TalentNumUp;
                     break;
-                case "SpeedUp":
-                    type = GuildEffectType.SpeedUp;
+                case "PowerUp":
+                    type = UpgradeEffectType.PowerUp;
+                    break;
+                case "FameUp":
+                    type = UpgradeEffectType.FameUp;
+                    break;
+                case "GoldUp":
+                    type = UpgradeEffectType.GoldUp;
                     break;
             }
-            guildDict.Add(doc.Id, new GuildClass(name, (int)(long)dict["Index"], guildContents, explain[GameManager.language], type));
+            upgradeDict.Add(doc.Id, new UpgradeClass(name, (int)(long)dict["Index"], guildContents, explain, type, (string)dict["LobbyCase"]));
         }
     }
     private async Task InitTalent()
@@ -633,7 +628,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             }
             else
             {
-                for (int i = 0; i < guildDict.Count; i++)
+                for (int i = 0; i < upgradeDict.Count; i++)
                 {
                     DataManager.dataManager.SetDocumentData("Guild_" + i, 0, "User", GameManager.gameManager.Uid);
                 }

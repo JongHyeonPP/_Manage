@@ -1,34 +1,27 @@
 using EnumCollection;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace LobbyCollection
 {
-    public class GuildClass
+    public class UpgradeClass
     {
         public Dictionary<Language, string> name;
         public int index;
-        public List<GuildContent> content;
-        public string explain;
-        public GuildEffectType type;
-        public GuildClass(Dictionary<Language, string> _name, int _index, List<GuildContent> _content, string _explain, GuildEffectType _type)
+        public List<Tuple<int, float>> content;
+        public Dictionary<Language, string> explain;
+        public UpgradeEffectType type;
+        public string lobbyCase;
+        public UpgradeClass(Dictionary<Language, string> _name, int _index, List<Tuple<int, float>> _content, Dictionary<Language, string> _explain, UpgradeEffectType _type, string _lobbyCase)
         {
             name = _name;
             index = _index;
             content = _content;
             explain = _explain;
             type = _type;
-        }
-    }
-    public class GuildContent
-    {
-        public int price;
-        public int value;
-        public GuildContent(int _price, int _value)
-        {
-            price = _price;
-            value = _value;
+            lobbyCase = _lobbyCase;
         }
     }
     public struct TalentFormStruct

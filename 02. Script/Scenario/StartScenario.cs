@@ -96,7 +96,7 @@ public class StartScenario : MonoBehaviour
                         }
                     },
                 };
-        SettingManager.onLanguageChange += LanguageChange;
+        SettingManager.LanguageChangeEvent += LanguageChange;
         LanguageChange(GameManager.language);
         SettingManager.settingManager.buttonSetting.SetActive(true);
     }
