@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 
-public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
+public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot, IPointerDownHandler
 {
     [SerializeField] private GUI_Ctrl myGUI_CTRL;
     [SerializeField] private _SlotItemGuiEvent _ItemEvent;
@@ -15,7 +16,6 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
     public GUI_ItemUnit _itemGUI; 
     public Image _ExistEffect;
     public int _index;
-
 
 
     public void _DEBUG(int index, List<int> _data)
@@ -35,6 +35,8 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
     }
 
     public SlotGUI_InvenSlot GetMyItemGUI() { return this; }
+
+
 
     private iRoot_DDO_Manager cash = null;
     public iRoot_DDO_Manager GetDDO_Manager()
@@ -59,7 +61,6 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
         return myGUI_CTRL;
     }
 
-    // _RBD
     public bool IsInteractable_byGetRBD(iRoot_DDO_Manager _inven, IResponedByDrop target)
     {
         return _inven.CheckUpAvailable(this,target);
@@ -80,21 +81,25 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
                 GetDDO_Manager().InteractFuncByRBD(this, _src as SlotGUI_InvenSlot);
                 return;
             }
+
             else if ((_src as RBD_CasherZone == true))
             {
                 GetDDO_Manager().InteractFuncByRBD(this, _src as RBD_CasherZone);
                 return;
             }
+
             else if ((_src as RBD_SellZone == true))
             {
                 GetDDO_Manager().InteractFuncByRBD(this, _src as RBD_SellZone);
                 return;
             }
+
             else if ((_src as RBD_IngridimentSlot == true))
             {
                 GetDDO_Manager().InteractFuncByRBD(this, _src as RBD_IngridimentSlot);
                 return;
             }
+
             else if ((_src as RBD_UseDisposable == true))
             {
                 GetDDO_Manager().InteractFuncByRBD(this, _src as RBD_UseDisposable);
@@ -124,6 +129,24 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
         target._myData.invenAddr = myAddr;
         target.SetSizeAuto();
     }
+
+    // on click
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        RDM_MapSC _MapSC = GetDDO_Manager() as RDM_MapSC;
+        if (_MapSC != null)
+        {
+            _MapSC.SetClickEvent_RDM(this);
+        }
+    }
+
+    public void MSG_u_r_Infocusing(bool _input)
+    {
+        if(_input)
+            myGUI_CTRL.SetColor_INFO();
+        else
+            myGUI_CTRL.SetColor_DEFAULT();
+    }
 }
 
 
@@ -131,28 +154,30 @@ public class SlotGUI_InvenSlot : MonoBehaviour, iInvenSlot
 [Serializable]
 internal class GUI_Ctrl : iSlotGUI
 {
-    public Image SlotImg;
-    public Color DEFAULT, ONFOCUS, ABLE, DISABLE;
-
+    [SerializeField] internal SlotEffect slotEff;
     public void SetColor_DEFAULT()
     {
-        SlotImg.color = DEFAULT;
+        if (slotEff != null)
+            slotEff.event_DEFAULT.Invoke();
     }
     public void SetColor_ONFOCUS()
     {
-        SlotImg.color = ONFOCUS;
+        if (slotEff != null)
+            slotEff.event_ONFOCUS.Invoke();
     }
     public void SetColor_ABLE()
     {
-        SlotImg.color = ABLE;
+        if (slotEff != null)
+            slotEff.event_ABLE.Invoke();
     }
     public void SetColor_DISABLE()
     {
-        SlotImg.color = DISABLE;
+        if (slotEff != null)    
+            slotEff.event_DISABLE.Invoke();
     }
-
-    public void SetColor_BLUE()
+    public void SetColor_INFO()
     {
-        SlotImg.color = Color.blue;
+        if (slotEff != null)
+            slotEff.event_INFO.Invoke();
     }
 }

@@ -9,93 +9,106 @@ public class RDM_MapSC : MonoBehaviour, iRoot_DDO_Manager
     public MyInputManager _inputM;
     public GUI_InvenSetManager m_inven;
     public Transform _AboveOfAll;
-    [SerializeField] MapRDM_ItemInfoCtrl mapRDM_ItemInfoCtrl;
+    [SerializeField] internal MapRDM_ItemInfoCtrl mapRDM_ItemInfoCtrl;
 
-    private Transform _itemTrans,_defaultParent; 
-    private IDragDropObj targetDDO;
-    private IResponedByDrop currRBD;
+    public InputCtrl_withRDM ctrl;
+
+    //private Transform _itemTrans,_defaultParent; 
+    //private IDragDropObj targetDDO;
+    //private IResponedByDrop currRBD;
+
+    public void SetClickEvent_RDM(SlotGUI_InvenSlot _gui)
+    {   
+        ctrl.SetClickEvent(_gui);
+    }
 
     public void SetSlotTransform_OnDrag(IDragDropObj _targetDDO)
     {
-        Debug.Log((_targetDDO.GetTransform_ItemGUI() == null) + " <<");
         if (_targetDDO.GetTransform_ItemGUI() == null)
             return;
 
         _inputM.setDuringState(false);
+        ctrl.SetSlotTransform_OnDrag(_targetDDO);
+        ctrl.SetParent_ItemTrans(_AboveOfAll);
 
-        setDefaultState();
-        targetDDO = _targetDDO;
-        _itemTrans = _targetDDO.GetTransform_ItemGUI();
-        _defaultParent = _itemTrans.parent;
-        _itemTrans.SetParent(_AboveOfAll,false);
+        mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(ctrl.GetMyFocusingItem_toShowInfo());
     }
+
 
     public void ReturnToInit_EndDrag()
     {
-        if (IsDragObjExist() == false)
+        if (ctrl.IsDragObjExist() == false)
             return;
 
         _inputM.setDuringState(false);
 
-        _itemTrans.SetParent(_defaultParent,false);
-         targetDDO.InteractDDO_byGetRBD(currRBD);
-        setDefaultState();
-        _itemTrans = null; currRBD = null;
+        ctrl.ReturnToInit_EndDrag();
+
+        mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(ctrl.GetMyFocusingItem_toShowInfo());
     }
 
-    public bool IsDragObjExist()
-    {
-        return targetDDO != null;
-    }
 
     public void SetEvent_OnEnter(IResponedByDrop _currRBD)
     {
-
-        if (_itemTrans == null)
-        {        
-            // 드래그 하지도 않음
-            if (targetDDO as iInvenSlot == _currRBD as iInvenSlot)
+        if(_currRBD as iInvenSlot != null)
+        {
+            if ((_currRBD as iInvenSlot).GetTransform_ItemGUI() != null)
             {
-                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(_currRBD as iInvenSlot);
+                ctrl.SetEvent_OnEnter(_currRBD);
+            }
+        }
 
-                _currRBD.GetTargetSlotGUI().SetColor_ONFOCUS();
+
+        if (!ctrl.IsDragObjExist())
+        {
+            // 드래그 하지도 않음
+            if (ctrl.IsSameDrag(_currRBD))
+            {
+                _currRBD.GetTargetSlotGUI().SetColor_ONFOCUS(); 
+                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(ctrl.GetMyFocusingItem_toShowInfo());
+
                 return;
             }
             else
             {
-                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(_currRBD as iInvenSlot);
+                _currRBD.GetTargetSlotGUI().SetColor_ONFOCUS(); 
+                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(ctrl.GetMyFocusingItem_toShowInfo());
 
-                _currRBD.GetTargetSlotGUI().SetColor_ONFOCUS();
                 return;
             }
         }
         else
-        {        
+        {
             // 드래그 대상 존재
-
-            if (targetDDO as iInvenSlot != _currRBD as iInvenSlot)
-            {          
+            if (!ctrl.IsSameDrag(_currRBD))
+            {
                 // 대상이 인벤 슬롯인가
-                if (targetDDO.IsInteractable_byGetRBD(this,_currRBD))
+                if (ctrl.targetDDO.IsInteractable_byGetRBD(this, _currRBD))
                 {
-                    currRBD = _currRBD;
+                    ctrl.setCurrRBD(_currRBD);
                     _currRBD.GetTargetSlotGUI().SetColor_ABLE();
                 }
                 else
+                {
+                    ctrl.setCurrRBD(null);
                     _currRBD.GetTargetSlotGUI().SetColor_DISABLE();
+                }
+                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(ctrl.GetMyFocusingItem_toShowInfo());
 
                 return;
             }
             else if (_currRBD as RBD_CasherZone)
             {
                 // 대상이 인벤 슬롯인가
-                if (targetDDO.IsInteractable_byGetRBD(this, _currRBD))
+                if (ctrl.targetDDO.IsInteractable_byGetRBD(this, _currRBD))
                 {
-                    currRBD = _currRBD;
+                    ctrl.setCurrRBD(_currRBD);
                     _currRBD.GetTargetSlotGUI().SetColor_ABLE();
                 }
                 else
                     _currRBD.GetTargetSlotGUI().SetColor_DISABLE();
+
+                mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(ctrl.GetMyFocusingItem_toShowInfo());
 
                 return;
             }
@@ -104,22 +117,19 @@ public class RDM_MapSC : MonoBehaviour, iRoot_DDO_Manager
 
     public void SetEvent_OnExit(IResponedByDrop _currRBD = null)
     {
-        mapRDM_ItemInfoCtrl.SetDefault();
         _currRBD.GetTargetSlotGUI().SetColor_DEFAULT();
-        currRBD = null;
-    }
-
-    void setDefaultState()
-    {
-        if (currRBD != null)
-            currRBD.GetTargetSlotGUI().SetColor_DEFAULT();
-
-        currRBD = null;
+        ctrl.SetEvent_OnExit(_currRBD);
+        mapRDM_ItemInfoCtrl.SetItemInfo_byItemDataUnit(ctrl.GetMyFocusingItem_toShowInfo());
     }
 
     public InvenSC_Map _invenSC;
     public SGT_GUI_ItemData GetInvenSGT()
     {
         return _invenSC.invenData_SGT;
+    }
+
+    public bool IsDragObjExist()
+    {
+        return ctrl.IsDragObjExist();
     }
 }

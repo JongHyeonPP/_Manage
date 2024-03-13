@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class GUI_MapScenario : MonoBehaviour
 {
     public delegate void ProgressMap_preInput();
-
+    public GUI_MapNodeInfo myGUI_Info;
     public GUI_SelectedNode _selectGUI;
     public Camera CameraComp;
     public Transform CameraTrans;

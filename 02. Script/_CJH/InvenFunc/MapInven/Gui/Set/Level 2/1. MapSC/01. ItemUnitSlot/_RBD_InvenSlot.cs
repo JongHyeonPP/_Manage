@@ -10,8 +10,23 @@ public static class _RBD_InvenSlot
         if ((_dst as SlotGUI_EquipSlot == true))
         {
             SlotGUI_EquipSlot _dst2 = _dst as SlotGUI_EquipSlot;
+            if (_src._itemGUI != null)
+            {
+                if (_dst2.CompareItem_withStat(_src._itemGUI._myData))
+                    return true;
+                else
+                    return false;
+            }
+        }
 
-            if (_dst2.CompareItem_withStat(_src._itemGUI._myData))
+        if ((_src as SlotGUI_EquipSlot == true) && _dst as SlotGUI_InvenSlot)
+        {
+            SlotGUI_EquipSlot _src2 = _src as SlotGUI_EquipSlot;
+            SlotGUI_InvenSlot _dst2 = _dst as SlotGUI_InvenSlot;
+
+            if(_dst2._itemGUI == null) return true;
+
+            if (_src2.CompareItem_withStat(_dst2._itemGUI._myData))
                 return true;
             else
                 return false;
@@ -52,6 +67,7 @@ public static class _RBD_InvenSlot
         {
             _inven.ItemToItem_EventDDO(_src, _dst); return;
         }
+
         if ((_inven as RDM_CampSC == true))
         {
             _inven.ItemToItem_EventDDO(_src, _dst); return;

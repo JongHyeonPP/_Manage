@@ -7,6 +7,7 @@ internal static class _MoveItemFunc
     // ¾î·Æ³×
     internal static Color ItemToItem_CheckColor(this iRoot_DDO_Manager _inven, SlotGUI_InvenSlot _src, SlotGUI_InvenSlot _dst)
     {
+        Debug.Log(" <<");
         if (_inven.Comp_ItemToItem(_src, _dst))
         {
             if (CheckItem_isFusionAble(_src._itemGUI._myData))
@@ -31,14 +32,16 @@ internal static class _MoveItemFunc
             }
         }
 
+
         _inven.MoveFunc(_src, _dst);
         return;
     }
 
+    // IS SAME ITEM
     internal static bool Comp_ItemToItem(this iRoot_DDO_Manager _inven, SlotGUI_InvenSlot _src, SlotGUI_InvenSlot _dst)
     {
-        if ((_src._itemGUI && _dst._itemGUI) == false)
-            return false;
+        if(_dst._itemGUI == null) return false;
+        if (_src._itemGUI == _dst._itemGUI) return false;
 
         ItemUnit _srcData = _src._itemGUI._myData;
         ItemUnit _dstData = _dst._itemGUI._myData;
@@ -47,6 +50,7 @@ internal static class _MoveItemFunc
         {
             if(_srcData.itemData[i] != _dstData.itemData[i]) return false; 
         }
+
         return true;
     }
 

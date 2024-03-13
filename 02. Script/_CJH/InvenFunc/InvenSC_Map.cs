@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class InvenSC_Map : MonoBehaviour
@@ -8,6 +10,7 @@ public class InvenSC_Map : MonoBehaviour
     public CJH_CharacterData charData_SGT;
     public GUI_InvenSetManager invenGUI_Manager;
     public List<ItemUnit> ItemList_Data;
+
 
     void Awake()
     {
@@ -19,6 +22,7 @@ public class InvenSC_Map : MonoBehaviour
 
     private void Start()
     {
+
         setCharData_DEBUG();
         setGUI_bySGT();
 
@@ -66,15 +70,28 @@ public class InvenSC_Map : MonoBehaviour
         targetSlot.SetItemData_byData(data);
     }
 
-
+    [SerializeField] internal SetOfGUI_Map setGUI_Map;
     public void setGUI_bySGT()
     {  
         for (int i = 0; i < ItemList_Data.Count; i++)
         {
             GUI_ItemUnit sad = invenData_SGT.spriteDataSet.GetGUI_byItemData(ItemList_Data[i].itemData, invenGUI_Manager._InsTrans);
-            SlotGUI_InvenSlot temp = invenGUI_Manager.GetSlotGUI_byAddr(ItemList_Data[i].invenAddr);
-            temp.SetGUI_byItemGUI(sad);
-            temp.SetItemData_byData(ItemList_Data[i]);
+            SlotGUI_InvenSlot _SetInvenSlot = invenGUI_Manager.GetSlotGUI_byAddr(ItemList_Data[i].invenAddr);
+            _SetInvenSlot.SetGUI_byItemGUI(sad);
+            _SetInvenSlot.SetItemData_byData(ItemList_Data[i]);
         }
+
+        setGUI_Map.MapGUI_CurrNode.text = CJH_GameManager._instance.stageIndex + " / " + CJH_GameManager._instance.nodeLevel;
+        setGUI_Map.MapGUI_GoldTopBar.text = SGT_GUI_ItemData.GetSGT().currGold + "";
+        setGUI_Map.MapGUI_GoldInven.text = SGT_GUI_ItemData.GetSGT().currGold + ""; 
     }
+}
+
+[Serializable]
+internal class SetOfGUI_Map
+{
+    public TextMeshProUGUI MapGUI_UserName;
+    public TextMeshProUGUI MapGUI_CurrNode;
+    public TextMeshProUGUI MapGUI_GoldTopBar;
+    public TextMeshProUGUI MapGUI_GoldInven;
 }

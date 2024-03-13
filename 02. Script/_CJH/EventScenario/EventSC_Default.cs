@@ -11,6 +11,7 @@ public class EventSC_Default : MonoBehaviour
     [SerializeField] internal EventSC_CombValues_UTIL _UTIL;
     [SerializeField] internal UnityEvent _ArriveEvent;
     [SerializeField] internal UnityEvent _ExitEvent;
+
     private void Awake()
     {
         SceneToSceneFuncSGT.InitSingleton(ref _SGT.STS);

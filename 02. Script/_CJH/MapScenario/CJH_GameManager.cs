@@ -10,6 +10,7 @@ public class CJH_GameManager : MonoBehaviour
     public string history;
     public string invenData;
 
+    internal void setData() { }
     void Awake()
     {
         if (_instance == null)

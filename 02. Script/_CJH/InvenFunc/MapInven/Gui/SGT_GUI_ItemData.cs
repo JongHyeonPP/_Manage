@@ -9,7 +9,7 @@ public class SGT_GUI_ItemData : MonoBehaviour
     private static SGT_GUI_ItemData dataSGT;
     public int currGold;
     public List<ItemUnit> itemUnits = new();
-    [SerializeField] internal MyInvenSpriteDB spriteDataSet = new();
+    [SerializeField] internal MyInvenSpriteDB spriteDataSet;
 
     public void InitSGT(ref SGT_GUI_ItemData _localData)
     {
@@ -18,6 +18,7 @@ public class SGT_GUI_ItemData : MonoBehaviour
             DontDestroyOnLoad(_localData);
             dataSGT = _localData;
             itemUnits = _InvenDataEncoder.GetData_toItemList();
+            currGold = _InvenDataEncoder.GetData_toGoldValue();
         }
         else
         {
@@ -36,7 +37,6 @@ public class SGT_GUI_ItemData : MonoBehaviour
     {
         itemUnits.Add(data);
     }
-
 
 
     static public SGT_GUI_ItemData GetSGT()
@@ -258,22 +258,5 @@ public class ItemUnit
             index = _index++;
             itemName = "Rand_" + index;
         }
-    }
-}
-
-[Serializable]
-internal class UnitDataTable_toGUI
-{
-    public GUI_ItemUnit prefab_InvenUnitGUI;
-    [SerializeField] public MyInvenSpriteDB spriteList;
-
-    internal Sprite getSprite_byItemData(List<int> _itemData)
-    {
-        return null;
-    }
-
-    internal int getCountV2_byItemData(List<int> _itemData)
-    {
-        return 1;
     }
 }
