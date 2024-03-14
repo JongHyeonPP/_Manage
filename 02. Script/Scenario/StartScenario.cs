@@ -99,6 +99,8 @@ public class StartScenario : MonoBehaviour
         SettingManager.LanguageChangeEvent += LanguageChange;
         LanguageChange(GameManager.language);
         SettingManager.settingManager.buttonSetting.SetActive(true);
+        foreach (VolumeType x in SettingManager.settingManager.volumeTypes)
+            SettingManager.settingManager.VolumeControl(x);
     }
     private void Start()
     {

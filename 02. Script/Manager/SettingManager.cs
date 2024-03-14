@@ -238,7 +238,7 @@ public class SettingManager : MonoBehaviour
         settingClass.newSet.volume[_volumeType] = volume;
         masterMixer.SetFloat(str, volume);
     }
-    public void OnBtnClicked(VolumeType _volumeType, bool _onOff)
+    public void OnOffBtnClicked(VolumeType _volumeType, bool _onOff)
     {
         string str;
         switch (_volumeType)
@@ -253,7 +253,6 @@ public class SettingManager : MonoBehaviour
                 str = "BGM";
                 break;
         }
-        settingClass.newSet.on[_volumeType] = !settingClass.newSet.on[_volumeType];
         if (_onOff)
             masterMixer.SetFloat(str, settingClass.newSet.volume[_volumeType]);
         else
@@ -278,7 +277,7 @@ public class SettingManager : MonoBehaviour
         private void InitData()
         {
             originSet = new SettingSet();
-            newSet = new SettingSet();
+            
             #region Volume
             foreach (VolumeType type in settingManager.volumeTypes)
             {
@@ -304,33 +303,33 @@ public class SettingManager : MonoBehaviour
                 {
                     originSet.volume[type] = 15f;
                 }
-                string str_On;
+                string str_OnOff;
                 switch (type)
                 {
                     default:
-                        str_On = "AllOn";
+                        str_OnOff = "AllOnOff";
                         break;
                     case VolumeType.Sfx:
-                        str_On = "SfxOn";
+                        str_OnOff = "SfxOnOff";
                         break;
                     case VolumeType.Bgm:
-                        str_On = "BgmOn";
+                        str_OnOff = "BgmOnOff";
                         break;
                 }
                 try
                 {
-                    originSet.on[type] = bool.Parse(DataManager.dataManager.GetConfigData(DataSection.SoundSetting, str_On));
+                    originSet.onOff[type] = bool.Parse(DataManager.dataManager.GetConfigData(DataSection.SoundSetting, str_OnOff));
                 }
                 catch
                 {
-                    originSet.on[type] = true;
+                    originSet.onOff[type] = true;
                 }
             }
             #endregion
             try
             {
-                string temp = DataManager.dataManager.GetConfigData(DataSection.Language, "Language");
-                switch (temp)
+                string language = DataManager.dataManager.GetConfigData(DataSection.Language, "Language");
+                switch (language)
                 {
                     case "En":
                         originSet.language = Language.En;
@@ -388,7 +387,8 @@ public class SettingManager : MonoBehaviour
             foreach (VolumeType type in settingManager.volumeTypes)
             {
                 settingManager.volumeSliders[type].slider.value = originSet.volume[type];
-                settingManager.volumeSliders[type].OnOff = originSet.on[type];
+                settingManager.volumeSliders[type].OnOff = originSet.onOff[type];
+                settingManager.OnOffBtnClicked(type, originSet.onOff[type]);
             }
         }
         private void InitLanguage()
@@ -416,7 +416,13 @@ public class SettingManager : MonoBehaviour
             DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllVolume", newSet.volume[VolumeType.All]);
             DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxVolume", newSet.volume[VolumeType.Sfx]);
             DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmVolume", newSet.volume[VolumeType.Bgm]);
+
+            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllOnOff", newSet.onOff[VolumeType.All]);
+            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxOnOff", newSet.onOff[VolumeType.Sfx]);
+            DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmOnOff", newSet.onOff[VolumeType.Bgm]);
+
             DataManager.dataManager.SetConfigData(DataSection.Language, "Language", newSet.language);
+
             settingManager.panelSetting.SetActive(false);
             originResolution = newResolution;
             originSet = newSet;
@@ -435,7 +441,7 @@ public class SettingManager : MonoBehaviour
             {
                 settingManager.volumeSliders[type].slider.value = originSet.volume[type];
                 settingManager.VolumeControl(type);
-                settingManager.volumeSliders[type].OnOff = originSet.on[type];
+                settingManager.volumeSliders[type].OnOff = originSet.onOff[type];
             }
             
         }
@@ -457,7 +463,7 @@ public class SettingSet
 {
     public Language language;
     public Dictionary<VolumeType, float> volume = new();
-    public Dictionary<VolumeType, bool> on = new();
+    public Dictionary<VolumeType, bool> onOff = new();
     public SettingSet()
     {
     }
@@ -466,7 +472,7 @@ public class SettingSet
         foreach (VolumeType type in SettingManager.settingManager.volumeTypes)
         {
             volume[type] = _origin.volume[type];
-            on[type] = _origin.on[type];
+            onOff[type] = _origin.onOff[type];
         }
         language = _origin.language;
     }
