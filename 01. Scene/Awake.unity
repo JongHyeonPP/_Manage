@@ -621,7 +621,7 @@ GameObject:
   - component: {fileID: 644706271}
   - component: {fileID: 644706270}
   m_Layer: 5
-  m_Name: Panel_Friendly
+  m_Name: Parent_Character
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1051,6 +1051,7 @@ MonoBehaviour:
   gold: 0
   fameAscend: 0
   goldAscend: 0
+  CharacterTemplate: {fileID: 5632782475894350284, guid: a8f6862127fe7db4cacbb79f52730086, type: 3}
   canvasGrid: {fileID: 343697493}
   prefabHpBar: {fileID: 8140889713543450273, guid: 70d1de57891f6dc48b8ee0488198b84c, type: 3}
   prefabGridObject: {fileID: 4923444223606689708, guid: f1215c85415763543aea37d8beed38a1, type: 3}
@@ -1525,7 +1526,7 @@ GameObject:
   - component: {fileID: 1943130205}
   - component: {fileID: 1943130204}
   m_Layer: 5
-  m_Name: Panel_Enemy
+  m_Name: Parent_Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1766,6 +1767,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5533855926823502167, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_text
+      value: Volume
+      objectReference: {fileID: 0}
     - target: {fileID: 5533855926920759231, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1905,6 +1910,14 @@ PrefabInstance:
     - target: {fileID: 5757359587436477609, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5791988077346982021, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1498113260}
+    - target: {fileID: 5791988077346982021, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: LanguageOptionChange
       objectReference: {fileID: 0}
     - target: {fileID: 7192466260467762249, guid: e7ec3f9fb299189428edcc39c9475ae5, type: 3}
       propertyPath: m_AnchorMax.x

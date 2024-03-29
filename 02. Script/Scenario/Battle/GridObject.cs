@@ -8,11 +8,11 @@ using static UnityEngine.EventSystems.EventTrigger;
 
 public class GridObject : MonoBehaviour
 {
-    public CharacterBase owner = null;
+    public BaseAtBattle owner = null;
     public int index;
     public bool isEnemy;
     EventTrigger eventTrigger;
-    public delegate void PassiveEffectHandler(CharacterBase _target);
+    public delegate void PassiveEffectHandler(BaseAtBattle _target);
     public PassiveEffectHandler EnterOnGrid;
     public PassiveEffectHandler ExitOnGrid;
     public GameObject borderImage { get; private set; }
@@ -130,7 +130,7 @@ public class GridObject : MonoBehaviour
 
     internal void OnGridPointerDrag(Vector2 _dragPosition)
     {
-        if (!GameManager.battleScenario.isInFriendly) return;
+        if (!GameManager.battleScenario.isInCharacter) return;
         if (!owner) return;
         if (!GameManager.battleScenario.isDragging) return;//시간에 대한 조건
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -158,7 +158,7 @@ public class GridObject : MonoBehaviour
     internal void OnGridPointerUp()
     {
         EventSystem.current.SetSelectedGameObject(null);
-        borderImage.SetActive(false);
+        InitBorder();
         if (!owner || !GameManager.battleScenario.isDragging) return;
         if (GameManager.battleScenario.gridOnPointer == null || GameManager.battleScenario.gridOnPointer == this|| !GameManager.battleScenario.gridOnPointer || isEnemy != GameManager.battleScenario.gridOnPointer.isEnemy)
         {
@@ -178,5 +178,11 @@ public class GridObject : MonoBehaviour
         GameManager.battleScenario.isDragging = false;
         GameManager.IsPaused = false;
     }
-
+    private void InitBorder()
+    {
+        foreach (var x in BattleScenario.CharacterGrids)
+        {
+            x.borderImage.SetActive(false);
+        }
+    }
 }

@@ -26,23 +26,7 @@ public class CJH_CharacterData : MonoBehaviour
             return;
 
         _data.Clear();
-        var data = _CharacterManager.GetCharacters();
-        for (int i = 0; i < data.Count; i++)
-        {
-            CharacterData target = data[i];
-            _data.Add(new CharacterData(
-                target.docId,
-                target.jobId,
-                target.maxHp,
-                target.hp,
-                target.ability,
-                target.resist,
-                target.speed,
-                target.index,
-                target.skillNames,
-                target.weaponCur
-                ));
-        }
+        _data = _CharacterManager.GetCharacters();
     }
 
     public CharacterData getCharData(int _value)

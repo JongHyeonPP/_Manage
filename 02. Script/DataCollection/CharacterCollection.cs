@@ -4,26 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace LobbyCollection
+namespace CharacterCollection
 {
-    public class UpgradeClass
-    {
-        public Dictionary<Language, string> name;
-        public int index;
-        public List<Tuple<int, float>> content;
-        public Dictionary<Language, string> explain;
-        public UpgradeEffectType type;
-        public string lobbyCase;
-        public UpgradeClass(Dictionary<Language, string> _name, int _index, List<Tuple<int, float>> _content, Dictionary<Language, string> _explain, UpgradeEffectType _type, string _lobbyCase)
-        {
-            name = _name;
-            index = _index;
-            content = _content;
-            explain = _explain;
-            type = _type;
-            lobbyCase = _lobbyCase;
-        }
-    }
     public struct TalentFormStruct
     {
         public Dictionary<Language, string> name;
@@ -74,24 +56,15 @@ namespace LobbyCollection
             type = _type;
         }
     }
-
-    [System.Serializable]
-    public class CandiInfo
+    public class BodyPartClass
     {
-        public float hp;
-        public float ability;
-        public float resist;
-        public float speed;
-        public string name;
-        public List<TalentStruct> talents;
-        public CandiInfo(float _hp, float _ability, float _resist, float _speed, string _name, List<TalentStruct> _talents)
-        {
-            hp = _hp;
-            ability = _ability;
-            resist = _resist;
-            speed = _speed;
-            name = _name;
-            talents = _talents;
-        }
+        public Sprite head;
+        public Sprite armL;
+        public Sprite armR;
+    }
+    public class EyeClass
+    {
+        public Sprite front;
+        public Sprite back;
     }
 }

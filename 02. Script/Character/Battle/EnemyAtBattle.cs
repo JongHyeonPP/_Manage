@@ -3,7 +3,7 @@ using BattleCollection;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-public class EnemyScript : CharacterBase
+public class EnemyAtBattle : BaseAtBattle
 {
     public static readonly Color TARGET_COLOR = new(1f, 0f, 0f, 0.5f);
     public static readonly float DEFAULT_PROB = 0.6f;
@@ -13,7 +13,7 @@ public class EnemyScript : CharacterBase
     {
         IsEnemy = true;
         isMonster = _isMonster;
-        InitCharacter();
+        InitBase();
         skillTargetTransform = transform.GetChild(0).GetChild(0);
         rootTargetTransform.localScale = skillTargetTransform.localScale = new Vector3(1f, 1f, 0f);
         skillTargetTransform.localScale = skillTargetTransform.localScale = new Vector3(1f, 1f, 0f);
@@ -29,7 +29,7 @@ public class EnemyScript : CharacterBase
     {
         StartCoroutine(OnDead_Base());
         bool gameOverFlag = false;
-        foreach (CharacterBase enemy in BattleScenario.enemies)
+        foreach (BaseAtBattle enemy in BattleScenario.enemies)
         {
             if (!enemy.isDead)
                 gameOverFlag = true;

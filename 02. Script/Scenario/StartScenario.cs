@@ -99,8 +99,7 @@ public class StartScenario : MonoBehaviour
         SettingManager.LanguageChangeEvent += LanguageChange;
         LanguageChange(GameManager.language);
         SettingManager.settingManager.buttonSetting.SetActive(true);
-        foreach (VolumeType x in SettingManager.settingManager.volumeTypes)
-            SettingManager.settingManager.VolumeControl(x);
+        SettingManager.settingManager.InitVolumeSliders();
     }
     private void Start()
     {
@@ -116,7 +115,7 @@ public class StartScenario : MonoBehaviour
     public async void DifficultySelect(int i)
     {
         //New Game
-        List<DocumentSnapshot> restDoc = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Friendlies"));
+        List<DocumentSnapshot> restDoc = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"));
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async Transaction =>
         {
             GameManager.gameManager.NewGame();

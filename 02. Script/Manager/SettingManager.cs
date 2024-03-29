@@ -28,7 +28,7 @@ public class SettingManager : MonoBehaviour
         textFullScreen,
         textConvenience,
         textQuickBattle,
-        textSound,
+        textVolume,
         textAll,
         textSfx,
         textBgm,
@@ -52,7 +52,7 @@ public class SettingManager : MonoBehaviour
             textFullScreen = panelLeft.GetChild(0).GetChild(2).GetChild(1).GetComponent<TMP_Text>();
             textConvenience = panelLeft.GetChild(1).GetChild(0).GetComponent<TMP_Text>();
             textQuickBattle = panelLeft.GetChild(1).GetChild(1).GetChild(1).GetComponent<TMP_Text>();
-            textSound = panelRight.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+            textVolume = panelRight.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
             textAll = panelRight.GetChild(0).GetChild(1).GetChild(0).GetChild(1).GetComponent<TMP_Text>();
             textSfx = panelRight.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetComponent<TMP_Text>();
             textBgm = panelRight.GetChild(0).GetChild(1).GetChild(2).GetChild(1).GetComponent<TMP_Text>();
@@ -64,7 +64,6 @@ public class SettingManager : MonoBehaviour
             volumeSliders.Add(VolumeType.All, parentSlider.GetChild(0).GetComponent<VolumeSlider>());
             volumeSliders.Add(VolumeType.Sfx, parentSlider.GetChild(1).GetComponent<VolumeSlider>());
             volumeSliders.Add(VolumeType.Bgm, parentSlider.GetChild(2).GetComponent<VolumeSlider>());
-            
             //텍스트 초기화
             texts =
                         new()
@@ -102,11 +101,11 @@ public class SettingManager : MonoBehaviour
                                 }
                             },
                             {
-                                textSound,
+                                textVolume,
                                 new()
                                 {
                                     { Language.Ko, "음향" },
-                                    { Language.En, "Sound" }
+                                    { Language.En, "Volume" }
                                 }
                             },
                             {
@@ -162,10 +161,6 @@ public class SettingManager : MonoBehaviour
 
         }
     }
-    private void Update()
-    {
-        //Debug.Log(Screen.currentResolution);
-    }
     private void OnLanguageChange(Language _language)
     {
         foreach (KeyValuePair<TMP_Text, Dictionary<Language, string>> keyValue in texts)
@@ -217,8 +212,17 @@ public class SettingManager : MonoBehaviour
 
         }
     }
+    public void InitVolumeSliders()
+    {
+        foreach (var x in volumeTypes)
+            volumeSliders[x].VolumeControl();
+    }
     public void VolumeControl(VolumeType _volumeType)
     {
+        float volume = settingManager.volumeSliders[_volumeType].slider.value;
+        settingClass.newSet.volume[_volumeType] = volume;
+        if (!settingClass.newSet.onOff[_volumeType])
+            return;
         string str;
         switch (_volumeType)
         {
@@ -232,14 +236,13 @@ public class SettingManager : MonoBehaviour
                 str = "BGM";
                 break;
         }
-        float volume = settingManager.volumeSliders[_volumeType].slider.value;
         if (volume == -30f)
             volume = -80f;
-        settingClass.newSet.volume[_volumeType] = volume;
         masterMixer.SetFloat(str, volume);
     }
     public void OnOffBtnClicked(VolumeType _volumeType, bool _onOff)
     {
+        settingClass.newSet.onOff[_volumeType] = _onOff;
         string str;
         switch (_volumeType)
         {
@@ -254,7 +257,12 @@ public class SettingManager : MonoBehaviour
                 break;
         }
         if (_onOff)
-            masterMixer.SetFloat(str, settingClass.newSet.volume[_volumeType]);
+        {
+            if (settingClass.newSet.volume[_volumeType] == -30f)
+                masterMixer.SetFloat(str, -80f);
+            else
+                masterMixer.SetFloat(str, settingClass.newSet.volume[_volumeType]);
+        }
         else
             masterMixer.SetFloat(str, -80f);
     }

@@ -18,8 +18,8 @@ public class BattleScenarioTest : MonoBehaviour
         for (int i = 0; i < 9; i++)
         {
             int index = i;
-            var friendlyGrid = BattleScenario.FriendlyGrids[i];
-            friendlyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(BattleScenario.FriendlyGrids[index], false));
+            var friendlyGrid = BattleScenario.CharacterGrids[i];
+            friendlyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(BattleScenario.CharacterGrids[index], false));
             var enemyGrid = BattleScenario.EnemyGrids[i];
             enemyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(BattleScenario.EnemyGrids[index], true));
         }
@@ -65,10 +65,6 @@ public class BattleScenarioTest : MonoBehaviour
             switch (testPattern)
             {
                 case TestPattern.Bot:
-                    if (_grid.owner == null)
-                    {
-                        _grid.GetComponent<Image>().color = BattleScenario.defaultGridColor;
-                    }
                     RefreshTest();
                     break;
                 case TestPattern.Move:
@@ -81,7 +77,6 @@ public class BattleScenarioTest : MonoBehaviour
                     }
                     break;
             }
-            battleScenario.RefreshGrid(_isEnemyGrid);
             return;
         }
     }

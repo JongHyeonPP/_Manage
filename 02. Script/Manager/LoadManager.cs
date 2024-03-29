@@ -2,6 +2,7 @@ using BattleCollection;
 using EnumCollection;
 using Firebase.Firestore;
 using LobbyCollection;
+using CharacterCollection;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,10 +20,14 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<string, UpgradeClass> upgradeDict = new();
     public Dictionary<string, TalentFormStruct> talentDict = new();
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
-    public Dictionary<string, WeaponClass> weaponDict = new();
+    public Dictionary<WeaponType, Dictionary<string, WeaponClass>> weaponDict = new();
     private readonly string visualEffectPath = "Prefab/VisualEffect";
     public Dictionary<string, VisualEffect> skillVisualEffectDict = new();
     public Dictionary<string, VisualEffect> weaponVisualEffectDict = new();
+    public Dictionary<Species, Dictionary<string, BodyPartClass>> BodyPartDict = new();
+    public Dictionary<Species, Dictionary<string, EyeClass>> EyeDict = new();
+    public Dictionary<string, Sprite> hairDict = new();
+    public Dictionary<string, Sprite> faceHairDict = new();
     private void Awake()
     {
         if (!loadManager)
@@ -41,7 +46,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             await LoadVisualEffect();
             await InitSkill();
             await Task.WhenAll(InitJob(), InitEnemy(), InitUpgrade(), InitTalent(), InitUserDoc(), InitEnemyCase(), InitWeapon());
-
+            InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
             Debug.Log("LoadComplete");
             isInit = true;
         }
@@ -511,11 +516,13 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
-            List<Tuple<int, float>> guildContents = new();
-            foreach (object contentObj in dict["Content"] as List<object>)
+            List<UpgradeContent> guildContents = new();
+            foreach (object contentObj in dict["Contents"] as List<object>)
             {
                 Dictionary<string, object> contentDict = contentObj as Dictionary<string, object>;
-                guildContents.Add(new((int)(long)contentDict["Price"], GetFloatValue(contentDict["Value"])));
+                float value = GetFloatValue(contentDict["Value"]);
+                int price = (int)(long)contentDict["Price"];
+                guildContents.Add(new(value, price));
             }
             Dictionary<Language, string> name = new();
             foreach (var x in dict["Name"] as Dictionary<string, object>)
@@ -533,13 +540,31 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             Dictionary<Language, string> explain = new();
             foreach (var x in dict["Explain"] as Dictionary<string, object>)
             {
+                string value = (string)x.Value;
+                value = value.Replace("<E>", "<color=#4C4CFF><size=0.3><b>");
+                value = value.Replace("</E>", "</b></size></color>");
+                value = value.Replace("\\n", "\n");
                 switch (x.Key)
                 {
                     default:
-                        explain.Add(Language.Ko, (string)x.Value);
+                        explain.Add(Language.Ko, value);
                         break;
                     case "En":
-                        explain.Add(Language.En, (string)x.Value);
+                        explain.Add(Language.En, value);
+                        break;
+                }
+            }
+            Dictionary<Language, string> info = new();
+            foreach (var x in dict["Info"] as Dictionary<string, object>)
+            {
+                string value = (string)x.Value;
+                switch (x.Key)
+                {
+                    default:
+                        info.Add(Language.Ko, value);
+                        break;
+                    case "En":
+                        info.Add(Language.En, value);
                         break;
                 }
             }
@@ -553,11 +578,14 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 case "AllocateNumberUp":
                     type = UpgradeEffectType.AllocateNumberUp;
                     break;
-                case "TalentNumUp":
-                    type = UpgradeEffectType.TalentNumUp;
+                case "TalentEffectUp":
+                    type = UpgradeEffectType.TalentEffectUp;
                     break;
-                case "PowerUp":
-                    type = UpgradeEffectType.PowerUp;
+                case "TalentLevelUp":
+                    type = UpgradeEffectType.TalentLevelUp;
+                    break;
+                case "StatusUp":
+                    type = UpgradeEffectType.StatusUp;
                     break;
                 case "FameUp":
                     type = UpgradeEffectType.FameUp;
@@ -566,7 +594,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     type = UpgradeEffectType.GoldUp;
                     break;
             }
-            upgradeDict.Add(doc.Id, new UpgradeClass(name, (int)(long)dict["Index"], guildContents, explain, type, (string)dict["LobbyCase"]));
+            upgradeDict.Add(doc.Id, new UpgradeClass(name, (int)(long)dict["Index"], guildContents, explain, info, type, (string)dict["LobbyCase"]));
         }
     }
     private async Task InitTalent()
@@ -682,12 +710,30 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     {
         await Task.WhenAll(InitWeaponOnType("Bow"),
             InitWeaponOnType("Magic"),
-            InitWeaponOnType("Melee"),
-            InitWeaponOnType("Shield"));
+            InitWeaponOnType("Sword"),
+            InitWeaponOnType("Club"));
 
         async Task InitWeaponOnType(string _weaponTypeStr)
         {
             List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Weapon", "Data", _weaponTypeStr));
+            //Type
+            WeaponType type;
+            switch (_weaponTypeStr)
+            {
+                default:
+                    type = WeaponType.Sword;
+                    break;
+                case "Bow":
+                    type = WeaponType.Bow;
+                    break;
+                case "Magic":
+                    type = WeaponType.Magic;
+                    break;
+                case "Club":
+                    type = WeaponType.Club;
+                    break;
+            }
+            weaponDict.Add(type, new());
             foreach (DocumentSnapshot doc in documents)
             {
                 WeaponClass weaponClass = new WeaponClass();
@@ -718,45 +764,31 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 //Id
                 weaponClass.SetId(doc.Id);
                 //Stat
-                Dictionary<string, object> statusDict = dict["Status"] as Dictionary<string, object>;
-                object obj;
-                float ability;
-                if (statusDict.TryGetValue("Ability", out obj))
-                    ability = GetFloatValue(obj);
-                else
-                    ability = 0f;
-                float hp;
-                if (statusDict.TryGetValue("Hp", out obj))
-                    hp = GetFloatValue(obj);
-                else
-                    hp = 0f;
-                float resist;
-                if (statusDict.TryGetValue("Resist", out obj))
-                    resist = GetFloatValue(obj);
-                else
-                    resist = 0f;
-                float speed;
-                if (statusDict.TryGetValue("Speed", out obj))
-                    speed = GetFloatValue(obj);
-                else
-                    speed = 0f;
-                weaponClass.SetStatus(ability, hp, resist, speed);
-                //Type
-                WeaponType type;
-                switch (_weaponTypeStr)
+                if (dict.TryGetValue("Status", out object obj))
                 {
-                    default:
-                        type = WeaponType.Melee;
-                        break;
-                    case "Bow":
-                        type = WeaponType.Bow;
-                        break;
-                    case "Magic":
-                        type = WeaponType.Magic;
-                        break;
-                    case "Shield":
-                        type = WeaponType.Shield;
-                        break;
+                    Dictionary<string, object> statusDict = obj as Dictionary<string, object>;
+                    object obj1;
+                    float ability;
+                    if (statusDict.TryGetValue("Ability", out obj1))
+                        ability = GetFloatValue(obj1);
+                    else
+                        ability = 0f;
+                    float hp;
+                    if (statusDict.TryGetValue("Hp", out obj1))
+                        hp = GetFloatValue(obj1);
+                    else
+                        hp = 0f;
+                    float resist;
+                    if (statusDict.TryGetValue("Resist", out obj1))
+                        resist = GetFloatValue(obj1);
+                    else
+                        resist = 0f;
+                    float speed;
+                    if (statusDict.TryGetValue("Speed", out obj1))
+                        speed = GetFloatValue(obj1);
+                    else
+                        speed = 0f;
+                    weaponClass.SetStatus(ability, hp, resist, speed);
                 }
                 weaponClass.SetType(type);
                 //VisualEffect
@@ -772,14 +804,127 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 //Sprite
                 Sprite sprite = Resources.Load<Sprite>(string.Format("{0}/{1}/{2}/{3}", "Texture", "Weapon", _weaponTypeStr, doc.Id));
                 weaponClass.SetSprite(sprite);
-                
-                
 
-
-
-                weaponDict.Add(doc.Id, weaponClass);
+                weaponDict[type].Add(doc.Id, weaponClass);
             }
         }
+    }
+    private void InitBodyPart()
+    {
+        InitBySpecies(Species.Human);
+        InitBySpecies(Species.Elf);
+        InitBySpecies(Species.Devil);
+        InitBySpecies(Species.Skelton);
+        InitBySpecies(Species.Orc);
+
+        void InitBySpecies(Species _species)
+        {
+            string speciesStr = string.Empty;
+            BodyPartDict.Add(_species, new());
+            switch (_species)
+            {
+                case Species.Human:
+                    speciesStr = "0_Human";
+                    break;
+                case Species.Elf:
+                    speciesStr = "1_Elf";
+                    break;
+                case Species.Devil:
+                    speciesStr = "2_Devil";
+                    break;
+                case Species.Skelton:
+                    speciesStr = "3_Skelton";
+                    break;
+                case Species.Orc:
+                    speciesStr = "4_Orc";
+                    break;
+            }
+            Sprite[] sprites = Resources.LoadAll<Sprite>("Texture/Character/Body/" + speciesStr);
+
+            foreach (Sprite sprite in sprites)
+            {
+                if (!BodyPartDict[_species].ContainsKey(sprite.texture.name))
+                {
+                    BodyPartDict[_species].Add(sprite.texture.name, new());
+                }
+                switch (sprite.name)
+                {
+                    case "Arm_L":
+                        BodyPartDict[_species][sprite.texture.name].armL = sprite;
+                        break;
+                    case "Arm_R":
+                        BodyPartDict[_species][sprite.texture.name].armR = sprite;
+                        break;
+                    case "Head":
+                        BodyPartDict[_species][sprite.texture.name].head = sprite;
+                        break;
+                    default:
+                        continue;
+                }
+            }
+        }
+    }
+    private void InitEye()
+    {
+        InitBySpecies(Species.Human);
+        InitBySpecies(Species.Elf);
+        InitBySpecies(Species.Devil);
+        InitBySpecies(Species.Skelton);
+        InitBySpecies(Species.Orc);
+
+        void InitBySpecies(Species _species)
+        {
+            string speciesStr = string.Empty;
+            EyeDict.Add(_species, new());
+            switch (_species)
+            {
+                case Species.Human:
+                    speciesStr = "0_Human";
+                    break;
+                case Species.Elf:
+                    speciesStr = "1_Elf";
+                    break;
+                case Species.Devil:
+                    speciesStr = "2_Devil";
+                    break;
+                case Species.Skelton:
+                    speciesStr = "3_Skelton";
+                    break;
+                case Species.Orc:
+                    speciesStr = "4_Orc";
+                    break;
+            }
+            Sprite[] sprites = Resources.LoadAll<Sprite>("Texture/Character/Eye/" + speciesStr);
+
+            foreach (Sprite sprite in sprites)
+            {
+                if (!EyeDict[_species].ContainsKey(sprite.texture.name))
+                {
+                    EyeDict[_species].Add(sprite.texture.name, new());
+                }
+                switch (sprite.name)
+                {
+                    case "Front":
+                        EyeDict[_species][sprite.texture.name].front = sprite;
+                        break;
+                    case "Back":
+                        EyeDict[_species][sprite.texture.name].back = sprite;
+                        break;
+                }
+            }
+        }
+    }
+    private void InitHair()
+    {
+        Sprite[] sprites = Resources.LoadAll<Sprite>("Texture/Character/Hair");
+        foreach (Sprite sprite in sprites)
+            hairDict.Add(sprite.name, sprite);
+    }
+    private void InitFaceHair()
+    {
+        Sprite[] sprites = Resources.LoadAll<Sprite>("Texture/Character/FaceHair");
+        foreach (Sprite sprite in sprites)
+            faceHairDict.Add(sprite.name, sprite);
     }
     float GetFloatValue(object _obj)
     {
@@ -791,18 +936,16 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     [ContextMenu("SetDoc")]
     public async void SetDoc()
     {
-        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Skill");
+        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Weapon/Data/Club");
         foreach (DocumentSnapshot x in docs)
         {
             Dictionary<string, object> dict = new();
-            {
-                if (!x.ToDictionary().ContainsKey("Explain"))
-                {
-                    Dictionary<string, object> item = new Dictionary<string, object>() { { "En", string.Empty }, { "Ko", string.Empty } };
-                    dict.Add("Explain", new List<object>() { item, item, item });
-                    await x.Reference.UpdateAsync(dict);
-                }
-            }
+
+            dict.Add("Grade", "Normal");
+            dict.Add("Status", new Dictionary<string, object>() { {"Ability" , 3 },{"Hp", 0 },{"Resist", 0 },{"Speed", 0 } });
+            dict.Add("VisualEffect", new Dictionary<string, object>() { { "Default", "Vertical_02" }, { "Skill", "Vertical_01" } });
+            await x.Reference.UpdateAsync(dict);
+
             Debug.Log("Comp");
         }
     }

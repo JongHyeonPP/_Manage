@@ -7,7 +7,7 @@ using System.Linq;
 using System;
 
 [Serializable]
-public class CharacterData
+public class CharacterData:MonoBehaviour
 {
     public string docId;
     public string jobId;
@@ -20,16 +20,7 @@ public class CharacterData
     public Dictionary<EffectType, float> PermEffects { get; private set; }//보류
     public string[] skillNames = new string[2];
     public string weaponId;
-    public string weaponCur;//무기가 변경되었는지 알기 위한 배열 
-    public void SetPermEffects(EffectType _effectType, float _value)
-    {
-        if (!PermEffects.ContainsKey(_effectType))
-        {
-            PermEffects.Add(_effectType, new());
-        }
-        PermEffects[_effectType] += _value;
-    }
-    public CharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, string[] _skillNames, string _weaponName)
+    internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, string[] _skillNames, string _weaponId)
     {
         docId = _docId;
         jobId = _jobId;
@@ -40,7 +31,15 @@ public class CharacterData
         speed = _speed;
         index = _index;
         skillNames = _skillNames;
-        weaponId = _weaponName;
+        weaponId = _weaponId;
+    }
+    public void SetPermEffects(EffectType _effectType, float _value)
+    {
+        if (!PermEffects.ContainsKey(_effectType))
+        {
+            PermEffects.Add(_effectType, new());
+        }
+        PermEffects[_effectType] += _value;
     }
     public string ChangeSkill(int _index, string _skillName)//스킬 착용하고 착용하고 있던 스킬 리턴
     {
@@ -66,7 +65,7 @@ public class CharacterData
                 //프리팹 바꿔줘야함
                 GameManager.battleScenario.DestoyByDocId(docId);
                 jobId = GameManager.gameManager.GetJobId(skillNames);
-                GameManager.gameManager.InitFriendlyObject(docId, jobId, BattleScenario.FriendlyGrids[index]);
+                //GameManager.gameManager.InitCharacterObject(BattleScenario.CharacterGrids[index]);
             }
         }
         return returnValue;
@@ -115,4 +114,6 @@ public class CharacterData
         float cooltime = isAllPassive?-1:skill.cooltime;
         return new Tuple<string, float>(explain, cooltime);
     }
+
+
 }

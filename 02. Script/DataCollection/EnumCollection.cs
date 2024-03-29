@@ -31,7 +31,7 @@ namespace EnumCollection
     }
     public enum UpgradeEffectType : byte
     {
-        AllocateNumberUp, PowerUp, TalentNumUp, FameUp, GoldUp
+        AllocateNumberUp, StatusUp, TalentEffectUp,TalentLevelUp, FameUp, GoldUp
     }
     public enum EffectRange : byte
     {
@@ -68,14 +68,22 @@ namespace EnumCollection
     }
     public enum WeaponType : byte
     {
-        Melee, Bow, Magic, Shield
+        Sword, Bow, Magic, Club
     }
     public enum WeaponGrade : byte
     {
-        Normal, Rare, Unique
+       Default ,Normal, Rare, Unique
     }
     public enum LobbyCase : byte
     {
-        None, Pub, Guild, Incruit, Depart
+        None, Pub, Guild, Recruit, Depart
+    }
+    public enum BodyPart : byte
+    {
+        Arm_L, Arm_R, Head
+    }
+    public enum Species : byte
+    {
+        Human, Elf, Devil, Skelton, Orc
     }
 }

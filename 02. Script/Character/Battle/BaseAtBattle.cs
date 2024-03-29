@@ -7,7 +7,7 @@ using TMPro;
 using System.Collections;
 using System.Linq;
 
-abstract public class CharacterBase : MonoBehaviour
+abstract public class BaseAtBattle : MonoBehaviour
 {
     public JobClass job;
     public string documentId;
@@ -42,8 +42,8 @@ abstract public class CharacterBase : MonoBehaviour
     public Image armorBar;
     public Dictionary<EffectType, float> TempEffects = new();//전투동안 지속되는 효과
     public Dictionary<EffectType, float> EffectsByAtt = new();//대미지를 입히면 적용시키는 효과, 비중첩
-    public CharacterBase targetOpponent;
-    public CharacterBase targetAlly;
+    public BaseAtBattle targetOpponent;
+    public BaseAtBattle targetAlly;
     public bool IsEnemy { get; protected set; }
     public bool isMonster { get; protected set; }
     //스킬 정보
@@ -55,12 +55,10 @@ abstract public class CharacterBase : MonoBehaviour
     public GridObject grid;
     private Coroutine moveCoroutine;
     private readonly float ARRIVAL_TIME = 2f;
-    public SpriteRenderer weaponRenderer;//Right
-    public SpriteRenderer shieldRenderer;//Left
     public Transform rootTargetTransform;
     public Transform skillTargetTransform;
     public abstract void SetAnimParam();
-    public void InitCharacter()
+    public void InitBase()
     {
         rootTargetTransform = Instantiate(new GameObject("RootTarget"), transform.GetChild(0)).transform;
         hpObject = Instantiate(GameManager.gameManager.prefabHpBar, transform);
@@ -72,7 +70,7 @@ abstract public class CharacterBase : MonoBehaviour
         if (isMonster)
             animator = GetComponent<Animator>();
         else
-            animator = transform.GetChild(0).GetComponent<Animator>();
+            animator = transform.GetComponentInChildren<Animator>();
         defaultAttack = new Skill();
     }
     public void InBattleFieldZero()
@@ -148,11 +146,11 @@ abstract public class CharacterBase : MonoBehaviour
             {
                 passive.SetPassiveEffect();
             }
-            foreach (CharacterBase x in IsEnemy ? BattleScenario.friendlies : BattleScenario.enemies)
+            foreach (BaseAtBattle x in IsEnemy ? BattleScenario.characters : BattleScenario.enemies)
             {
                 x.FindNewTargetOpponent();
             }
-            foreach (CharacterBase x in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
+            foreach (BaseAtBattle x in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
             {
                 x.FindNewTargetAlly();
             }
@@ -320,7 +318,7 @@ abstract public class CharacterBase : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
 
-        foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
+        foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
         {
             float value = ally.GetRegularValue(EffectType.Revive);
             if (value > 0)
@@ -331,23 +329,23 @@ abstract public class CharacterBase : MonoBehaviour
             }
         }
         float bleedTransfer = GetRegularValue(EffectType.BleedTransfer);
-        List<CharacterBase> characters = new();
+        List<BaseAtBattle> characters = new();
         if (bleedTransfer > 0)
         { 
-            foreach (var character in IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies)
+            foreach (var character in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
             {
                 if (character != this)
                     characters.Add(character);
             }
-            CharacterBase target = characters[Random.Range(0, characters.Count)];
+            BaseAtBattle target = characters[Random.Range(0, characters.Count)];
             target.ApplyValue(GetRegularValue(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
             Debug.Log("BleedTransfer : " + target.grid.index);
         }
         float exploValue = GetRegularValue(EffectType.CorpseExplo);
-        characters = new(IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies);
+        characters = new(IsEnemy ? BattleScenario.enemies : BattleScenario.characters);
         if (exploValue>0)
         {
-            foreach (CharacterBase character in characters)
+            foreach (BaseAtBattle character in characters)
             {
                 if (character != this)
                 {
@@ -359,12 +357,12 @@ abstract public class CharacterBase : MonoBehaviour
         if (necro > 0)
         {
             grid.owner = null;
-            List<GridObject> gridCandiBase = IsEnemy ? BattleScenario.FriendlyGrids : BattleScenario.EnemyGrids;
+            List<GridObject> gridCandiBase = IsEnemy ? BattleScenario.CharacterGrids : BattleScenario.EnemyGrids;
             List<GridObject> gridCandi = gridCandiBase.Where(item => item.owner == null).ToList();
             if (gridCandi.Count > 0)
             {
-                (IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies).Remove(this);
-                (IsEnemy ? BattleScenario.friendlies : BattleScenario.enemies).Add(this);
+                (IsEnemy ? BattleScenario.enemies : BattleScenario.characters).Remove(this);
+                (IsEnemy ? BattleScenario.characters : BattleScenario.enemies).Add(this);
                 GridObject targetGrid = gridCandi[Random.Range(0, gridCandi.Count)];
                 MoveToTargetGrid(targetGrid, true);
                 IsEnemy = !IsEnemy;
@@ -401,14 +399,14 @@ abstract public class CharacterBase : MonoBehaviour
         }
         void NewTargetForOther()
         {
-            List<CharacterBase> enemiesBase = BattleScenario.enemies.Where(item => !item.isDead).ToList();
-            List<CharacterBase> friendliesBase = BattleScenario.friendlies.Where(item => !item.isDead).ToList();
-            foreach (CharacterBase x in IsEnemy ? enemiesBase : friendliesBase)
+            List<BaseAtBattle> enemiesBase = BattleScenario.enemies.Where(item => !item.isDead).ToList();
+            List<BaseAtBattle> charactersBase = BattleScenario.characters.Where(item => !item.isDead).ToList();
+            foreach (BaseAtBattle x in IsEnemy ? enemiesBase : charactersBase)
             {
                 if (x != this)
                     x.FindNewTargetAlly();
             }
-            foreach (CharacterBase x in IsEnemy ? friendliesBase : enemiesBase)
+            foreach (BaseAtBattle x in IsEnemy ? charactersBase : enemiesBase)
             {
                 x.FindNewTargetOpponent();
             }
@@ -495,9 +493,9 @@ abstract public class CharacterBase : MonoBehaviour
             if (targetOpponent)
                 passiveDot.DeapplyEffect(targetOpponent);
         }
-        List<CharacterBase> targetByColumn;
+        List<BaseAtBattle> targetByColumn;
         int targetColumn;
-        List<CharacterBase> targetsBase = (IsEnemy ? BattleScenario.friendlies : BattleScenario.enemies).Where(item => !item.isDead).ToList();
+        List<BaseAtBattle> targetsBase = (IsEnemy ? BattleScenario.characters : BattleScenario.enemies).Where(item => !item.isDead).ToList();
         if (targetsBase.Count == 0)
         {
             targetOpponent = null;
@@ -533,7 +531,7 @@ abstract public class CharacterBase : MonoBehaviour
         {
             passiveDot.DeapplyEffect(targetAlly);
         }
-        List<CharacterBase> targetsBase = (IsEnemy ? BattleScenario.enemies : BattleScenario.friendlies).Where(item => !item.isDead).ToList();
+        List<BaseAtBattle> targetsBase = (IsEnemy ? BattleScenario.enemies : BattleScenario.characters).Where(item => !item.isDead).ToList();
         targetsBase.Remove(this);
         if (targetsBase.Count == 0)
         {
@@ -541,7 +539,7 @@ abstract public class CharacterBase : MonoBehaviour
             return;
         }
         int minDist = targetsBase.Min(item => GetDistance(grid.index, item.grid.index));
-        List<CharacterBase> targetCandi = targetsBase.Where(item => GetDistance(grid.index, item.grid.index) == minDist).ToList();
+        List<BaseAtBattle> targetCandi = targetsBase.Where(item => GetDistance(grid.index, item.grid.index) == minDist).ToList();
         targetAlly = targetCandi[Random.Range(0, targetCandi.Count)];
         int GetDistance(int _index0, int _index1)
         {
@@ -572,11 +570,11 @@ abstract public class CharacterBase : MonoBehaviour
             type = _type;
             value = _value;
         }
-        public void ApplyEffect(CharacterBase _target)
+        public void ApplyEffect(BaseAtBattle _target)
         {
             _target.ApplyValue(value, type);
         }
-        public void DeapplyEffect(CharacterBase _target)
+        public void DeapplyEffect(BaseAtBattle _target)
         {
             _target.ApplyValue(value * -1, type);
         }
@@ -587,10 +585,10 @@ abstract public class CharacterBase : MonoBehaviour
     {
         SkillEffect effect;
         float value;//최초 Value 고정
-        CharacterBase caster;
+        BaseAtBattle caster;
         public List<GridObject> targetGrids = new();
         bool isTargetEnemy;
-        public EffectPassiveForm(SkillEffect _effect, bool _isTargetEnemy, CharacterBase _caster, float _value)
+        public EffectPassiveForm(SkillEffect _effect, bool _isTargetEnemy, BaseAtBattle _caster, float _value)
         {
             effect = _effect;
             caster = _caster;
@@ -622,22 +620,22 @@ abstract public class CharacterBase : MonoBehaviour
                 x.ExitOnGrid -= ExitOnGrid;
             }
         }
-        void EnterOnGrid(CharacterBase _target)
+        void EnterOnGrid(BaseAtBattle _target)
         {
             _target.ApplyValue(value, effect.type);
         }
-        void ExitOnGrid(CharacterBase _target)
+        void ExitOnGrid(BaseAtBattle _target)
         {
             var tempValue = value * -1;
             _target.ApplyValue(tempValue, effect.type);
         }
     }
 
-    public static List<CharacterBase> GetTargetsByRange(EffectRange _range, CharacterBase _target, bool _isTargetEnemy)
+    public static List<BaseAtBattle> GetTargetsByRange(EffectRange _range, BaseAtBattle _target, bool _isTargetEnemy)
     {
-        List<CharacterBase> targets = null;
+        List<BaseAtBattle> targets = null;
         bool orderDir = _isTargetEnemy ^ _target.IsEnemy;
-        List<CharacterBase> targetsBase = (orderDir ? BattleScenario.enemies : BattleScenario.friendlies).Where(item => !item.isDead).ToList();
+        List<BaseAtBattle> targetsBase = (orderDir ? BattleScenario.enemies : BattleScenario.characters).Where(item => !item.isDead).ToList();
         switch (_range)
         {
             case EffectRange.Dot://가장 가까운 대상
@@ -665,11 +663,11 @@ abstract public class CharacterBase : MonoBehaviour
         }
         return targets;
     }
-    public static List<GridObject> GetGridsByRange(EffectRange _range, CharacterBase _target, bool _isTargetEnemy)
+    public static List<GridObject> GetGridsByRange(EffectRange _range, BaseAtBattle _target, bool _isTargetEnemy)
     {
         List<GridObject> targetGrids = null;
         bool orderDir = _isTargetEnemy ^ _target.IsEnemy;
-        List<GridObject> gridsBase = (orderDir ? BattleScenario.EnemyGrids : BattleScenario.FriendlyGrids);
+        List<GridObject> gridsBase = (orderDir ? BattleScenario.EnemyGrids : BattleScenario.CharacterGrids);
         switch (_range)
         {
             case EffectRange.Row:
@@ -699,11 +697,11 @@ abstract public class CharacterBase : MonoBehaviour
     #region SkillActiveForm
     public class SkillActiveForm
     {
-        public CharacterBase caster;
+        public BaseAtBattle caster;
         public List<EffectActiveForm> actvieEffects = new();
         readonly float skillCastTime = 1f;
         public Skill skill;
-        public SkillActiveForm(CharacterBase _caster, Skill _skill)
+        public SkillActiveForm(BaseAtBattle _caster, Skill _skill)
         {
             skill = _skill;
             caster = _caster;
@@ -721,12 +719,12 @@ abstract public class CharacterBase : MonoBehaviour
         }
         public IEnumerator ActiveSkill()
         {
-            CharacterBase confusedTarget = null;
+            BaseAtBattle confusedTarget = null;
             bool isParalyze = false;
             float confuseProb = caster.GetRegularValue(EffectType.Confuse);
             if (GameManager.CalculateProbability(confuseProb))
             {
-                List<CharacterBase> confusedTargetsBase = (caster.IsEnemy ^ skill.isTargetEnemy ? BattleScenario.friendlies : BattleScenario.enemies).Where(item => !item.isDead).ToList();
+                List<BaseAtBattle> confusedTargetsBase = (caster.IsEnemy ^ skill.isTargetEnemy ? BattleScenario.characters : BattleScenario.enemies).Where(item => !item.isDead).ToList();
                 confusedTarget = confusedTargetsBase[Random.Range(0, confusedTargetsBase.Count)];
             }
             else
@@ -746,10 +744,10 @@ abstract public class CharacterBase : MonoBehaviour
                     float repeatValue = caster.GetRegularValue(EffectType.Repeat);
                     for (int i = 0; i < ((repeatValue>0)?2:1); i++)
                     {
-                        List<CharacterBase> skillTargets = new();
+                        List<BaseAtBattle> skillTargets = new();
                         foreach (EffectActiveForm effectForm in actvieEffects)
                         {
-                            CharacterBase effectTarget;
+                            BaseAtBattle effectTarget;
                             switch (effectForm.effect.range)
                             {
                                 case EffectRange.Self:
@@ -767,7 +765,7 @@ abstract public class CharacterBase : MonoBehaviour
                             }
                             if (effectTarget != null)
                             {
-                                List<CharacterBase> tempTargets =  effectForm.ActiveEffect0nTarget(effectTarget, i == 1 ? repeatValue : 1f);
+                                List<BaseAtBattle> tempTargets =  effectForm.ActiveEffect0nTarget(effectTarget, i == 1 ? repeatValue : 1f);
                                 foreach (var x in tempTargets)
                                 {
                                     if (!skillTargets.Contains(x))
@@ -780,7 +778,7 @@ abstract public class CharacterBase : MonoBehaviour
                         //Skill
                         if (skill.visualEffect != null)
                         {
-                            foreach(CharacterBase target in skillTargets)
+                            foreach(BaseAtBattle target in skillTargets)
                                 GameManager.battleScenario.CreateVisualEffect(skill.visualEffect, target, true);
                         }
                         //Weapon
@@ -848,22 +846,22 @@ abstract public class CharacterBase : MonoBehaviour
     public class EffectActiveForm
     {
         public SkillEffect effect;
-        public CharacterBase caster;
+        public BaseAtBattle caster;
         public bool isTargetEnemy;
 
-        public EffectActiveForm(SkillEffect _effect, bool _isTargetEnemy, CharacterBase _caster)
+        public EffectActiveForm(SkillEffect _effect, bool _isTargetEnemy, BaseAtBattle _caster)
         {
             effect = _effect;
             caster = _caster;
             isTargetEnemy = _isTargetEnemy;
         }
-        public List<CharacterBase> ActiveEffect0nTarget(CharacterBase _target, float _repeatValue = 1f)
+        public List<BaseAtBattle> ActiveEffect0nTarget(BaseAtBattle _target, float _repeatValue = 1f)
         {
             float calcValue = effect.value;
             calcValue *= _repeatValue;
             if (!effect.isConst)
                 calcValue *= caster.abilityInBattle;
-            List<CharacterBase> targets = GetTargetsByRange(effect.range, _target, isTargetEnemy);
+            List<BaseAtBattle> targets = GetTargetsByRange(effect.range, _target, isTargetEnemy);
             calcValue = caster.CalcEffectValueByType(calcValue, effect.type);
             float calcTemp = calcValue;
 
@@ -899,7 +897,7 @@ abstract public class CharacterBase : MonoBehaviour
 
 
 
-        private IEnumerator RoopEffect(float calcValue, CharacterBase _target)
+        private IEnumerator RoopEffect(float calcValue, BaseAtBattle _target)
         {
             for (int i = 0; i < effect.count; i++)
             {
