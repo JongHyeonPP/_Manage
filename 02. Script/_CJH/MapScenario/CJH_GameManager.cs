@@ -10,6 +10,18 @@ public class CJH_GameManager : MonoBehaviour
     public string history;
     public string invenData;
 
+    internal void setData()
+    {
+        if (_instance == null)
+        {
+            DontDestroyOnLoad(this);
+            _instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
     void Awake()
     {
         if (_instance == null)

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GUI_InvenSpaceSlotSet : MonoBehaviour
 {
@@ -23,5 +24,24 @@ public class GUI_InvenSpaceSlotSet : MonoBehaviour
         {
             MySlotList[i]._DEBUG(i,myAddr);
         }
+    }
+
+    [ContextMenu("_SetMyGrid")]
+    public void _SetMyGrid()
+    {
+        GridLayoutGroup grid = GetComponent<GridLayoutGroup>();
+        RectTransform rect = GetComponent<RectTransform>();
+
+        float totalWidth = (grid.cellSize.x * 5 + grid.spacing.x * 4);
+        float ratio_Width = rect.rect.width / totalWidth;
+
+
+        float totalHeight = (grid.cellSize.y * 3 + grid.spacing.y * 2);
+        float ratio_Height= rect.rect.height / totalHeight;
+        
+        float minRatio = Mathf.Min(ratio_Width, ratio_Height);
+
+        grid.cellSize *= minRatio;
+        grid.spacing *= minRatio;
     }
 }

@@ -7,6 +7,7 @@ internal static class Tools_InvenSetManager
     static internal GUI_ItemUnit GetGUI_byItemData(this MyInvenSpriteDB _dataSet, List<int> _itemData,Transform _trans)
     {
         GUI_ItemUnit obj = Object.Instantiate(_dataSet.invenPrefab, _trans);
+
         obj.SetImageGUI_Sprite(_dataSet.GetSprite_byItemData(_itemData));
 
         if (true)
@@ -34,11 +35,15 @@ internal static class Tools_InvenSetManager
 
     static internal SlotGUI_InvenSlot GetSlotGUI_byAddr(this GUI_InvenSetManager _inven, List<int> _addrData)
     {
-        int equipIndex = _addrData[0];
-        int invenIndex = _addrData[1]; 
-        if (_inven.myInvenSet.Count <= equipIndex)
+        int _invenIndex = _addrData[0];
+        int _slotIndex = _addrData[1]; 
+        if (_inven.myInvenSet.Count <= _invenIndex)
             return null;
-        return _inven.myInvenSet[equipIndex].MySlotList[invenIndex];
+
+        if(_inven.myInvenSet[_invenIndex].MySlotList.Count <= _slotIndex)
+            return null;
+
+        return _inven.myInvenSet[_invenIndex].MySlotList[_slotIndex];
     }
 
     static internal SlotGUI_InvenSlot GetSlotGUI_byMin(this GUI_InvenSetManager _inven)

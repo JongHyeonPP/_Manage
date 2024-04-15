@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class Testing : MonoBehaviour//, IPointerEnterHandler, IPointerExitHandler
+public class myTesting : MonoBehaviour//, IPointerEnterHandler, IPointerExitHandler
 {
     private Button button;
     [SerializeField] Image[] images;

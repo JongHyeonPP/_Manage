@@ -11,30 +11,29 @@ public class EventSC_Default : MonoBehaviour
     [SerializeField] internal EventSC_CombValues_UTIL _UTIL;
     [SerializeField] internal UnityEvent _ArriveEvent;
     [SerializeField] internal UnityEvent _ExitEvent;
+
     private void Awake()
     {
         SceneToSceneFuncSGT.InitSingleton(ref _SGT.STS);
         SceneToSceneFuncSGT.ArriveScene_Map(() => _ArriveEvent.Invoke());
-        
-        /*
-        _UTIL.invenSC.setGUI_bySGT();
 
-        // inven input
         if (true)
         {
             ProgressMap_preInput task = new(() => {
-                if (_UTIL.invenCtrl.GetIsInvenActive() == false)
+                if (_UTIL.myCharGUI.isCharGUI == false)
                 {
-                    EnterInventory();
+                    _UTIL.myCharGUI.isCharGUI = true;
+                    _UTIL.myCharGUI.CharGUI_Intro.Debug_GoDst();
                 }
                 else if (true)
                 {
-                    _UTIL.invenCtrl.BlurStart_InvenToMap();
+                    _UTIL.myCharGUI.isCharGUI = false;
+                    _UTIL.myCharGUI.CharGUI_Outtro.Debug_GoDst();
                 }
             });
 
             _UTIL.InputM.AddInputEventList(task, KeyCode.I);
-        }*/
+        }
     }
 
     public void SceneChange()
@@ -61,6 +60,7 @@ public class EventSC_Default : MonoBehaviour
         {
             _UTIL.ALS.LoadScene_Asyc("Stage 0");
         }
+
     }
 }
 
@@ -76,4 +76,13 @@ internal struct EventSC_CombValues_UTIL
 {
     public MyInputManager InputM;
     public _AsycLoadScene ALS;
+    public EventSC_Char_UTIL myCharGUI;
+}
+
+[Serializable]
+internal class EventSC_Char_UTIL
+{
+    public bool isCharGUI = false;
+    public CJH_GUIAnimator CharGUI_Intro;
+    public CJH_GUIAnimator CharGUI_Outtro;
 }

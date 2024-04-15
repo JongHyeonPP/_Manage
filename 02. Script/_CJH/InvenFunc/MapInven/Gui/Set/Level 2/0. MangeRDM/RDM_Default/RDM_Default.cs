@@ -23,7 +23,6 @@ public class RDM_Default : MonoBehaviour, iRoot_DDO_Manager
             return;
 
         _REF._inputM.setDuringState(false);
-
         _REF._itemTrans.SetParent(_REF._defaultParent, false);
         _REF.targetDDO.InteractDDO_byGetRBD(_REF.currRBD);
         setDefaultState();

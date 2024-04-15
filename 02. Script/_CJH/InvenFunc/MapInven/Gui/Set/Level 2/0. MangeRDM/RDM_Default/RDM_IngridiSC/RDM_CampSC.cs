@@ -9,11 +9,10 @@ public class RDM_CampSC : RDM_Default
     public GUI_IngridiSlotManager _GUI_IngridiSlotManager;
     public GUI_InvenSetManager _GUI_InvenSetManager;
     public GUI_ResultCookSet _GUI_ResultCookSet;
-    public InvenSC_Shop invenSC;
+    public InvenSC_Default invenSC;
 
     private void Start()
     {
-        invenSC.setGUI_bySGT();
         _REF._SGT_GUI_ItemData = invenSC.invenData_SGT;
     }
 

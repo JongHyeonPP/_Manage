@@ -7,7 +7,7 @@ public class RBD_IngridimentSlot : MonoBehaviour, IResponedByDrop
     [SerializeField] internal GUI_Ctrl myGUI_CTRL;
     [SerializeField] internal GUI_ItemUnit _GUI_ItemUnit;
     public GUI_IngridiSlot myGUI_Slot;
-    public SlotGUI_InvenSlot myGUI_Inven;
+    [SerializeField] internal int _index;
 
     private iRoot_DDO_Manager cash = null;
 
@@ -15,6 +15,7 @@ public class RBD_IngridimentSlot : MonoBehaviour, IResponedByDrop
     {
         if (cash != null)
             return cash;
+        cash = transform.root.GetComponent<iRoot_DDO_Manager>();
 
         return transform.root.GetComponent<iRoot_DDO_Manager>();
     }
@@ -26,10 +27,25 @@ public class RBD_IngridimentSlot : MonoBehaviour, IResponedByDrop
 
     public void DDO_Event_byInvenSlot(SlotGUI_InvenSlot _src)
     {
-        RDM_CampSC _RDM_CookSC = GetDDO_Manager() as RDM_CampSC;
-        if (_RDM_CookSC)
+        if (false)
         {
-            _RDM_CookSC.SetIngridiment_byInvenSlot(_src,this);
+            RDM_CampSC _RDM_CookSC = GetDDO_Manager() as RDM_CampSC;
+            if (_RDM_CookSC)
+            {
+                _RDM_CookSC.SetIngridiment_byInvenSlot(_src, this);
+                return;
+            }
+        }
+
+        if (true)
+        {
+            RDM_CampCook _RDM_CampCook = GetDDO_Manager() as RDM_CampCook;
+            if (_RDM_CampCook)
+            {
+                Debug.Log("TODO : CheckLevel");
+                _RDM_CampCook.SetIngridiment_byInvenSlot(_src, this);
+                return;
+            }
         }
     }
 
@@ -38,9 +54,8 @@ public class RBD_IngridimentSlot : MonoBehaviour, IResponedByDrop
         myGUI_Slot.SetDefault();
         if (_GUI_ItemUnit != null)
         {
-            Object.Destroy(_GUI_ItemUnit.gameObject);
+            Destroy(_GUI_ItemUnit.gameObject);
             _GUI_ItemUnit = null;
         }
-        myGUI_Inven = null;
     }
 }

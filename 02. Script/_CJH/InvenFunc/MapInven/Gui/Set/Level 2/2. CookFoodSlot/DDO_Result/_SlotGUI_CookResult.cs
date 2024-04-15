@@ -6,9 +6,10 @@ public static class _SlotGUI_CookResult
 {
     internal static bool CheckUpAvailable(this iRoot_DDO_Manager _inven, SlotGUI_CookResult _src, IResponedByDrop _dst)
     {
-        if (_inven as RDM_CampSC == false)
+        if (_inven as RDM_CampCook == true)
         {
-            return false;
+            Debug.Log("sad");
+            return true;
         }
 
         return true;
@@ -16,6 +17,7 @@ public static class _SlotGUI_CookResult
 
     internal static void InteractFuncByRBD(this iRoot_DDO_Manager _inven, SlotGUI_CookResult _src, SlotGUI_InvenSlot _dst)
     {
+        Debug.Log("curr");
         _inven.GetInvenSGT().AddItemUnit_byPurchase(_src._itemGUI._myData);
 
         GUI_ItemUnit _srcGUI = _src._itemGUI;

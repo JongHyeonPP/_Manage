@@ -14,11 +14,12 @@ public static class _RDM_CampSC
         
         if(isCrash > -1)
         {
+            Debug.Log("Curr");
             _CampSC._GUI_IngridiSlotManager._values.RBD_Slots[isCrash].SetDefault();
         }
+
         _dst.SetDefault();
         _dst.myGUI_Slot.value = _itemGUI_Src._myData.index;
-        _dst.myGUI_Inven = _src;
 
         if (true)
         {
@@ -48,6 +49,7 @@ public static class _RDM_CampSC
         // Data Set (inven Data)
         if (true)
         {
+            /*
             int[] temp = _m._values.GetCookSlotsItemIndex();
 
             List<ItemUnit> invenGUI = new();
@@ -71,6 +73,7 @@ public static class _RDM_CampSC
                 targetInvenSlot.SetItemData_byData(null);
                 _CampSC.invenSC.invenData_SGT.itemUnits.Remove(invenGUI[i]);
             }
+            */
         }
 
         // Slot Set
@@ -79,7 +82,7 @@ public static class _RDM_CampSC
             _m.CookFunc_onIngridiment();
         }
 
-        _CampSC._GUI_ResultCookSet.FillUpResultCook();
+        //_CampSC._GUI_ResultCookSet.FillUpResultCook();
         _CampSC._GUI_IngridiSlotManager.Event_Reset();
         return;
     }

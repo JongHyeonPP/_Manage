@@ -10,7 +10,7 @@ public class SlotGUI_CookResult : MonoBehaviour, IDragDropObj
     public iRoot_DDO_Manager GetDDO_Manager()
     {
         if (cash != null)
-            return cash;
+            return cash; 
 
         return transform.root.GetComponent<iRoot_DDO_Manager>();
     }

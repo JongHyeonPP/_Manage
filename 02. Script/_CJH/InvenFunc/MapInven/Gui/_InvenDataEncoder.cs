@@ -16,6 +16,17 @@ public static class _InvenDataEncoder
         return StringData_ToItemList(CJH_GameManager._instance.invenData);
     }
 
+    internal static int GetData_toGoldValue()
+    {
+        if (CJH_GameManager._instance == null)
+        {
+            Debug.Log("???");
+            return -1;
+        }
+
+        return StringData_ToGoldValue(CJH_GameManager._instance.invenData);
+    }
+
     static string ItemListData_ToString(List<ItemUnit> _list)
     {
         string _str = "";
@@ -39,8 +50,6 @@ public static class _InvenDataEncoder
                 rtn += _input[i];
             }
             return rtn;
-
-
         }
     }
 
@@ -49,12 +58,12 @@ public static class _InvenDataEncoder
     {
         List<ItemUnit> rtnList = new();
         string[] sliced = _str.Split('/');
-        if (sliced.Length % 4 != 1)
+        if (sliced.Length % 4 != 2)
         {
             Debug.Log("? " + sliced.Length % 4 + " ?"); return null;
         }
 
-        for (int i = 0; i < sliced.Length-1; i+=4)
+        for (int i = 1; i < sliced.Length-1; i+=4)
         {
             ItemUnit tempItem = new ItemUnit();
             tempItem.itemName = "sad";
@@ -64,7 +73,7 @@ public static class _InvenDataEncoder
             tempItem.GoldValue = int.Parse(sliced[i+3]);
             rtnList.Add(tempItem);
         }
-        Debug.Log("sad - " + rtnList.Count);
+
         return rtnList;
 
         List<int> parseIntStr_toList(string _input)
@@ -76,6 +85,17 @@ public static class _InvenDataEncoder
             }
             return rtn;
         }
+    }
+
+    static int StringData_ToGoldValue(string _str)
+    {
+        string[] sliced = _str.Split('/');
+        if (sliced.Length % 4 != 2)
+        {
+            Debug.Log("? " + sliced.Length % 4 + " ?"); return -1;
+        }
+
+        return int.Parse(sliced[0]);
     }
 
 
