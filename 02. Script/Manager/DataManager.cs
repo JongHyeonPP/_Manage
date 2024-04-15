@@ -57,6 +57,8 @@ public class DataManager : MonoBehaviour
 
         return snapshot.Documents.ToList();
     }
+    public DocumentReference GetDocumentReference(string _documentRef) => db.Document(_documentRef);
+
     public async Task<Dictionary<string, object>> GetField(string _collectionRef, string _documentId)
     {
         DocumentReference documentRef = db.Collection(_collectionRef).Document(_documentId);

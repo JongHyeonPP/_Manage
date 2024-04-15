@@ -4,6 +4,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using EnumCollection;
+using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 public class BattleScenarioTest : MonoBehaviour
 {
@@ -96,12 +98,16 @@ public class BattleScenarioTest : MonoBehaviour
         botText.text = "봇 생성";
         moveText.text = "캐릭터\n이동";
     }
-    public void StageClearTest()
+    public async void StageClearTest()
     {
-        battleScenario.StageClear();
+        await battleScenario.StageClearAsync();
     }
     public void GameOverTest()
     {
         GameManager.gameManager.GameOver();
+    }
+    public void BattleSimulationAsync()
+    {
+        battleScenario.GoBattleSimulation();
     }
 }

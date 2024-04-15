@@ -20,6 +20,7 @@ public class CharacterData:MonoBehaviour
     public Dictionary<EffectType, float> PermEffects { get; private set; }//보류
     public string[] skillNames = new string[2];
     public string weaponId;
+    public CharacterHierarchy characterHierarchy;
     internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, string[] _skillNames, string _weaponId)
     {
         docId = _docId;
@@ -32,6 +33,9 @@ public class CharacterData:MonoBehaviour
         index = _index;
         skillNames = _skillNames;
         weaponId = _weaponId;
+        characterHierarchy = transform.GetChild(0).GetComponent<CharacterHierarchy>();
+        if (_jobId != "000")
+            characterHierarchy.SetJob(_jobId);
     }
     public void SetPermEffects(EffectType _effectType, float _value)
     {
@@ -62,18 +66,15 @@ public class CharacterData:MonoBehaviour
             }
             if (num == 2)
             {
-                //프리팹 바꿔줘야함
-                GameManager.battleScenario.DestoyByDocId(docId);
                 jobId = GameManager.gameManager.GetJobId(skillNames);
-                //GameManager.gameManager.InitCharacterObject(BattleScenario.CharacterGrids[index]);
+                characterHierarchy.SetJob(jobId);
             }
         }
         return returnValue;
     }
-    public string ChangeWeapon(string _weaponId)//무기를 장착하고 무기 id 리스트 리턴
+    public string ChangeWeaponId(string _weaponId)//무기를 장착하고 해제된 무기 리턴
     {
         //type에 따른 한 손, 양 손 판정
-        //weaponsName만 접근
         weaponId = _weaponId;
         return weaponId;
     }
@@ -115,5 +116,10 @@ public class CharacterData:MonoBehaviour
         return new Tuple<string, float>(explain, cooltime);
     }
 
-
+    public void SetWeaponSprite(WeaponClass _weapon) => characterHierarchy.SetWeaponSprite(_weapon);
+    [ContextMenu("JobChangeTest")]
+    public void JobChangeTest()
+    {
+        characterHierarchy.SetJob("200");
+    }
 }

@@ -1,11 +1,14 @@
 using EnumCollection;
+using Firebase.Firestore;
 using LobbyCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LobbyScenario : MonoBehaviour
@@ -34,15 +37,16 @@ public class LobbyScenario : MonoBehaviour
     public List<ApplicantSlot> applicantSlots;
     private List<ApplicantSlot> selectedSlots = new();
 
-    public static readonly float defaultHp = 90f;
+
+    public static readonly float defaultHp = 100f;
     public static readonly float defaultAbility = 10f;
     public static readonly float defaultSpeed = 1f;
-    public static readonly float defaultResist = 0f;
+    public static readonly float defaultResist = 10f;
 
-    public static readonly float hpRange = 20f;
-    public static readonly float abilityRange = 5f;
-    public static readonly float speedRange = 0.5f;
-    public static readonly float resistRange = 10f;
+    public static readonly float hpSd = 10f;
+    public static readonly float abilitySd = 1f;
+    public static readonly float speedSd = 0.1f;
+    public static readonly float resistSd = 1f;
 
     public TextStatus textStatusHp;
     public TextStatus textStatusAbility;
@@ -178,7 +182,7 @@ public class LobbyScenario : MonoBehaviour
     }
     private void DepartCase()
     {
-
+        departUi.gameObject.SetActive(true);
     }
     public void NextPhase()
     {
@@ -374,11 +378,53 @@ public class LobbyScenario : MonoBehaviour
         }
     }
     public void RemoveSelectedSlot(ApplicantSlot _slot) => selectedSlots.Remove(_slot);
-    public void DepartSelected()
+    public async void DepartAsync()
     {
-        foreach (ApplicantSlot slot in selectedSlots)
+        if(selectedSlots.Count < 3)
         {
-            
+            return;
         }
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        {
+            await FromSlotToCharacter();
+            GameManager.gameManager.InitProgress();
+        });
+
+        SceneManager.LoadScene("Stage 0");
+        
+    }
+    async Task FromSlotToCharacter()
+    {
+        List<CharacterData> characterDataList = new();
+        for (int i = 0; i < selectedSlots.Count; i++)
+        {
+            ApplicantSlot _slot = applicantSlots[i];
+            _slot.templateAnimator.speed = 1f;
+            int gridIndex = i + 3;
+            Dictionary<string, object> characterDict = new();
+
+            characterDict.Add("MaxHp", _slot.Hp);
+            characterDict.Add("Hp", _slot.Hp);
+            characterDict.Add("Ability", _slot.Ability);
+            characterDict.Add("Resist", _slot.Resist);
+            characterDict.Add("Speed", _slot.Speed);
+            characterDict.Add("Body", _slot.bodyDict);
+            string weaponTypeStr = GameManager.CalculateProbability(0.5f) ? "Sword" : "Club";
+            string weaponId = $"{weaponTypeStr}:::Default";
+            characterDict.Add("WeaponId", weaponId);
+            characterDict.Add("Index", gridIndex);
+
+
+            string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.Uid}/Characters");
+
+            CharacterAtBattle characterAtBattle = _slot.templateObject.AddComponent<CharacterAtBattle>();
+            characterAtBattle.InitCharacter(docId, BattleScenario.CharacterGrids[gridIndex]);
+            BattleScenario.characters.Add(characterAtBattle);
+
+            CharacterData characterData = _slot.templateObject.AddComponent<CharacterData>();
+            characterData.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new string[] {string.Empty, string.Empty }, weaponId);
+            characterDataList.Add(characterData);
+        }
+        CharacterManager.characterManager.SetCharacters(characterDataList);
     }
 }

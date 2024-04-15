@@ -28,6 +28,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<Species, Dictionary<string, EyeClass>> EyeDict = new();
     public Dictionary<string, Sprite> hairDict = new();
     public Dictionary<string, Sprite> faceHairDict = new();
+    public Dictionary<string, Dictionary<ClothesPart, Sprite >> clothesDict = new();
     private void Awake()
     {
         if (!loadManager)
@@ -46,7 +47,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             await LoadVisualEffect();
             await InitSkill();
             await Task.WhenAll(InitJob(), InitEnemy(), InitUpgrade(), InitTalent(), InitUserDoc(), InitEnemyCase(), InitWeapon());
-            InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
+            InitBodyPart(); InitEye(); InitFaceHair(); InitHair(); InitClothes();
             Debug.Log("LoadComplete");
             isInit = true;
         }
@@ -200,8 +201,14 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             }
             else
                 skillEffect = null;
-
             skillForm.SetSkillEffect(skillEffect);
+            //IsPre
+            bool isPre;
+            if (skillDict.TryGetValue("IsPre", out obj))
+                isPre = (bool)obj;
+            else
+                isPre = false;
+            skillForm.SetIsPre(isPre);
             skillsDict.Add(doc.Id, skillForm);
 
 
@@ -673,13 +680,13 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             EnemyCase enemyCase = new EnemyCase();
             Dictionary<string, object> dict = doc.ToDictionary();
             //Enemies
-            List<EnemyCasePiece> enemyPieces = new();//id, grid
+            List<EnemyPieceForm> enemyPieces = new();//id, grid
             List<object> enemies = dict["Enemies"] as List<object>;
             foreach (object enemyObj in enemies)
             {
                 Dictionary<string, object> pieceObj = enemyObj as Dictionary<string, object>;
                 object obj;
-                var piece = new EnemyCasePiece();
+                var piece = new EnemyPieceForm();
                 if (pieceObj.TryGetValue("Id", out obj))
                 {
                     piece.SetId((string)obj);
@@ -933,20 +940,81 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         else
             return (float)(double)_obj;
     }
+    private void InitClothes()
+    {
+        InitClothesPiece("002");
+        InitClothesPiece("011");
+        InitClothesPiece("020");
+        InitClothesPiece("101");
+        InitClothesPiece("110");
+        InitClothesPiece("200");
+        void InitClothesPiece(string _job)
+        {
+            Sprite[] sprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{_job}");
+            Dictionary<ClothesPart, Sprite> tempDict = new();
+            foreach (Sprite sprite in sprites)
+            {
+                ClothesPart clothesPart;
+                switch (sprite.name)
+                {
+                    default:
+                        clothesPart = ClothesPart.Back;
+                        break;
+                    case "ClothBody":
+                        clothesPart = ClothesPart.ClothBody;
+                        break;
+                    case "ClothRight":
+                        clothesPart = ClothesPart.ClothRight;
+                        break;
+                    case "ClothLeft":
+                        clothesPart = ClothesPart.ClothLeft;
+                        break;
+                    case "ArmorBody":
+                        clothesPart = ClothesPart.ArmorBody;
+                        break;
+                    case "ArmorRight":
+                        clothesPart = ClothesPart.ArmorRight;
+                        break;
+                    case "ArmorLeft":
+                        clothesPart = ClothesPart.ArmorLeft;
+                        break;
+                    case "Helmet":
+                        clothesPart = ClothesPart.Helmet;
+                        break;
+                    case "FootRight":
+                        clothesPart = ClothesPart.FootRight;
+                        break;
+                    case "FootLeft":
+                        clothesPart = ClothesPart.FootLeft;
+                        break;
+                }
+                tempDict.Add(clothesPart, sprite);
+            }
+            clothesDict.Add(_job, tempDict);
+        }
+    }
     [ContextMenu("SetDoc")]
     public async void SetDoc()
     {
-        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Weapon/Data/Club");
-        foreach (DocumentSnapshot x in docs)
+        for (int i =0;i<9;i++)
         {
-            Dictionary<string, object> dict = new();
+            List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots($"SimulationCharacterInfo/Simulation_{i}/Characters");
+            for (int i1 = 0; i1 < docs.Count; i1++)
+            {
+                DocumentSnapshot x = docs[i1];
+                Dictionary<string, object> dict = new();
+                dict.Add("Ability", 10);
+                dict.Add("Hp", 100);
+                dict.Add("Index", i1+3);
+                dict.Add("MaxHp", 100);
+                dict.Add("Resist", 10);
+                dict.Add("Skill_0", string.Empty);
+                dict.Add("Skill_1", string.Empty);
+                dict.Add("Speed", 1);
+                dict.Add("WeaponId", "Sword:::Default");
+                await x.Reference.UpdateAsync(dict);
 
-            dict.Add("Grade", "Normal");
-            dict.Add("Status", new Dictionary<string, object>() { {"Ability" , 3 },{"Hp", 0 },{"Resist", 0 },{"Speed", 0 } });
-            dict.Add("VisualEffect", new Dictionary<string, object>() { { "Default", "Vertical_02" }, { "Skill", "Vertical_01" } });
-            await x.Reference.UpdateAsync(dict);
-
-            Debug.Log("Comp");
+            }
         }
     }
 }

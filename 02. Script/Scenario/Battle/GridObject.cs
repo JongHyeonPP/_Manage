@@ -15,11 +15,22 @@ public class GridObject : MonoBehaviour
     public delegate void PassiveEffectHandler(BaseAtBattle _target);
     public PassiveEffectHandler EnterOnGrid;
     public PassiveEffectHandler ExitOnGrid;
-    public GameObject borderImage { get; private set; }
+    public Image imageRect { get; private set; }
+    private Image imageBorder;
+
     public void InitObject()
     {
-        borderImage = transform.GetChild(0).gameObject;
-        borderImage.SetActive(false);
+        imageBorder = GetComponent<Image>();
+        imageRect = transform.GetChild(0).GetComponent<Image>();
+        imageRect.enabled = false;
+    }
+    public void PreActive()
+    {
+        imageBorder.color = Color.red;
+    }
+    public void PreInactive()
+    {
+        imageBorder.color = new Color(1f,1f,1f,0.5f);
     }
     public GridObject SetClickEvent()
     {
@@ -125,7 +136,7 @@ public class GridObject : MonoBehaviour
         }
         GameManager.battleScenario.OnGridPointerDown();
         if (!isEnemy)
-            borderImage.SetActive(true);
+            imageRect.enabled = true;
     }
 
     internal void OnGridPointerDrag(Vector2 _dragPosition)
@@ -147,13 +158,13 @@ public class GridObject : MonoBehaviour
         if (!GameManager.battleScenario.isDragging) return;
         GameManager.battleScenario.gridOnPointer = _grid;
         if (!isEnemy)
-            borderImage.SetActive(true);
+            imageRect.enabled = true;
     }
 
     internal void OnGridPointerExit()
     {
         GameManager.battleScenario.gridOnPointer = null;
-        borderImage.SetActive(false);
+        imageRect.enabled = false;
     }
     internal void OnGridPointerUp()
     {
@@ -182,7 +193,7 @@ public class GridObject : MonoBehaviour
     {
         foreach (var x in BattleScenario.CharacterGrids)
         {
-            x.borderImage.SetActive(false);
+            x.imageRect.enabled = false;
         }
     }
 }

@@ -125,7 +125,7 @@ public static class GetSceneName_currStage
             //CJH_GameManager._instance.history = "";
 
             Debug.Log("sad");
-            return "Stage 0";// + stage;
+            return "Battle";// + stage;
         }
         else
         {

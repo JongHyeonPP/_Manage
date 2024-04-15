@@ -115,16 +115,21 @@ public class StartScenario : MonoBehaviour
     public async void DifficultySelect(int i)
     {
         //New Game
-        List<DocumentSnapshot> restDoc = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"));
-        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async Transaction =>
+        DocumentReference docRef = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.Uid}");
+        Dictionary<string, object> newFieldDict = new();
+        newFieldDict.Add("NodeLevel", 0);
+        newFieldDict.Add("Stage", 0);
+        await docRef.DeleteAsync();
+        List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Characters");
+        foreach (DocumentSnapshot snapshot in snapshots)
         {
-            GameManager.gameManager.NewGame();
-            foreach (DocumentSnapshot x in restDoc)
-            {
-                x.Reference.DeleteAsync();
-            }
-            return Task.CompletedTask;
-        });
+           await snapshot.Reference.DeleteAsync();
+        }
+        snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
+        foreach (DocumentSnapshot snapshot in snapshots)
+        {
+            await snapshot.Reference.DeleteAsync();
+        }
         GameManager.gameManager.difficulty = (Difficulty)i;
         SceneManager.LoadScene("Lobby");
     }
@@ -148,4 +153,5 @@ public class StartScenario : MonoBehaviour
         }
     }
     public void ActiveLoadBtn(bool _isActive) => panelMainMenu.GetChild(1).GetComponent<Button>().enabled = _isActive;
+    public void GotoBattleSimulation() => SceneManager.LoadScene("BattleSimulation");
 }

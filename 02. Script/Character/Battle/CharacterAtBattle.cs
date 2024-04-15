@@ -14,10 +14,14 @@ public class CharacterAtBattle : BaseAtBattle
     public new string name;
     public List<TalentStruct> talents;
 
-    public void InitCharacter(string _documentId)
+    public void InitCharacter(string _documentId, GridObject _grid)
     {
+        InitBase(_grid);
         IsEnemy = false;
-        InitBase();
+
+        transform.localScale = Vector3.one;
+        transform.GetChild(0).localScale = Vector3.one * 100;
+        transform.localPosition = Vector3.zero;
         skillTargetTransform = Instantiate(new GameObject("SkillTarget"), transform.GetChild(0)).transform;
         skillTargetTransform.localPosition = new Vector3(-0.4f, 0.6f, 0);
         skillTargetTransform.localScale = new Vector3(0.6f, 0.6f, 0);

@@ -86,4 +86,12 @@ namespace EnumCollection
     {
         Human, Elf, Devil, Skelton, Orc
     }
+    public enum ClothesPart : byte
+    {
+        Back, 
+        ClothBody, ClothLeft, ClothRight, 
+        ArmorBody, ArmorLeft, ArmorRight,
+        Helmet,
+        FootRight, FootLeft
+    }
 }

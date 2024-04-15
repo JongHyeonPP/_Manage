@@ -121,7 +121,8 @@ public class MapScenario : MonoBehaviour
         SceneToSceneFuncSGT.ExitScene_Map(
             new(() => {
                 _SGT.mapDATA.visualObj.enabled = (false);
-                _SGT.mapDATA.CurrMS.MapSC_GUI.SetActive(false);
+                if(_SGT.mapDATA.CurrMS.MapSC_GUI)
+                    _SGT.mapDATA.CurrMS.MapSC_GUI.SetActive(false);
             }));
 
 

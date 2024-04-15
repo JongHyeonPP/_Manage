@@ -1,20 +1,17 @@
+using BattleCollection;
 using EnumCollection;
 using Firebase.Firestore;
-using BattleCollection;
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Linq;
 using UnityEngine.SceneManagement;
-using System.Threading.Tasks;
 
 public class BattleScenario : MonoBehaviour
 {
-    public Action regularEffect;
+    public System.Action regularEffect;
     public BattleDifficulty battleDifficulty;
     public static List<BaseAtBattle> enemies;
     public static List<BaseAtBattle> characters;
@@ -40,10 +37,78 @@ public class BattleScenario : MonoBehaviour
     public static readonly float gridCorrection = 20f;
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
+    int battleLevel;
     private async void Awake()
     {
         GameManager.battleScenario = this;
 
+
+        if (battleSimulator)
+        {
+            battleLevel = battleSimulator.currentLevel;
+            await GameManager.gameManager.LoadCharacter(battleLevel);
+        }
+        else
+        {
+            int i = GameManager.gameManager.nodeLevel;
+            int result;
+            if (i <= 3)
+            {
+                result = 0;
+            }
+            else if (i <= 6)
+            {
+                result = 1;
+            }
+            else if (i <= 7)
+            {
+                result = 2;
+            }
+            else if (i <= 10)
+            {
+                result = 3;
+            }
+            else if (i <= 13)
+            {
+                result = 4;
+            }
+            else if (i <= 14)
+            {
+                result = 5;
+            }
+            else if (i <= 17)
+            {
+                result = 6;
+            }
+            else if (i <= 20)
+            {
+                result = 7;
+            }
+            else
+            {
+                result = 8;
+            }
+            battleLevel = result;
+        }
+        Init_UiSet();
+        Init_BattleSet(battleLevel);
+        Init_RegularEffectSet();
+    }
+
+    private void Init_RegularEffectSet()
+    {
+        foreach (var x in characters)
+        {
+            regularEffect += x.ActiveRegularEffect;
+        }
+        foreach (var x in enemies)
+        {
+            regularEffect += x.ActiveRegularEffect;
+        }
+    }
+
+    private void Init_UiSet()
+    {
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
         panelClear = canvasBattle.GetChild(1);
         panelClear.gameObject.SetActive(false);
@@ -64,34 +129,82 @@ public class BattleScenario : MonoBehaviour
         SettingManager.LanguageChangeEvent += LanguageChange;
         LanguageChange(GameManager.language);
 
-        
-        foreach (var x in characters)
-        {
-            regularEffect += x.ActiveRegularEffect;
-        }
-        foreach (var x in enemies)
-        {
-            regularEffect += x.ActiveRegularEffect;
-        }
+
+
         battleScenarioTest = GetComponent<BattleScenarioTest>();
         if (battleScenarioTest)
             canvasTest.gameObject.SetActive(true);
         rectCharacterGroup = GameManager.gameManager.canvasGrid.GetChild(0).GetComponent<RectTransform>();
         GameManager.gameManager.uiCamera.SetActive(true);
 
-        CharacterDataInit();//Data->Base
 
+        //Stage 0
+        backgrounds[BackgroundType.Plains] = prefabSet.GetChild(0).gameObject;
+        backgrounds[BackgroundType.Forest] = prefabSet.GetChild(1).gameObject;
+        backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(2).gameObject;
+        //Stage 1
+        backgrounds[BackgroundType.Beach] = prefabSet.GetChild(3).gameObject;
+        backgrounds[BackgroundType.Swamp] = prefabSet.GetChild(4).gameObject;
+        backgrounds[BackgroundType.Cave] = prefabSet.GetChild(5).gameObject;
+        //Stage 2
+        backgrounds[BackgroundType.Desert] = prefabSet.GetChild(6).gameObject;
+        backgrounds[BackgroundType.Lava] = prefabSet.GetChild(7).gameObject;
+        backgrounds[BackgroundType.IceField] = prefabSet.GetChild(8).gameObject;
+
+        switch (battleLevel)
+        {
+            default:
+                ChangeMap(BackgroundType.Plains);
+                break;
+            case 1:
+                ChangeMap(BackgroundType.Forest);
+                break;
+            case 2:
+                ChangeMap(BackgroundType.Ruins);
+                break;
+            case 3:
+                ChangeMap(BackgroundType.Beach);
+                break;
+            case 4:
+                ChangeMap(BackgroundType.Swamp);
+                break;
+            case 5:
+                ChangeMap(BackgroundType.IceField);
+                break;
+            case 6:
+                ChangeMap(BackgroundType.Cave);
+                break;
+            case 7:
+                ChangeMap(BackgroundType.Desert);
+                break;
+            case 8:
+                ChangeMap(BackgroundType.Lava);
+                break;
+        }
+    }
+
+    private void Init_BattleSet(int _nodeLevel)
+    {
         if (enemies.Count == 0)
         {
-            string selectedCase = await MakeEnemies(GameManager.gameManager.nodeLevel);
-            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction => 
+            List<EnemyPiece> selectedCase = MakeEnemies(_nodeLevel);//적 생성
+            if (!battleSimulator)
+                FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
             {
-                GameManager.gameManager.InitSeed();
-                DataManager.dataManager.SetDocumentData("EnemyCase", selectedCase, "Progress", GameManager.gameManager.Uid);
+                for (int i = 0; i < selectedCase.Count; i++)
+                {
+                    Dictionary<string, object> enemyDict = new();
+                    enemyDict.Add("Id", selectedCase[i].id);
+                    enemyDict.Add("Index", selectedCase[i].index);
+                    DataManager.dataManager.SetDocumentData(enemyDict, $"Progress/{GameManager.gameManager.Uid}/Enemies");
+                }
                 DataManager.dataManager.SetDocumentData("Scene", "Battle", "Progress", GameManager.gameManager.Uid);
                 return Task.CompletedTask;
             });
         }
+        CharacterAtBattleInit();//Data->Base
+
+
         foreach (BaseAtBattle x in characters)
         {
             if (x.Hp == 0)
@@ -101,25 +214,75 @@ public class BattleScenario : MonoBehaviour
                 x.isDead = false;
             }
         }
-        //stage 0
-        backgrounds[BackgroundType.Plains] = prefabSet.GetChild(0).gameObject;
-        backgrounds[BackgroundType.Forest] = prefabSet.GetChild(5).gameObject;
-        backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(2).gameObject;
-        //Stage1
-        backgrounds[BackgroundType.Beach] = prefabSet.GetChild(1).gameObject;
-        backgrounds[BackgroundType.Swamp] = prefabSet.GetChild(8).gameObject;
-        backgrounds[BackgroundType.Cave] = prefabSet.GetChild(3).gameObject;
-        //Stage2
-        backgrounds[BackgroundType.Desert] = prefabSet.GetChild(4).gameObject;
-        backgrounds[BackgroundType.Lava] = prefabSet.GetChild(6).gameObject;
-        backgrounds[BackgroundType.IceField] = prefabSet.GetChild(7).gameObject;
-
     }
+
     public void OnGridPointerDown()
     {
         GameManager.battleScenario.isDragging = true;
         GameManager.IsPaused = true;
 
+    }
+    public static List<BaseAtBattle> GetTargetsByRange(EffectRange _range, BaseAtBattle _target)
+    {
+        List<BaseAtBattle> targets = null;
+        List<BaseAtBattle> targetsBase = (_target.IsEnemy ? enemies : characters).Where(item => !item.isDead).ToList();
+        switch (_range)
+        {
+            case EffectRange.Dot://가장 가까운 대상
+            case EffectRange.Self:
+                targets = new() { _target };
+                break;
+            case EffectRange.Row:
+                targets = targetsBase.Where(item => item.grid.index / 3 == _target.grid.index / 3).ToList();
+                break;
+            case EffectRange.Column:
+                targets = targetsBase.Where(item => item.grid.index % 3 == _target.grid.index % 3).ToList();
+                break;
+            case EffectRange.Behind:
+                if (_target.IsEnemy)
+                    targets = targetsBase.Where(item => item.grid.index % 3 > _target.grid.index % 3).ToList();
+                else
+                    targets = targetsBase.Where(item => item.grid.index % 3 < _target.grid.index % 3).ToList();
+                break;
+            case EffectRange.Front:
+                if (_target.IsEnemy)
+                    targets = targetsBase.Where(item => item.grid.index % 3 < _target.grid.index % 3).ToList();
+                else
+                    targets = targetsBase.Where(item => item.grid.index % 3 > _target.grid.index % 3).ToList();
+                break;
+        }
+        return targets;
+    }
+    public static List<GridObject> GetTargetGridsByRange(EffectRange _range, GridObject _targetGrid)
+    {
+        List<GridObject> targetGrids = null;
+        List<GridObject> gridsBase = (_targetGrid.isEnemy ? EnemyGrids : CharacterGrids).ToList();
+        switch (_range)
+        {
+            case EffectRange.Dot://가장 가까운 대상
+            case EffectRange.Self:
+                targetGrids = new() { _targetGrid };
+                break;
+            case EffectRange.Row:
+                targetGrids = gridsBase.Where(item => item.index / 3 == _targetGrid.index / 3).ToList();
+                break;
+            case EffectRange.Column:
+                targetGrids = gridsBase.Where(item => item.index % 3 == _targetGrid.index % 3).ToList();
+                break;
+            case EffectRange.Behind:
+                if (_targetGrid.isEnemy)
+                    targetGrids = gridsBase.Where(item => item.index % 3 > _targetGrid.index % 3).ToList();
+                else
+                    targetGrids = gridsBase.Where(item => item.index % 3 < _targetGrid.index % 3).ToList();
+                break;
+            case EffectRange.Front:
+                if (_targetGrid.isEnemy)
+                    targetGrids = gridsBase.Where(item => item.index % 3 < _targetGrid.index % 3).ToList();
+                else
+                    targetGrids = gridsBase.Where(item => item.index % 3 > _targetGrid.index % 3).ToList();
+                break;
+        }
+        return targetGrids;
     }
     public void MoveCharacterByGrid(GridObject _startGrid, GridObject _targetGrid)
     {
@@ -137,12 +300,13 @@ public class BattleScenario : MonoBehaviour
         }
     }
 
-    internal void CharacterDataInit()
+    private void CharacterAtBattleInit()
     {
         List<CharacterData> characterDataList = CharacterManager.characterManager.GetCharacters();
         foreach (BaseAtBattle x in characters)
         {
             CharacterData characterData = characterDataList.FirstOrDefault(item => item.docId == x.documentId);
+
             x.maxHp = x.maxHpInBattle = characterData.maxHp;//Hp만 우선적 init 나머지는 CharacterBase.SetSkillsAndStart()에서
             x.ability = characterData.ability;
             x.speed = characterData.speed;
@@ -158,13 +322,30 @@ public class BattleScenario : MonoBehaviour
                     continue;
                     x.skills.Add(GameManager.LocalizeSkill(skillName));
             }
-
-            //무기해야함
+            string[] splittedStr = characterData.weaponId.Split(":::");
+            WeaponType weaponType;
+            switch (splittedStr[0])
+            {
+                default:
+                    weaponType = WeaponType.Sword;
+                    break;
+                case "Bow":
+                    weaponType = WeaponType.Bow;
+                    break;
+                case "Magic":
+                    weaponType = WeaponType.Magic;
+                    break;
+                case "Club":
+                    weaponType = WeaponType.Club;
+                    break;
+            }
+            WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType][splittedStr[1]];
+            characterData.SetWeaponSprite(weapon);
+            x.weapon = weapon;
 
             x.grid = CharacterGrids[characterData.index];
             x.MoveToTargetGrid(x.grid, true);
             x.grid.owner = x;
-            
         }
         battlePatern = BattlePatern.OnReady;
     }
@@ -233,49 +414,54 @@ public class BattleScenario : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(1f);
-            regularEffect();
+            if (regularEffect != null)
+                regularEffect();
         }
     }
 
-    public void StageClear()
+    public async Task StageClearAsync()
     {
         Debug.Log("StageClear");
         panelClear.gameObject.SetActive(true);
         List<CharacterData> datas = CharacterManager.characterManager.GetCharacters();
-        foreach (CharacterData x in datas)
+        if (!battleSimulator)
         {
-            x.hp = characters.Where(item => item.documentId == x.docId).FirstOrDefault().Hp;
-        }
-
-        foreach (BaseAtBattle x in enemies)
-        {
-            Destroy(x.gameObject, 1f);
-        }
-        FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
-        {
-            foreach (BaseAtBattle x in characters)
+            foreach (CharacterData x in datas)
             {
-                DataManager.dataManager.SetDocumentData("Hp", string.Format("{0}/{1}", Mathf.Max(x.Hp, 1), x.maxHp), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), x.documentId);
-
+                x.hp = characters.Where(item => item.documentId == x.docId).FirstOrDefault().Hp;
             }
-            DataManager.dataManager.SetDocumentData("Scene", "stage 0", "Progress", GameManager.gameManager.Uid);
-            return Task.CompletedTask;
-        });
+            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+            {
+                foreach (BaseAtBattle x in characters)
+                {
+                    DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(x.Hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), x.documentId);
+
+                }
+                DataManager.dataManager.SetDocumentData("Scene", "Stage 0", "Progress", GameManager.gameManager.Uid);
+                return Task.CompletedTask;
+            });
+        }
         foreach (BaseAtBattle x in characters)
         {
             x.StopBattle();
         }
-        ClearEnemy();
+        await ClearEnemyAsync();
     }
     public void ToMap()
     {
-        foreach (var x in characters)
+        if (battleSimulator)
         {
-            x.InBattleFieldZero();
+            GoBattleSimulation();
         }
-        GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-        SceneManager.LoadScene("stage 0");
-
+        else
+        {
+            foreach (BaseAtBattle x in characters)
+            {
+                x.InBattleFieldZero();
+            }
+            GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
+            SceneManager.LoadScene("Stage 0");
+        }
     }
     private IEnumerator MoveGaugeCor()
     {
@@ -293,41 +479,47 @@ public class BattleScenario : MonoBehaviour
         {
             x.StartBattle();
         }
-        foreach (var x in characters)
-        {
-            x.StartBattle();
-        }
+        //foreach (var x in characters)
+        //{
+        //    x.StartBattle();
+        //}
         canvasBattle.GetChild(0).gameObject.SetActive(false);
         regularEffectCor = StartCoroutine(ActiveRegualrEffect());
         battlePatern = BattlePatern.Battle;
         StartCoroutine(MoveGaugeCor());
     }
-    private async Task<string> MakeEnemies(int _nodeLevel)
+    private List<EnemyPiece> MakeEnemies(int _nodeLevel)
     {
-        var values = LoadManager.loadManager.enemyCaseDict;
+        Dictionary<string, EnemyCase> values = LoadManager.loadManager.enemyCaseDict;
         List<string> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel))
                               .Select(item => item.Key)
                               .ToList();
         string selectedCase = ableCases[UnityEngine.Random.Range(0, ableCases.Count)];
-        await GameManager.gameManager.LoadEnemies(selectedCase);
-        return selectedCase;
+        List<EnemyPiece> enemyPieces = LoadEnemiesByCase(selectedCase);
+        return enemyPieces;
     }
-    public static void ClearEnemy()
+    public async Task ClearEnemyAsync()
+    {
+        ClearEnemyObject();
+        List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
+        foreach (DocumentSnapshot snapshot in snapshots)
+        {
+            await snapshot.Reference.DeleteAsync();
+        }
+    }
+
+    private void ClearEnemyObject()
     {
         foreach (var x in enemies)
         {
             Destroy(x.gameObject);
         }
         enemies.Clear();
-        DataManager.dataManager.SetDocumentData("EnemyCase", FieldValue.Delete, "Progress", GameManager.gameManager.Uid);
     }
-    public static async void ClearCharacter()
+
+    public async Task ClearCharacterAsync()
     {
-        foreach (var x in characters)
-        {
-            Destroy(x.gameObject);
-        }
-        characters.Clear();
+        ClearCharacterObject();
         string collectionRef = "Progress/" + GameManager.gameManager.Uid + "/Characters";
         List<DocumentSnapshot> result = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"));
         foreach (DocumentSnapshot doc in result)
@@ -335,12 +527,16 @@ public class BattleScenario : MonoBehaviour
             await doc.Reference.DeleteAsync();
         }
     }
-    public void DestoyByDocId(string _docId)
+
+    private void ClearCharacterObject()
     {
-        BaseAtBattle x = characters.Where(item => item.documentId == _docId).FirstOrDefault();
-        characters.Remove(x);
-        Destroy(x.gameObject);
+        foreach (var x in characters)
+        {
+            Destroy(x.gameObject);
+        }
+        characters.Clear();
     }
+
     public void GoToStart() => SceneManager.LoadScene("Start");
     public void CreateVisualEffect(VisualEffect _visualEffect, BaseAtBattle _character, bool _isSkillVe)
     {
@@ -370,11 +566,13 @@ public class BattleScenario : MonoBehaviour
     [ContextMenu("ChangeTest")]
     public void ChangeTest()
     {
-        BackgroundType[] enumValues = (BackgroundType[])Enum.GetValues(typeof(BackgroundType));
+        BackgroundType[] enumValues = (BackgroundType[])System.Enum.GetValues(typeof(BackgroundType));
         ChangeMap(enumValues[UnityEngine.Random.Range(0, enumValues.Length)]);
     }
     public string visualEffectStr;
     public float visualEffectDur;
+    public static BattleSimulator battleSimulator;
+
     [ContextMenu("VisualEffetTest")]
     public void VisualEffectTest()
     {
@@ -405,5 +603,71 @@ public class BattleScenario : MonoBehaviour
             else
                 Destroy(effectObj, visualEffectDur);
         }
+    }
+    public List<EnemyPiece> LoadEnemiesByCase(string _caseStr)
+    {
+        List<EnemyPiece> enemyPieces = new();
+        //foreach (var x in BattleScenario.EnemyGrids)
+        //{
+        //    x.gameObject.SetActive(true);
+        //}
+        EnemyCase enemyCase = LoadManager.loadManager.enemyCaseDict[_caseStr];
+        Dictionary<string, EnemyClass> enemyDict = LoadManager.loadManager.enemyiesDict;
+        foreach (EnemyPieceForm pieceForm in enemyCase.pieces)
+        {
+            string id;
+            if (pieceForm.id != null)
+            {
+                id = pieceForm.id;
+            }
+            else if (pieceForm.type != null)
+            {
+                List<KeyValuePair<string, EnemyClass>> values = enemyDict.ToList();
+                List<KeyValuePair<string, EnemyClass>> typeValues = values.Where(item => item.Value.type == pieceForm.type).ToList();
+                id = typeValues[Random.Range(0, typeValues.Count)].Key;
+            }
+            else
+            {
+                List<KeyValuePair<string, EnemyClass>> values = enemyDict.ToList();
+                List<KeyValuePair<string, EnemyClass>> typeValues = values.Where(item => item.Value.enemyLevel == pieceForm.enemyLevel).ToList();
+                id = typeValues[Random.Range(0, typeValues.Count)].Key;
+            }
+            GridObject grid = EnemyGrids[pieceForm.index];
+            GameObject enemyObject;
+            EnemyClass enemyClass = enemyDict[id];
+            enemyObject = GameManager.gameManager.GetEnemyPrefab(id, enemyClass.isMonster);
+
+            EnemyAtBattle enemyScript = enemyObject.AddComponent<EnemyAtBattle>();
+            enemyScript.InitEnemy(enemyClass, grid, enemyClass.isMonster);
+            enemies.Add(enemyScript);
+            enemyPieces.Add(new(id, pieceForm.index));
+        }
+        return enemyPieces;
+    }
+    public static async Task LoadEnemyByProgressAsync()
+    {
+        Dictionary<string, EnemyClass> enemyDict = LoadManager.loadManager.enemyiesDict;
+        List<DocumentSnapshot> snapshots =  await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
+        foreach (DocumentSnapshot snapshot in snapshots)
+        {
+            Dictionary<string, object> dict = snapshot.ToDictionary();
+            string id = (string)dict["Id"];
+            int index = (int)(long)dict["Index"];
+
+            GridObject grid = EnemyGrids[index];
+            GameObject enemyObject;
+            EnemyClass enemyClass = enemyDict[id];
+            enemyObject = GameManager.gameManager.GetEnemyPrefab(id, enemyClass.isMonster);
+
+            EnemyAtBattle enemyScript = enemyObject.AddComponent<EnemyAtBattle>();
+            enemyScript.InitEnemy(enemyClass, grid, enemyClass.isMonster);
+            enemies.Add(enemyScript);
+        }
+    }
+    public void GoBattleSimulation()
+    {
+        ClearEnemyObject();
+        ClearCharacterObject();
+        SceneManager.LoadScene("BattleSimulation");
     }
 }

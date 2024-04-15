@@ -16,6 +16,7 @@ namespace BattleCollection
         public List<List<SkillEffect>> effects;
         public bool isAnim;
         public List<string> visualEffect;
+        public bool isPre = false;
         public SkillForm SetName(Dictionary<Language, string> _name)
         {
             name = _name;
@@ -56,6 +57,11 @@ namespace BattleCollection
             visualEffect = _visualEffect;
             return this;
         }
+        public SkillForm SetIsPre(bool _isPre)
+        {
+            isPre = _isPre;
+            return this;
+        }
     }
     [Serializable]
     public class Skill
@@ -69,6 +75,7 @@ namespace BattleCollection
         public bool isAnim;
         public VisualEffect visualEffect;
         public static float defaultAttackCooltime = 3f;
+        public bool isPre;
         public Skill(SkillForm _skillForm, byte _level)//Skill
         {
             name = _skillForm.name;
@@ -86,6 +93,7 @@ namespace BattleCollection
                 if (veName != string.Empty)
                     visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
             }
+            isPre = _skillForm.isPre;
         }
         public Skill()//Default Attack
         {
@@ -94,6 +102,7 @@ namespace BattleCollection
             cooltime = defaultAttackCooltime;
             isTargetEnemy = true;
             isAnim = true;
+            isPre = false;
             //skillEffect = LoadManager.loadManager.skillEffectDict["arrowFire_01"];
             effects = new()
             {
@@ -255,9 +264,9 @@ namespace BattleCollection
     }
     public class EnemyCase
     {
-        public List<EnemyCasePiece> pieces;//id, index
+        public List<EnemyPieceForm> pieces;//id, index
         public List<int> levelRange;
-        public EnemyCase SetEnemies(List<EnemyCasePiece> _pieces)
+        public EnemyCase SetEnemies(List<EnemyPieceForm> _pieces)
         {
             pieces = _pieces;
             return this;
@@ -268,7 +277,7 @@ namespace BattleCollection
             return this;
         }
     }
-    public class EnemyCasePiece
+    public class EnemyPieceForm
     {
         //셋 중 하나만 있어야 함
         public string id;
@@ -276,25 +285,35 @@ namespace BattleCollection
         public int enemyLevel = -1;
         //반드시 필요함
         public int index;
-        public EnemyCasePiece SetId(string _id)
+        public EnemyPieceForm SetId(string _id)
         {
             id = _id;
             return this;
         }
-        public  EnemyCasePiece SetLevel(int _enemyLevel)
+        public  EnemyPieceForm SetLevel(int _enemyLevel)
         {
             enemyLevel = _enemyLevel;
             return this;
         }
-        public EnemyCasePiece SetType(string _type)
+        public EnemyPieceForm SetType(string _type)
         {
             type = _type;
             return this;
         }
-        public EnemyCasePiece SetIndex(int _index)
+        public EnemyPieceForm SetIndex(int _index)
         {
             index = _index;
             return this;
+        }
+    }
+    public class EnemyPiece
+    {
+        public string id;
+        public int index;
+        public EnemyPiece(string _id, int _index)
+        {
+            id = _id;
+            index = _index;
         }
     }
 

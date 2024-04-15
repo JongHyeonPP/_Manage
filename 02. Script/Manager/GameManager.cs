@@ -51,7 +51,8 @@ public class GameManager : MonoBehaviour
     #endregion
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
     EventTrigger eventTrigger;
-    public int nodeLevel = 0;
+    public int nodeLevel;
+    public int stage;
     public string scene;
     public string history;
     public string invenData;
@@ -198,33 +199,49 @@ public class GameManager : MonoBehaviour
         Random.InitState(seed);
         scene = (string)progressDoc["Scene"];
         nodeLevel = (int)(long)progressDoc["NodeLevel"];
+        gold = GetFloatValue(progressDoc["Gold"]);
+        stage = (int)(long)progressDoc["Stage"];
         await LoadCharacter();
-        if (scene == "Battle")
-            await LoadEnemies((string)progressDoc["EnemyCase"]);
+        switch (scene)
+        {
+            case "Map":
+                scene = $"Stage {stage}";
+                break;
+            case "Battle":
+                await BattleScenario.LoadEnemyByProgressAsync();
+                break;
+        }
         invenData = (string)progressDoc["InvenData"];
         SceneManager.LoadScene(scene);
     }
-    public void NewGame()
+    public void InitProgress()
     {
         //temp
         nodeLevel = 0;
+        stage = 0;
+        gold = 0f;
         Dictionary<string, object> dict = new();
+        InitSeed();
         dict.Add("Seed", seed);
         dict.Add("NodeLevel", nodeLevel);
-        FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
-        {
-            InitSeed();
-            DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
-            return Task.CompletedTask;
-        });
+        dict.Add("Stage", stage);
+        dict.Add("Gold", gold);
+        dict.Add("Scene", "Map");
+        dict.Add("InvenData", string.Empty);
+        DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
     }
-    private async Task LoadCharacter()
+
+    public async Task LoadCharacter(int _battleLevel =-1)
     {
         foreach (var x in BattleScenario.CharacterGrids)
         {
             x.gameObject.SetActive(true);
         }
-        List<DocumentSnapshot> characterDocs = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", gameManager.uid, "Characters"));
+        List<DocumentSnapshot> characterDocs;
+        if (_battleLevel == -1)
+            characterDocs = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", gameManager.uid, "Characters"));
+        else
+            characterDocs = await DataManager.dataManager.GetDocumentSnapshots($"SimulationCharacterInfo/Simulation_{_battleLevel}/Characters");
         if (characterDocs.Count == 0)
         {
             Debug.LogError("No Characters");
@@ -248,8 +265,7 @@ public class GameManager : MonoBehaviour
             eyesBack = null,
             head = null,
             armL = null,
-            armR = null,
-            weapon = null;
+            armR = null;
             Color hairColor = Color.black;
             if (tempDict.TryGetValue("Ability", out obj))
             {
@@ -323,11 +339,23 @@ public class GameManager : MonoBehaviour
                 }
                 if (bodyDict.TryGetValue("Hair", out obj1))
                 {
-                    hair = LoadManager.loadManager.hairDict[(string)obj1];
+                    string hairStr = (string)obj1;
+                    if (hairStr == string.Empty)
+                    {
+                        hair = null;
+                    }
+                    else
+                        hair = LoadManager.loadManager.hairDict[hairStr];
                 }
                 if (bodyDict.TryGetValue("FaceHair", out obj1))
                 {
-                    faceHair = LoadManager.loadManager.faceHairDict[(string)obj1];
+                    string faceHairStr = (string)obj1;
+                    if (faceHairStr == string.Empty)
+                    {
+                        faceHair = null;
+                    }
+                    else
+                        faceHair = LoadManager.loadManager.faceHairDict[faceHairStr];
                 }
                 if (bodyDict.TryGetValue("Eye", out obj1))
                 {
@@ -351,12 +379,13 @@ public class GameManager : MonoBehaviour
                     hairColor = new Color(red, green, blue);
                 }
             }
-            if (tempDict.TryGetValue("Weapon", out obj))
+            if (tempDict.TryGetValue("WeaponId", out obj))
             {
-                Dictionary<string, object> weaponDict = obj as Dictionary<string, object>;
-                weaponId = (string)weaponDict["Id"];
+                weaponId = (string)obj;
                 WeaponType weaponType;
-                switch ((string)weaponDict["Type"])
+                string weaponName;
+                string[] splittedStr = weaponId.Split(":::");
+                switch (splittedStr[0])
                 {
                     default:
                         weaponType = WeaponType.Sword;
@@ -371,7 +400,12 @@ public class GameManager : MonoBehaviour
                         weaponType = WeaponType.Club;
                         break;
                 }
-                weapon = LoadManager.loadManager.weaponDict[weaponType][weaponId].sprite;
+                weaponName = splittedStr[1];
+                WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType][weaponName];
+                hp += weapon.hp;
+                ability += weapon.ability;
+                speed += weapon.speed;
+                resist += weapon.resist;
             }
             else
             {
@@ -381,14 +415,12 @@ public class GameManager : MonoBehaviour
             string jobId = GetJobId(skillNames);
 
             GameObject characterObject = Instantiate(CharacterTemplate);
-            characterObject.transform.SetParent(_grid.transform);
-            characterObject.transform.localScale = Vector3.one * 80f;
             //CharacterHierarchy
             CharacterHierarchy characterHierarchy = characterObject.transform.GetChild(0).GetComponent<CharacterHierarchy>();
-            characterHierarchy.SetBodySprite(hair, faceHair, eyesFront, eyesBack, head, armL, armR ,hairColor);
+            characterHierarchy.SetBodySprite(hair, faceHair, eyesFront, eyesBack, head, armL, armR, hairColor);
             //CharacterAtBattle, Applicant는 가질 필요없기 때문에 미리 갖고 있지 않는다.
             CharacterAtBattle characterAtBattle = characterObject.AddComponent<CharacterAtBattle>();
-            characterAtBattle.InitCharacter(snapShot.Id);
+            characterAtBattle.InitCharacter(snapShot.Id, _grid);
             BattleScenario.characters.Add(characterAtBattle);
             //CharacterData, 위와 동일
             CharacterData characterData = characterObject.AddComponent<CharacterData>();
@@ -446,45 +478,7 @@ public class GameManager : MonoBehaviour
         SkillForm tempSkillForm = LoadManager.loadManager.skillsDict[skillID];
         return new Skill(tempSkillForm, skillLevel);
     }
-    public async Task LoadEnemies(string _caseStr)
-    {
-        //foreach (var x in BattleScenario.EnemyGrids)
-        //{
-        //    x.gameObject.SetActive(true);
-        //}
-        EnemyCase enemyCase = LoadManager.loadManager.enemyCaseDict[_caseStr];
-        Dictionary<string, EnemyClass> enemyDict = LoadManager.loadManager.enemyiesDict;
-        foreach (EnemyCasePiece piece in enemyCase.pieces)
-        {
-            string id;
-            if (piece.id != null)
-            {
-                id = piece.id;
-            }
-            else if (piece.type != null)
-            {
-                List<KeyValuePair<string, EnemyClass>> values = enemyDict.ToList();
-                List<KeyValuePair<string, EnemyClass>> typeValues = values.Where(item => item.Value.type == piece.type).ToList();
-                id = typeValues[Random.Range(0, typeValues.Count)].Key;
-            }
-            else
-            {
-                List<KeyValuePair<string, EnemyClass>> values = enemyDict.ToList();
-                List<KeyValuePair<string, EnemyClass>> typeValues = values.Where(item => item.Value.enemyLevel == piece.enemyLevel).ToList();
-                id = typeValues[Random.Range(0, typeValues.Count)].Key;
-            }
-            GridObject grid = BattleScenario.EnemyGrids[piece.index];
-            GameObject enemyObject;
-            EnemyClass enemyClass = enemyDict[id];
-            enemyObject = GetEnemyPrefab(id, enemyClass.isMonster);
-            enemyObject.transform.SetParent(grid.transform);
-            enemyObject.transform.localPosition = Vector3.zero;
-            enemyObject.transform.localScale = Vector3.one;
-            EnemyAtBattle enemyScript = enemyObject.AddComponent<EnemyAtBattle>();
-            enemyScript.InitEnemy(enemyClass, grid, enemyClass.isMonster);
-            BattleScenario.enemies.Add(enemyScript);
-        }
-    }
+
 
     public GameObject GetEnemyPrefab(string _characterId, bool _isMonster = false)
     {
@@ -547,7 +541,7 @@ public class GameManager : MonoBehaviour
 
         // 0과 1 사이의 랜덤 값을 생성
         float randomValue = Random.Range(0f, 1f);
-        
+
         // 누적 확률을 사용하여 결과를 결정
         float cumulativeProbability = 0;
         for (int i = 0; i < probabilities.Length; i++)
@@ -564,13 +558,15 @@ public class GameManager : MonoBehaviour
     }
     public async void GameOver()
     {
-        //await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
-        //{
-        //    BattleScenario.ClearEnemy();
-        //    BattleScenario.ClearFriendly();
-        //    DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
-        //    documentRef.DeleteAsync();
-        //});
+
+
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        {
+            await battleScenario.ClearCharacterAsync();
+            await battleScenario.ClearEnemyAsync();
+            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
+            await documentRef.DeleteAsync();
+        });
         StartCoroutine(GameOverCor());
 
         IEnumerator GameOverCor()
@@ -595,5 +591,18 @@ public class GameManager : MonoBehaviour
     {
         invenData = _invenData;
         await DataManager.dataManager.SetDocumentData("InvenData", _invenData, string.Format("{0}/{1}", "Progress", Uid));
+    }
+    public static float GetRandomNumber(float _mean, float _standardDeviation)
+    {
+        System.Random random = new();
+        double u1 = 1.0 - random.NextDouble(); // 난수 생성
+        double u2 = 1.0 - random.NextDouble();
+        double randStdNormal = System.Math.Sqrt(-2.0 * System.Math.Log(u1)) * System.Math.Sin(2.0 * System.Math.PI * u2); // 정규 분포를 따르는 값 생성
+        float randNormal = _mean + _standardDeviation * (float)randStdNormal; // 평균과 표준 편차 적용
+
+        // 평균 값의 최소 50%, 최대 200%로 값을 제한
+        randNormal = Mathf.Clamp(randNormal, _mean * 0.5f, _mean * 2f);
+
+        return randNormal;
     }
 }

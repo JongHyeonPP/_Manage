@@ -6,6 +6,6 @@ public class DepartUi : LobbyUiBase
 {
     public void DepartSelected()
     {
-        GameManager.lobbyScenario.DepartSelected();
+        GameManager.lobbyScenario.DepartAsync();
     }
 }

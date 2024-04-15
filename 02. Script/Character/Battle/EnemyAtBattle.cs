@@ -11,9 +11,12 @@ public class EnemyAtBattle : BaseAtBattle
 
     public void InitEnemy(EnemyClass _enemyClass, GridObject _grid, bool _isMonster)
     {
+        InitBase(_grid);
         IsEnemy = true;
         isMonster = _isMonster;
-        InitBase();
+        
+        transform.localPosition = Vector3.zero;
+        transform.localScale = Vector3.one;
         skillTargetTransform = transform.GetChild(0).GetChild(0);
         rootTargetTransform.localScale = skillTargetTransform.localScale = new Vector3(1f, 1f, 0f);
         skillTargetTransform.localScale = skillTargetTransform.localScale = new Vector3(1f, 1f, 0f);
@@ -35,7 +38,7 @@ public class EnemyAtBattle : BaseAtBattle
                 gameOverFlag = true;
         }
         if (!gameOverFlag)
-            GameManager.battleScenario.StageClear();
+            GameManager.battleScenario.StageClearAsync();
     }
 
     public override void SetAnimParam()

@@ -1,22 +1,20 @@
-using EnumCollection;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using CharacterCollection;
-using UnityEngine.UI;
+using EnumCollection;
+using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 public class ApplicantSlot : MonoBehaviour
 {
-    private float hp;
-    private float ability;
-    private float speed;
-    private float resist;
+    public float Hp { get; private set; }
+    public float Ability { get; private set; }
+    public float Speed { get; private set; }
+    public float Resist { get; private set; }
     public GameObject objectSelect;
     public SpriteRenderer rendererCheck;
     private TMP_Text textSelect;
     private bool isActived;
     private bool isSelected;
-    private Animator templateAnimator;
+    public Animator templateAnimator;
     private readonly Color BlackHair = new Color(45f / 255f, 45f / 255f, 45f / 255f);
     private readonly Color BrownHair = new Color(80f / 255f, 45f / 255f, 0f);
     private readonly Color BlueHair = new Color(28f / 255f, 58f / 255f, 180f / 255f);
@@ -24,8 +22,9 @@ public class ApplicantSlot : MonoBehaviour
     private readonly Color YellowHair = new Color(1f, 1f, 0f);
     private readonly Color WhiteHair = new Color(1f, 1f, 1f);
     private readonly Color GreenHair = new Color(0f, 190f / 255f, 0f);
-    GameObject templateObject;
+    public GameObject templateObject;
 
+    public Dictionary<string, object> bodyDict { get; private set; } = new();
     private void Awake()
     {
         rendererCheck.enabled = false;
@@ -52,10 +51,10 @@ public class ApplicantSlot : MonoBehaviour
     {
         isActived = false;
         objectSelect.SetActive(isActived);
-        hp = GetStatus(LobbyScenario.defaultHp, LobbyScenario.hpRange);
-        ability = GetStatus(LobbyScenario.defaultAbility, LobbyScenario.abilityRange);
-        speed = GetStatus(LobbyScenario.defaultSpeed, LobbyScenario.speedRange);
-        resist = GetStatus(LobbyScenario.defaultResist, LobbyScenario.resistRange);
+        Hp = GetStatus(LobbyScenario.defaultHp, LobbyScenario.hpSd);
+        Ability = GetStatus(LobbyScenario.defaultAbility, LobbyScenario.abilitySd);
+        Speed = GetStatus(LobbyScenario.defaultSpeed, LobbyScenario.speedSd);
+        Resist = GetStatus(LobbyScenario.defaultResist, LobbyScenario.resistSd);
     }
     private void InitCharacterTemplate()
     {
@@ -77,9 +76,8 @@ public class ApplicantSlot : MonoBehaviour
             Sprite eyeBack;
             Sprite armL;
             Sprite armR;
-            Sprite weapon;
             Color hairColor;
-            hair = faceHair = weapon = null;
+            hair = faceHair =  null;
             hairColor = Color.black;
             //Species
             Species species;
@@ -88,51 +86,69 @@ public class ApplicantSlot : MonoBehaviour
             {
                 default:
                     species = Species.Human;
+                    bodyDict.Add("Species", "Human");
                     break;
                 case 1:
                     species = Species.Elf;
+                    bodyDict.Add("Species", "Elf");
                     break;
                 case 2:
                     species = Species.Devil;
+                    bodyDict.Add("Species", "Devil");
                     break;
                 case 3:
                     species = Species.Skelton;
+                    bodyDict.Add("Species", "Skelton");
                     break;
                 case 4:
                     species = Species.Orc;
+                    bodyDict.Add("Species", "Orc");
                     break;
             }
             //Eye
-            List<EyeClass> eyeValues = new List<EyeClass>(LoadManager.loadManager.EyeDict[species].Values);
-            int eyeNum = Random.Range(0, eyeValues.Count);
-            EyeClass eyeClass = eyeValues[eyeNum];
-            eyeFront = eyeClass.front;
-            eyeBack = eyeClass.back;
+            List<KeyValuePair<string, EyeClass>> eyeKvps = new(LoadManager.loadManager.EyeDict[species]);
+            int eyeNum = Random.Range(0, eyeKvps.Count);
+            KeyValuePair<string, EyeClass> eyeKvp = eyeKvps[eyeNum];
+            eyeFront = eyeKvp.Value.front;
+            eyeBack = eyeKvp.Value.back;
+            bodyDict.Add("Eye", eyeKvp.Key);
             //BodyPart
-            List<BodyPartClass> bodyPartValues = new List<BodyPartClass>(LoadManager.loadManager.BodyPartDict[species].Values);
+            List<KeyValuePair<string, BodyPartClass>> bodyPartValues = new(LoadManager.loadManager.BodyPartDict[species]);
             int bodyPartNum = Random.Range(0, bodyPartValues.Count);
-            BodyPartClass bodyPartClass = bodyPartValues[bodyPartNum];
-            head = bodyPartClass.head;
-            armL = bodyPartClass.armL;
-            armR = bodyPartClass.armR;
+            KeyValuePair<string, BodyPartClass> bodyPartKvp = bodyPartValues[bodyPartNum];
+            head = bodyPartKvp.Value.head;
+            armL = bodyPartKvp.Value.armL;
+            armR = bodyPartKvp.Value.armR;
+            bodyDict.Add("Body", bodyPartKvp.Key);
             if (species == Species.Human || species == Species.Elf)
             {
                 //Hair
-                List<Sprite> hairvalues = new List<Sprite>(LoadManager.loadManager.hairDict.Values);
-                int hairNum = Random.Range(0, hairvalues.Count + 1);
-                hair = (hairNum == hairvalues.Count) ? null : hairvalues[hairNum];
+                List<KeyValuePair<string, Sprite>> hairKvps = new(LoadManager.loadManager.hairDict);
+                int hairNum = Random.Range(0, hairKvps.Count + 1);
+                if (hairNum != hairKvps.Count)
+                {
+                    hair = hairKvps[hairNum].Value;
+                    bodyDict.Add("Hair", hairKvps[hairNum].Key);
+                }
+                else
+                {
+                    hair = null;
+                    bodyDict.Add("Hair", string.Empty);
+                }
                 //FaceHair
                 if (GameManager.CalculateProbability(0.3f))
                 {
-                    List<Sprite> faceHairvalues = new List<Sprite>(LoadManager.loadManager.faceHairDict.Values);
-                    int faceHairNum = Random.Range(0, faceHairvalues.Count);
-                    faceHair = faceHairvalues[faceHairNum];
+                    List<KeyValuePair<string, Sprite>> faceHairKvps = new(LoadManager.loadManager.faceHairDict);
+                    int faceHairNum = Random.Range(0, faceHairKvps.Count);
+                    faceHair = faceHairKvps[faceHairNum].Value;
+                    bodyDict.Add("FaceHair", faceHairKvps[faceHairNum].Key);
                 }
                 else
                 {
                     faceHair = null;
+                    bodyDict.Add("FaceHair", string.Empty);
                 }
-
+                
                 //Haircolor
                 switch (GameManager.AllocateProbability(0.5f, 0.2f, 0.05f, 0.05f, 0.05f, 0.1f, 0.05f))
                 {
@@ -159,14 +175,11 @@ public class ApplicantSlot : MonoBehaviour
                         break;
 
                 }
-            }
-            if (GameManager.CalculateProbability(0.5f))
-            {
-                weapon = LoadManager.loadManager.weaponDict[WeaponType.Sword]["Default"].sprite;
-            }
-            else
-            {
-                weapon = LoadManager.loadManager.weaponDict[WeaponType.Club]["Default"].sprite;
+                Dictionary<string, float> colorDict = new();
+                colorDict.Add("R", hairColor.r);
+                colorDict.Add("G", hairColor.g);
+                colorDict.Add("B", hairColor.b);
+                bodyDict.Add("HairColor", colorDict);
             }
             characterHierarchy.SetBodySprite(hair, faceHair, eyeFront, eyeBack, head, armL, armR, hairColor);
         }
@@ -180,7 +193,7 @@ public class ApplicantSlot : MonoBehaviour
                 IsActived = false;
                 break;
             case false://비활성화 돼있었다면 활성화
-                GameManager.lobbyScenario.SetStatusText(hp, ability, speed, resist);
+                GameManager.lobbyScenario.SetStatusText(Hp, Ability, Speed, Resist);
                 GameManager.lobbyScenario.InactiveEnterBtns();
                 IsActived = true;
                 break;
@@ -207,7 +220,16 @@ public class ApplicantSlot : MonoBehaviour
         }
         rendererCheck.enabled = isSelected;
     }
-    private float GetStatus(float _defaultStatus, float _statusRange) => (_defaultStatus + Random.Range(0f, _statusRange)) * (1f + GameManager.gameManager.upgradeValueDict[UpgradeEffectType.StatusUp]);
+    private float GetStatus(float _defaultStatus, float _standardDeviation)
+    {
+        float returnValue = GameManager.GetRandomNumber(_defaultStatus, _standardDeviation);
+        if (GameManager.gameManager.upgradeValueDict.TryGetValue(UpgradeEffectType.StatusUp, out float statusUp))
+        {
+            returnValue *= 1f + statusUp;
+        }
+        return returnValue;
+    }
+
     public void FronApplicantToCharacter()
     {
     
