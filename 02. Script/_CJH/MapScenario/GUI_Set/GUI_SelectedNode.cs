@@ -86,7 +86,10 @@ public class GUI_SelectedNode : MonoBehaviour
 
 
         myList.Clear();
-
+        if (NodeInfoGUI == null)
+        {
+            NodeInfoGUI = MapDataSGT.GlobalInit().CurrMS._SC.mapNodeInfo;
+        }
         NodeInfoGUI.SetGUI_toDefault();
         return;
     }

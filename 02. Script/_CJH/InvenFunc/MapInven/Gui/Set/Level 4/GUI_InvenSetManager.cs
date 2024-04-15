@@ -19,7 +19,24 @@ public class GUI_InvenSetManager : MonoBehaviour
             return;
 
         if(myInvenSet == null)
-         myInvenSet = GetComponentsInChildren<GUI_InvenSpaceSlotSet>().ToList();
+            myInvenSet = GetComponentsInChildren<GUI_InvenSpaceSlotSet>().ToList();
+
+        for (int i = 0; i < myInvenSet.Count; i++)
+        {
+            List<int> data = new();
+            myInvenSet[i].index = i;
+            myInvenSet[i]._DEBUG(data);
+        }
+    }
+
+    [ContextMenu("_SetMyGrid")]
+    public void _SetMyGrid()
+    {
+        if (!_isDebug)
+            return;
+
+        if (myInvenSet == null)
+            myInvenSet = GetComponentsInChildren<GUI_InvenSpaceSlotSet>().ToList();
 
         for (int i = 0; i < myInvenSet.Count; i++)
         {

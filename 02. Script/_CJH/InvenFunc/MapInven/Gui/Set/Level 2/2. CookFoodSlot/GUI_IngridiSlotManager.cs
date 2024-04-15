@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using UnityEditorInternal.VersionControl;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GUI_IngridiSlotManager : MonoBehaviour
 {
@@ -21,6 +23,19 @@ public class GUI_IngridiSlotManager : MonoBehaviour
         _IngredientPoker.SetDefault();
     }
 
+    [ContextMenu("debug")]
+    public void debugdebug()
+    {
+        List<RBD_IngridimentSlot> _slots = _values.RBD_Slots;
+        for (int i = 0; i < _slots.Count; i++)
+        {
+            if (_slots[i]._GUI_ItemUnit == null)
+                continue;
+            GameObject target = _slots[i]._GUI_ItemUnit.gameObject;
+            target.transform.name = "dm";
+        }
+    }
+
 
     [ContextMenu("Event_Reset")]
     public void Event_Reset()
@@ -32,6 +47,7 @@ public class GUI_IngridiSlotManager : MonoBehaviour
             _slots[i].SetDefault();
         }
         _IngredientPoker.SetDefault();
+        _IngredientPoker.SetColor_toDefault();
     }
 
     public void RefreshMyGUI()
@@ -41,7 +57,6 @@ public class GUI_IngridiSlotManager : MonoBehaviour
         {
             invenGUI.Add( Vector2Int.one * -1);
         }
-
 
         for (int i = 0; i < _values.RBD_Slots.Count; i++)
         {
@@ -94,13 +109,14 @@ internal struct GUI_IngridiSlotValues
 
         for (int i = 0; i < temp.Length; i++)
         {
-            if (RBD_Slots[i].myGUI_Inven == null)
+            if (RBD_Slots[i]._GUI_ItemUnit == null)
             {
                 temp[i] = -1;
             }
             else
             {
-                temp[i] = RBD_Slots[i].myGUI_Inven._index;
+                List<int> tempList  = RBD_Slots[i]._GUI_ItemUnit._myData.invenAddr;
+                temp[i] = tempList[tempList.Count-1];
             }
         }
 

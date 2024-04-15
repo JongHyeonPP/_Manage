@@ -139,7 +139,6 @@ public class GoldEffectFunc : MonoBehaviour
         targetGold = _currGold + _targetGold;
         float time = 0f;
 
-        
         yield return new WaitForSeconds(delayTime);
 
         while (true)

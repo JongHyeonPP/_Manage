@@ -23,7 +23,6 @@ public static class _RBD_EquipSlot_SHOP
                     return false;
             }
         }
-        return false;
         return true;
     }
 

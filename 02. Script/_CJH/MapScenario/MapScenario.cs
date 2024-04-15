@@ -43,7 +43,7 @@ public class MapScenario : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log(GameManager.gameManager.GetCurrStageName());
+        GameManager.gameManager.GetCurrStageName();
         if (_checkCreated)
             StartMapCreating();
 
@@ -105,7 +105,7 @@ public class MapScenario : MonoBehaviour
         GameManager.gameManager.SetMapData_History(
             history.GetHistory() + (index + "/") ,
             history.GetStageIndex(),
-            (history.GetHistory().Split('/').Length-1)
+            (history.GetHistory().Split('/').Length)
         );
 
         ProgressMap_preInput task = new(() => {; });
@@ -121,8 +121,7 @@ public class MapScenario : MonoBehaviour
         SceneToSceneFuncSGT.ExitScene_Map(
             new(() => {
                 _SGT.mapDATA.visualObj.enabled = (false);
-                if(_SGT.mapDATA.CurrMS.MapSC_GUI)
-                    _SGT.mapDATA.CurrMS.MapSC_GUI.SetActive(false);
+                _SGT.mapDATA.CurrMS.MapSC_GUI.SetActive(false);
             }));
 
 
@@ -286,4 +285,5 @@ internal struct Values_SCENARIO
     public CreateStageScenario cs;
     public GUI_MapScenario mapGUI;
     public InvenSC_Map invenSC;
+    public GUI_MapNodeInfo mapNodeInfo;
 }

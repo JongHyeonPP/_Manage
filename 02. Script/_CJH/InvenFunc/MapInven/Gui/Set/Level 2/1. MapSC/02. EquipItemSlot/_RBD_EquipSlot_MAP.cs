@@ -12,6 +12,8 @@ public static class _RBD_EquipSlot_MAP
 
             if (_dst2.CompareItem_withStat(_src._itemGUI._myData) == false)
                 return false;
+
+
         }
 
         if ((_dst as SlotGUI_InvenSlot == true))

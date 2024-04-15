@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 static public class SyncDataFunc_Map
@@ -6,7 +8,7 @@ static public class SyncDataFunc_Map
     {
         if (gameManager != null)
         {
-            Debug.Log("sadddd");
+            Debug.Log("gameManager is ok");
             //gameManager.history = _stage + "_";
             gameManager.nodeLevel = 0;
         }
@@ -20,16 +22,16 @@ static public class SyncDataFunc_Map
     }
     static public void SetMapData_History(this GameManager gameManager, string _history, int _stageIndex, int _nodeLevel)
     {
-
         if (gameManager != null)
         {
+            Debug.Log("gameManager is ok");
             gameManager.history = _history; 
             gameManager.nodeLevel = _nodeLevel;
             //DataManager.dataManager.SetDocumentData("NodeLevel", 노드레벨값, "Progress", GameManager.gameManager.Uid);
         }
         else
         {
-            Debug.Log("gameManager is null");
+            Debug.Log("gameManager is null - " + new Vector2(_stageIndex, _nodeLevel));
             CJH_GameManager._instance.history = _history;
             CJH_GameManager._instance.stageIndex = _stageIndex;
             CJH_GameManager._instance.nodeLevel = _nodeLevel;
@@ -40,6 +42,7 @@ static public class SyncDataFunc_Map
 
         if (gameManager != null)
         {
+            Debug.Log("gameManager is ok");
             //GameManager.gameManager.invenData = _data;
             //DataManager.dataManager.SetDocumentData("NodeLevel", 노드레벨값, "Progress", GameManager.gameManager.Uid);
         }
@@ -55,7 +58,7 @@ static public class SyncDataFunc_Map
         CharacterManager _CharacterManager = CharacterManager.characterManager;
         for (int i = 0; i < Skill_NameSet.Length; i++)
         {
-            if (true)
+            if (false)
             {
                 if (Skill_NameSet[i] != "Null")
                 {
@@ -105,7 +108,7 @@ static public class SyncDataFunc_Map
         switch (index)
         {
             case 0: return gameManager.GetCurrStageName(); //"Camp_Event"; // non battle event
-            case 1: return gameManager.GetCurrStageName(); // balttle
+            case 1: return gameManager.GetCurrStageName(); ;//gameManager.GetCurrStageName(); // balttle
             case 2: return gameManager.GetCurrStageName(); // << Battle
             default:
                 break;
@@ -124,13 +127,36 @@ public static class GetSceneName_currStage
             //int stage = CJH_GameManager._instance.stageIndex;
             //CJH_GameManager._instance.history = "";
 
-            Debug.Log("sad");
-            return "Battle";// + stage;
+            return "Stage 0";// + stage;
         }
         else
         {
+            Debug.Log("gm is null");
             int stage = CJH_GameManager._instance.stageIndex;
-            CJH_GameManager._instance.history = "";
+            // CJH_GameManager._instance.history = "";
+
+            return "Stage " + stage;
+        }
+    }
+}
+
+
+public static class GetSceneName_EventNodes
+{
+    public static string sad(this GameManager gameManager)
+    {
+        if (gameManager != null)
+        {
+            //int stage = CJH_GameManager._instance.stageIndex;
+            //CJH_GameManager._instance.history = "";
+
+            return "Stage 0";// + stage;
+        }
+        else
+        {
+            Debug.Log("gm is null");
+            int stage = CJH_GameManager._instance.stageIndex;
+            // CJH_GameManager._instance.history = "";
 
             return "Stage " + stage;
         }

@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7605857097177799226
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8957996321246308352}
+  - component: {fileID: 5863172598594537266}
+  m_Layer: 0
+  m_Name: Food_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8957996321246308352
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7605857097177799226}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8757292103507373792}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5863172598594537266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7605857097177799226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7fe14022cfc59246ac661d6c51c5d4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _name: Food_1
+  myChild: []
+  myData:
+  - {fileID: 21300000, guid: 6e16107f2a57f7c409742bcd276bed3c, type: 3}
+  - {fileID: 21300000, guid: 841160b88986c414684837dcfebb91b2, type: 3}
+  - {fileID: 21300000, guid: 6ca45bbeee3f98841a1f049746f655ce, type: 3}
+  - {fileID: 21300000, guid: d9cb7b94c15996548aee2f5e65a389db, type: 3}
+  - {fileID: 21300000, guid: ec4826dc8d126e046b09dda3f946c552, type: 3}
+  - {fileID: 21300000, guid: ed8a4cbd6a6a9d044b816dbc0a8bcced, type: 3}
 --- !u!1 &8757292103140011623
 GameObject:
   m_ObjectHideFlags: 0
@@ -444,6 +497,7 @@ Transform:
   m_Children:
   - {fileID: 8757292104692719138}
   - {fileID: 8757292104828178781}
+  - {fileID: 8957996321246308352}
   m_Father: {fileID: 8757292104183838594}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -463,6 +517,7 @@ MonoBehaviour:
   myChild:
   - {fileID: 8757292104692719141}
   - {fileID: 8757292104828178780}
+  - {fileID: 5863172598594537266}
   myData: []
 --- !u!1 &8757292103695607412
 GameObject:
@@ -1145,9 +1200,12 @@ MonoBehaviour:
   _name: Food_0
   myChild: []
   myData:
-  - {fileID: 21300000, guid: 3ee58e20250bb9e48832f4d7c0d420da, type: 3}
-  - {fileID: 21300000, guid: 44da921df1c1e714a9979623422b88d8, type: 3}
-  - {fileID: 21300000, guid: 8560eb2697caa7042bdf4bd40bd80595, type: 3}
+  - {fileID: 21300000, guid: e07e87bd8b240a048970c5545bc36009, type: 3}
+  - {fileID: 21300000, guid: 563aaa5e23388174cb7ba2a696fb84b9, type: 3}
+  - {fileID: 21300000, guid: e61707468b7d917468a02e4122dca398, type: 3}
+  - {fileID: 21300000, guid: 99596e6fc6883254f858e45c91082017, type: 3}
+  - {fileID: 21300000, guid: 37f6cf6cc1700b648881af0abd043a83, type: 3}
+  - {fileID: 21300000, guid: a06432392feabab4cba29b7a84ec5213, type: 3}
 --- !u!1 &8757292104763940638
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,6 +1306,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 3ee58e20250bb9e48832f4d7c0d420da, type: 3}
   - {fileID: 21300000, guid: 44da921df1c1e714a9979623422b88d8, type: 3}
   - {fileID: 21300000, guid: 8560eb2697caa7042bdf4bd40bd80595, type: 3}
+  - {fileID: 21300000, guid: a6d9ae8429d1f9e49b512f13c3d29bfa, type: 3}
+  - {fileID: 21300000, guid: c4f213c6dece2b64aab46f432f7fa0d4, type: 3}
+  - {fileID: 21300000, guid: fcc30d3a54413a94682bfec5bb08c654, type: 3}
 --- !u!1 &8757292104970989765
 GameObject:
   m_ObjectHideFlags: 0
