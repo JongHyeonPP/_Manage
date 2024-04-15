@@ -445,13 +445,27 @@ public class BattleScenario : MonoBehaviour
         {
             x.StopBattle();
         }
+        RefreshGrid();
         await ClearEnemyAsync();
     }
+
+    private static void RefreshGrid()
+    {
+        foreach (GridObject grid in EnemyGrids)
+        {
+            grid.PreInactive();
+        }
+        foreach (GridObject grid in CharacterGrids)
+        {
+            grid.PreInactive();
+        }
+    }
+
     public void ToMap()
     {
         if (battleSimulator)
         {
-            GoBattleSimulation();
+            GoToBattleSimulation();
         }
         else
         {
@@ -664,10 +678,11 @@ public class BattleScenario : MonoBehaviour
             enemies.Add(enemyScript);
         }
     }
-    public void GoBattleSimulation()
+    public void GoToBattleSimulation()
     {
         ClearEnemyObject();
         ClearCharacterObject();
+        RefreshGrid();
         SceneManager.LoadScene("BattleSimulation");
     }
 }

@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 public class BattleScenarioTest : MonoBehaviour
 {
     public Transform canvasTest;
-    private TMP_Text botText;
-    private TMP_Text moveText;
     public int moveTargetIndex;
     private BattleScenario battleScenario;
     private void Start()
@@ -32,34 +30,6 @@ public class BattleScenarioTest : MonoBehaviour
         Default, Bot, Move
     }
     public TestPattern testPattern = TestPattern.Default;
-    public void BotTest()
-    {
-        SwitchTest(TestPattern.Bot);
-    }
-
-    private void SwitchTest(TestPattern _testPatern)
-    {
-        moveTargetIndex = -1;
-        RefreshTest_Text();
-        if (testPattern == _testPatern)
-        {
-            testPattern = TestPattern.Default;
-        }
-        else
-        {
-            testPattern = _testPatern;
-            switch (_testPatern)
-            {
-                case TestPattern.Bot:
-                    botText.text = "봇 생성\n취소";
-                    break;
-                case TestPattern.Move:
-                    moveText.text = "캐릭터\n이동 취소";
-                    break;
-            }
-            
-        }
-    }
     private void OnCharacterGridClicked(GridObject _grid, bool _isEnemyGrid)
     {
         if (testPattern != TestPattern.Default)
@@ -82,22 +52,12 @@ public class BattleScenarioTest : MonoBehaviour
             return;
         }
     }
-    public void MoveTest()
-    {
-        SwitchTest(TestPattern.Move);
-    }
     public void RefreshTest()
     {
         testPattern = TestPattern.Default;
         moveTargetIndex = -1;
-        RefreshTest_Text();
     }
 
-    private void RefreshTest_Text()
-    {
-        botText.text = "봇 생성";
-        moveText.text = "캐릭터\n이동";
-    }
     public async void StageClearTest()
     {
         await battleScenario.StageClearAsync();
@@ -108,6 +68,6 @@ public class BattleScenarioTest : MonoBehaviour
     }
     public void BattleSimulationAsync()
     {
-        battleScenario.GoBattleSimulation();
+        battleScenario.GoToBattleSimulation();
     }
 }
