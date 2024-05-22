@@ -1,5 +1,6 @@
 using EnumCollection;
 using Firebase.Firestore;
+using ItemCollection;
 using LobbyCollection;
 using System;
 using System.Collections;
@@ -55,6 +56,8 @@ public class LobbyScenario : MonoBehaviour
     #endregion
     private void Awake()
     {
+        if (GameManager.gameManager == null)
+            return;
         GameManager.lobbyScenario = this;
         #region UiSet
         layBlock.SetActive(false);
@@ -146,7 +149,6 @@ public class LobbyScenario : MonoBehaviour
     public void OnPointerClick(LobbyCase _lobbyCase)
     {
         layBlock.SetActive(true);
-        Debug.Log(_lobbyCase + " Clicked");
         curCase = _lobbyCase;
         switch (_lobbyCase)
         {
@@ -315,11 +317,11 @@ public class LobbyScenario : MonoBehaviour
         curUi.ExitBtnClicked();
     }
 
-    private void OnLanguageChange(Language _language)
+    private void OnLanguageChange()
     {
         foreach (KeyValuePair<TMP_Text, Dictionary<Language, string>> keyValue in texts)
         {
-            keyValue.Key.text = keyValue.Value[_language];
+            keyValue.Key.text = keyValue.Value[GameManager.language];
         }
     }
     public void AllocateApplicant()
@@ -395,7 +397,7 @@ public class LobbyScenario : MonoBehaviour
     }
     async Task FromSlotToCharacter()
     {
-        List<CharacterData> characterDataList = new();
+        List<CharacterData> characterDataList = new() { null, null, null};
         for (int i = 0; i < selectedSlots.Count; i++)
         {
             ApplicantSlot _slot = applicantSlots[i];
@@ -409,21 +411,45 @@ public class LobbyScenario : MonoBehaviour
             characterDict.Add("Resist", _slot.Resist);
             characterDict.Add("Speed", _slot.Speed);
             characterDict.Add("Body", _slot.bodyDict);
-            string weaponTypeStr = GameManager.CalculateProbability(0.5f) ? "Sword" : "Club";
+            int weaponTypeNum = GameManager.AllocateProbability(0.25f, 0.25f, 0.25f, 0.25f);
+            WeaponType weaponType;
+            string weaponTypeStr;
+            switch (weaponTypeNum)
+            {
+                default:
+                    weaponType = WeaponType.Sword;
+                    weaponTypeStr = "Sword";
+                    break;
+                case 1:
+                    weaponType = WeaponType.Club;
+                    weaponTypeStr = "Club";
+                    break;
+                case 2:
+                    weaponType = WeaponType.Bow;
+                    weaponTypeStr = "Bow";
+                    break;
+                case 3:
+                    weaponType = WeaponType.Magic;
+                    weaponTypeStr = "Magic";
+                    break;
+
+            }
             string weaponId = $"{weaponTypeStr}:::Default";
             characterDict.Add("WeaponId", weaponId);
-            characterDict.Add("Index", gridIndex);
-
+            characterDict.Add("GridIndex", gridIndex);
+            characterDict.Add("CharacterIndex", i);
 
             string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.Uid}/Characters");
 
-            CharacterAtBattle characterAtBattle = _slot.templateObject.AddComponent<CharacterAtBattle>();
-            characterAtBattle.InitCharacter(docId, BattleScenario.CharacterGrids[gridIndex]);
-            BattleScenario.characters.Add(characterAtBattle);
+            WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType]["Default"];
+            CharacterData data = _slot.templateObject.AddComponent<CharacterData>();
+            data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new Skill[2] { null, null}, weapon);
+            characterDataList[i] = data;
 
-            CharacterData characterData = _slot.templateObject.AddComponent<CharacterData>();
-            characterData.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new string[] {string.Empty, string.Empty }, weaponId);
-            characterDataList.Add(characterData);
+            CharacterInBattle characterAtBattle = _slot.templateObject.AddComponent<CharacterInBattle>();
+            characterAtBattle.InitCharacter(data, BattleScenario.CharacterGrids[gridIndex]);
+            BattleScenario.characters.Add(characterAtBattle);
+            data.characterAtBattle = characterAtBattle;
         }
         CharacterManager.characterManager.SetCharacters(characterDataList);
     }

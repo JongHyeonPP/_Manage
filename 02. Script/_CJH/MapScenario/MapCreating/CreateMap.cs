@@ -114,7 +114,6 @@ public class CreateMap : MonoBehaviour
     // data 
     public void InitSettingEventPos(EventNodeDataToPlace treeData, int index, ref GUI_MapScenario.ProgressMap_preInput task)
     {
-        Debug.Log(" Event - Setting Node by Data ");
 
         focusingNode = treeData.focusGridPos;
         int std = (int)(eventObjectList.getChildRangeByGridPos(new Vector2Int(treeData.focusGridPos.x, index)).x);

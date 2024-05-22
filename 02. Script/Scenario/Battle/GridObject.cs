@@ -8,29 +8,39 @@ using static UnityEngine.EventSystems.EventTrigger;
 
 public class GridObject : MonoBehaviour
 {
-    public BaseAtBattle owner = null;
+    public BaseInBattle owner = null;
     public int index;
     public bool isEnemy;
     EventTrigger eventTrigger;
-    public delegate void PassiveEffectHandler(BaseAtBattle _target);
+    public delegate void PassiveEffectHandler(BaseInBattle _target);
     public PassiveEffectHandler EnterOnGrid;
     public PassiveEffectHandler ExitOnGrid;
     public Image imageRect { get; private set; }
     private Image imageBorder;
-
+    public int preStack;
+    public Image imagePre;
     public void InitObject()
     {
         imageBorder = GetComponent<Image>();
         imageRect = transform.GetChild(0).GetComponent<Image>();
         imageRect.enabled = false;
+        preStack = 0;
     }
     public void PreActive()
     {
-        imageBorder.color = Color.red;
+        preStack++;
+        imagePre.enabled = true;
     }
     public void PreInactive()
     {
-        imageBorder.color = new Color(1f,1f,1f,0.5f);
+        preStack--;
+        if (preStack <= 0)
+            imagePre.enabled = false;
+    }
+    public void RefreshGrid()
+    {
+        preStack = 0;
+        imagePre.enabled = false;
     }
     public GridObject SetClickEvent()
     {

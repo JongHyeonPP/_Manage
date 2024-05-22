@@ -1,4 +1,6 @@
+using DefaultCollection;
 using EnumCollection;
+using ItemCollection;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,142 +8,18 @@ using UnityEngine;
 namespace BattleCollection
 {
 
-    public class SkillForm
-    {
-        public Dictionary<Language, string> name;
-        public List<Dictionary<Language, string>> explain;
-        public SkillCategori categori;
-        public float cooltime = 8f;
-        public bool isTargetEnemy = false;
-        public List<List<SkillEffect>> effects;
-        public bool isAnim;
-        public List<string> visualEffect;
-        public bool isPre = false;
-        public SkillForm SetName(Dictionary<Language, string> _name)
-        {
-            name = _name;
-            return this;
-        }
-        public SkillForm SetExplain(List<Dictionary<Language, string>> _explain)
-        {
-            explain = _explain;
-            return this;
-        }
-        public SkillForm SetCategori(SkillCategori _categori)
-        {
-            categori = _categori;
-            return this;
-        }
-        public SkillForm SetCooltime(float _cooltime)
-        {
-            cooltime = _cooltime;
-            return this;
-        }
-        public SkillForm SetIsTargetEnemy(bool _isTargetEnemy)
-        {
-            isTargetEnemy = _isTargetEnemy;
-            return this;
-        }
-        public SkillForm SetEffects(List<List<SkillEffect>> _effects)
-        {
-            effects = _effects;
-            return this;
-        }
-        public SkillForm SetIsAnim(bool _isAnim)
-        {
-            isAnim = _isAnim;
-            return this;
-        }
-        public SkillForm SetSkillEffect(List<string> _visualEffect)
-        {
-            visualEffect = _visualEffect;
-            return this;
-        }
-        public SkillForm SetIsPre(bool _isPre)
-        {
-            isPre = _isPre;
-            return this;
-        }
-    }
-    [Serializable]
-    public class Skill
-    {
-        public Dictionary<Language, string> name;
-        public Dictionary<Language, string> explain;
-        public SkillCategori categori;
-        public float cooltime;
-        public List<SkillEffect> effects;
-        public bool isTargetEnemy;
-        public bool isAnim;
-        public VisualEffect visualEffect;
-        public static float defaultAttackCooltime = 3f;
-        public bool isPre;
-        public Skill(SkillForm _skillForm, byte _level)//Skill
-        {
-            name = _skillForm.name;
-            if (_skillForm.explain != null)
-                explain = _skillForm.explain[_level];
-            categori = _skillForm.categori;
-            cooltime = _skillForm.cooltime;
-            isTargetEnemy = _skillForm.isTargetEnemy;
-            effects = new();
-            effects = _skillForm.effects[_level];
-            isAnim = _skillForm.isAnim;
-            if (_skillForm.visualEffect != null)
-            {
-                string veName = _skillForm.visualEffect[_level];
-                if (veName != string.Empty)
-                    visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
-            }
-            isPre = _skillForm.isPre;
-        }
-        public Skill()//Default Attack
-        {
-            name = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
-            explain = new() { { Language.En, "Default Attack" }, { Language.Ko, "기본 공격" } };
-            cooltime = defaultAttackCooltime;
-            isTargetEnemy = true;
-            isAnim = true;
-            isPre = false;
-            //skillEffect = LoadManager.loadManager.skillEffectDict["arrowFire_01"];
-            effects = new()
-            {
-                new SkillEffect().
-                SetType(EffectType.Damage).
-                SetCount(1).
-                SetIsConst(false).
-                SetValue(1f).
-                SetDelay(0.5f).
-                SetRange(EffectRange.Dot).
-                SetIsPassive(false).
-                SetVamp(0f).
-                SetByAtt(false)
-            };
-        }
-        public Skill(List<SkillEffect> _effects)
-        {
-            effects = new();
-            foreach (var jobEffect in _effects)
-            {
-                SkillEffect skillEffet = new();
-                skillEffet.SetIsConst(true).SetRange(EffectRange.Self).SetIsPassive(true).SetType(jobEffect.type).SetValue(jobEffect.value).SetByAtt(jobEffect.byAtt);
-                effects.Add(skillEffet);
-            }
-
-        }
-    }
     [Serializable]
     public class SkillEffect
     {
         public float value = 1f;
         public int count = 1;
         public EffectType type;
-        public bool isConst = false;
         public float delay = 0f;
         public EffectRange range = EffectRange.Dot;
         public bool isPassive = false;
         public float vamp = 0f;
         public bool byAtt = false;
+        public ValueBase valueBase;
         public SkillEffect SetValue(float _value)
         {
             value = _value;
@@ -155,11 +33,6 @@ namespace BattleCollection
         public SkillEffect SetType(EffectType _type)
         {
             type = _type;
-            return this;
-        }
-        public SkillEffect SetIsConst(bool _isConst)
-        {
-            isConst = _isConst;
             return this;
         }
         public SkillEffect SetDelay(float _delay)
@@ -185,6 +58,11 @@ namespace BattleCollection
         public SkillEffect SetByAtt(bool _byAtt)
         {
             byAtt = _byAtt;
+            return this;
+        }
+        public SkillEffect SetValueBase(ValueBase _valueBase)
+        { 
+            valueBase  = _valueBase;
             return this;
         }
     }
@@ -316,57 +194,6 @@ namespace BattleCollection
             index = _index;
         }
     }
-
-    public class WeaponClass
-    {
-        public string id;
-        public WeaponType type;
-        public WeaponGrade grade;
-        public List<SkillEffect> effects;
-        public float ability, hp, resist, speed;
-        public Sprite sprite;
-        public VisualEffect defaultVisualEffect;
-        public VisualEffect skillVisualEffect;
-        public WeaponClass SetId(string _id)
-        {
-            id = _id;
-            return this;
-        }
-        public WeaponClass SetType(WeaponType _type)
-        {
-            type = _type;
-            return this;
-        }
-        public WeaponClass SetGrade(WeaponGrade _grade)
-        {
-            grade = _grade;
-            return this;
-        }
-        public WeaponClass SetStatus(float _ability, float _hp, float _resist, float _speed)
-        {
-            ability = _ability;
-            hp = _hp;
-            resist = _resist;
-            speed = _speed;
-            return this;
-        }
-        public WeaponClass SetEffects(List<SkillEffect> _effects )
-        {
-            effects = _effects;
-            return this;
-        }
-        public WeaponClass SetSprite(Sprite _sprite)
-        {
-            sprite = _sprite;
-            return this;
-        }
-        public WeaponClass SetVisualEffect(VisualEffect _defaultVisualEffect, VisualEffect _skillVisualEffect)
-        {
-            defaultVisualEffect = _defaultVisualEffect;
-            skillVisualEffect = _skillVisualEffect;
-            return this;
-        }
-    }
     public class VisualEffect
     {
         public GameObject effectObject;
@@ -381,4 +208,5 @@ namespace BattleCollection
             fromRoot = _fromRoot;
         }
     }
+
 }

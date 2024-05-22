@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class SettingManager : MonoBehaviour
 {
-    public delegate void LanguageChange(Language language);
+    public delegate void LanguageChange();
     public static event LanguageChange LanguageChangeEvent;
 
     public static SettingManager settingManager;
@@ -161,11 +161,11 @@ public class SettingManager : MonoBehaviour
 
         }
     }
-    private void OnLanguageChange(Language _language)
+    private void OnLanguageChange()
     {
         foreach (KeyValuePair<TMP_Text, Dictionary<Language, string>> keyValue in texts)
         {
-            keyValue.Key.text = keyValue.Value[_language];
+            keyValue.Key.text = keyValue.Value[GameManager.language];
         }
     }
     private void Start()
@@ -266,7 +266,7 @@ public class SettingManager : MonoBehaviour
         else
             masterMixer.SetFloat(str, -80f);
     }
-    public void ExecuteLangaugeChange(Language _language) => LanguageChangeEvent(_language);
+    public void ExecuteLangaugeChange() => LanguageChangeEvent();
     internal class SettingClass
     {
         List<Resolution> resolutions = new();
@@ -401,7 +401,8 @@ public class SettingManager : MonoBehaviour
         }
         private void InitLanguage()
         {
-            settingManager.ExecuteLangaugeChange(originSet.language);
+            GameManager.language = originSet.language;
+            settingManager.ExecuteLangaugeChange();
             settingManager.dropdownLanguage.value = (int)originSet.language;
         }
         internal void ResolutionOptionChange(int _x)
@@ -412,7 +413,7 @@ public class SettingManager : MonoBehaviour
         internal void LanguageOptionChange(Language _language)
         {
             GameManager.language = _language;
-            settingManager.ExecuteLangaugeChange(_language);
+            settingManager.ExecuteLangaugeChange();
             newSet.language = _language;
         }
         internal void FullScreenToggle(bool _isFull)

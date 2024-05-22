@@ -121,7 +121,8 @@ public class MapScenario : MonoBehaviour
         SceneToSceneFuncSGT.ExitScene_Map(
             new(() => {
                 _SGT.mapDATA.visualObj.enabled = (false);
-                _SGT.mapDATA.CurrMS.MapSC_GUI.SetActive(false);
+                if (_SGT.mapDATA.CurrMS)
+                    _SGT.mapDATA.CurrMS.MapSC_GUI.SetActive(false);
             }));
 
 
@@ -235,7 +236,6 @@ public class MapHistoryData
         if (GameManager.gameManager != null)
         {
             _history = GameManager.gameManager.history;
-            Debug.Log("sad");
         } else
         {
             _history = CJH_GameManager._instance.history;

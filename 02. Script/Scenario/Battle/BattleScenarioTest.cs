@@ -12,8 +12,10 @@ public class BattleScenarioTest : MonoBehaviour
     public Transform canvasTest;
     public int moveTargetIndex;
     private BattleScenario battleScenario;
-    private void Start()
+    private void Awake()
     {
+        if (!GameManager.gameManager)
+            return;
         battleScenario = GameManager.battleScenario;
         for (int i = 0; i < 9; i++)
         {

@@ -1,4 +1,4 @@
-using CharacterCollection;
+using DefaultCollection;
 using EnumCollection;
 using System.Collections.Generic;
 using TMPro;
@@ -64,7 +64,6 @@ public class ApplicantSlot : MonoBehaviour
         templateAnimator = templateObject.transform.GetChild(0).GetComponent<Animator>();
         templateAnimator.speed = 0f;
         CharacterHierarchy characterHierarchy = templateObject.transform.GetChild(0).GetComponent<CharacterHierarchy>();
-        characterHierarchy.shadow.SetActive(false);
         InitTemplateSprite(characterHierarchy);
 
         void InitTemplateSprite(CharacterHierarchy characterHierarchy)
@@ -106,7 +105,7 @@ public class ApplicantSlot : MonoBehaviour
                     break;
             }
             //Eye
-            List<KeyValuePair<string, EyeClass>> eyeKvps = new(LoadManager.loadManager.EyeDict[species]);
+            List<KeyValuePair<string, EyeClass>> eyeKvps = new(LoadManager.loadManager.eyeDict[species]);
             int eyeNum = Random.Range(0, eyeKvps.Count);
             KeyValuePair<string, EyeClass> eyeKvp = eyeKvps[eyeNum];
             eyeFront = eyeKvp.Value.front;
@@ -228,10 +227,5 @@ public class ApplicantSlot : MonoBehaviour
             returnValue *= 1f + statusUp;
         }
         return returnValue;
-    }
-
-    public void FronApplicantToCharacter()
-    {
-    
     }
 }

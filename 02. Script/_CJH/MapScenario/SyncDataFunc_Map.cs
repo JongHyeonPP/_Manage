@@ -10,7 +10,7 @@ static public class SyncDataFunc_Map
         {
             Debug.Log("gameManager is ok");
             //gameManager.history = _stage + "_";
-            gameManager.nodeLevel = 0;
+            gameManager.nodeNum = 0;
         }
         else
         {
@@ -24,9 +24,8 @@ static public class SyncDataFunc_Map
     {
         if (gameManager != null)
         {
-            Debug.Log("gameManager is ok");
             gameManager.history = _history; 
-            gameManager.nodeLevel = _nodeLevel;
+            gameManager.nodeNum = _nodeLevel;
             //DataManager.dataManager.SetDocumentData("NodeLevel", 노드레벨값, "Progress", GameManager.gameManager.Uid);
         }
         else
@@ -42,7 +41,6 @@ static public class SyncDataFunc_Map
 
         if (gameManager != null)
         {
-            Debug.Log("gameManager is ok");
             //GameManager.gameManager.invenData = _data;
             //DataManager.dataManager.SetDocumentData("NodeLevel", 노드레벨값, "Progress", GameManager.gameManager.Uid);
         }
@@ -65,16 +63,10 @@ static public class SyncDataFunc_Map
                     if (_CharacterManager != null)
                     {
                         CharacterData getChar = _CharacterManager.GetCharacter(Char_Index);
-                        getChar.ChangeSkill(i, Skill_NameSet[i]);
+                        //getChar.ChangeSkill(i, Skill_NameSet[i]);
                     }
                 }
             }   
-            else
-            {
-                Debug.Log("gameManager is null");
-                if (Skill_NameSet[i] != "Null")
-                    Debug.Log(Char_Index + "_Charactor " + i + " skill " + Skill_NameSet[i]);
-            }
         }
     }
     static public void SetMapData_CharEquips(this MapScenario _MapScenario, int Char_Index, string[] Skill_NameSet)
@@ -89,13 +81,12 @@ static public class SyncDataFunc_Map
                     if (_CharacterManager != null)
                     {
                         CharacterData getChar = _CharacterManager.GetCharacter(Char_Index);
-                        getChar.ChangeSkill(i, Skill_NameSet[i]);
+                        //getChar.ChangeSkill(i, Skill_NameSet[i]);
                     }
                 }
             }
             else
             {
-                Debug.Log("gameManager is null");
                 if (Skill_NameSet[i] != "Null")
                     Debug.Log(Char_Index + "_Charactor " + i + " equip is "+ Skill_NameSet[i]);
             }
@@ -107,9 +98,9 @@ static public class SyncDataFunc_Map
         int index = (_NodeEvent / 100);
         switch (index)
         {
-            case 0: return gameManager.GetCurrStageName(); //"Camp_Event"; // non battle event
+            case 0: return "Camp_Event"; // non battle event
             case 1: return gameManager.GetCurrStageName(); ;//gameManager.GetCurrStageName(); // balttle
-            case 2: return gameManager.GetCurrStageName(); // << Battle
+            case 2: return "Battle";
             default:
                 break;
         }

@@ -26,7 +26,7 @@ public class AwakeScenario : MonoBehaviour
 
     private IEnumerator ShowJhLogo()
     {
-        Sprite sprite = Resources.Load<Sprite>("Image/JhLogo");
+        Sprite sprite = Resources.Load<Sprite>("Texture/Title/JhLogo");
         if (sprite != null)
         {
             logoImage.sprite = sprite;

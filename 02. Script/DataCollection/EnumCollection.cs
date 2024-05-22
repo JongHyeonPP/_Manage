@@ -70,7 +70,7 @@ namespace EnumCollection
     {
         Sword, Bow, Magic, Club
     }
-    public enum WeaponGrade : byte
+    public enum ItemGrade : byte
     {
        Default ,Normal, Rare, Unique
     }
@@ -93,5 +93,17 @@ namespace EnumCollection
         ArmorBody, ArmorLeft, ArmorRight,
         Helmet,
         FootRight, FootLeft
+    }
+    public enum ItemType
+    {
+        Weapon, Skill, Food, Ingredient
+    }
+    public enum IngredientType
+    {
+        Meat
+    }
+    public enum ValueBase
+    {
+        Const, Ability, Armor, HpMax_Enemy,HpMax_Caster
     }
 }

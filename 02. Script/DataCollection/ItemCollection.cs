@@ -1,0 +1,300 @@
+using BattleCollection;
+using EnumCollection;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace ItemCollection
+{
+    public class CountableItem
+    {
+        public Item item { get; private set; }
+        public int amount;
+        public CountableItem(Item _item,  int _amount =1)
+        {
+            item = _item;
+            amount = _amount;
+        }
+    }
+    public abstract class Item//무기, 요리, 스킬
+    {
+        public ItemType itemType;
+        public string itemId;//DB에 셋하기 위함
+        public ItemGrade itemGrade;
+        public Dictionary<Language, string> name;
+        public Sprite sprite;
+        public Vector2 scale;
+        public Vector2 position;
+        public bool isCountable;
+        protected Item(ItemType _itemType,string _itemId, ItemGrade _itemGrade,
+            Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position)
+        {
+            itemType = _itemType;
+            itemId = _itemId;
+            itemGrade = _itemGrade;
+            name = _name;
+            sprite = _sprite;
+            scale = _scale;
+            position = _position;
+        }
+        protected Item()
+        {
+        }
+    }
+    public class IngredientClass:Item
+    {
+        public int num;
+        public IngredientType type;
+
+        public IngredientClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType,_itemId, _itemGrade, _name, _sprite, _scale, _position)
+        {
+            itemType = _itemType;
+            itemId = _itemId;
+            itemGrade = _itemGrade;
+            name = _name;
+            sprite = _sprite;
+        }
+        public IngredientClass SetNum(int _num) 
+        {
+            num = _num;
+            return this;
+        }
+        public IngredientClass SetIngredientType(IngredientType _type) 
+        {
+            type = _type;
+            return this;
+        }
+    }
+    public class FoodClass:Item
+    {
+        public int degree;//1~5
+
+        public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name, _sprite, _scale, _position)
+        {
+            itemType = _itemType;
+            itemId = _itemId;
+            itemGrade = _itemGrade;
+            name = _name;
+            sprite = _sprite;
+            position = _position;
+            scale = _scale;
+        }
+        public FoodClass SetDegree(int _degree)
+        {
+            degree = _degree;
+            return this; }
+
+    }
+    public class WeaponClass:Item
+    {
+        public WeaponType type;
+        public List<SkillEffect> effects;
+        public float ability, hp, resist, speed;
+
+        public VisualEffect defaultVisualEffect;
+        public VisualEffect skillVisualEffect;
+
+        public WeaponClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name, _sprite,_scale, _position)
+        {
+        }
+
+        public WeaponClass SetType(WeaponType _type)
+        {
+            type = _type;
+            return this;
+        }
+        public WeaponClass SetGrade(ItemGrade _itemGrade)
+        {
+            itemGrade = _itemGrade;
+            return this;
+        }
+        public WeaponClass SetStatus(float _ability, float _hp, float _resist, float _speed)
+        {
+            ability = _ability;
+            hp = _hp;
+            resist = _resist;
+            speed = _speed;
+            return this;
+        }
+        public WeaponClass SetEffects(List<SkillEffect> _effects)
+        {
+            effects = _effects;
+            return this;
+        }
+        public WeaponClass SetVisualEffect(VisualEffect _defaultVisualEffect, VisualEffect _skillVisualEffect)
+        {
+            defaultVisualEffect = _defaultVisualEffect;
+            skillVisualEffect = _skillVisualEffect;
+            return this;
+        }
+    }
+
+    public class LootClass
+    {
+        public List<CountableItem> main = new();//무기 + 스킬
+        public List<CountableItem> sub = new();//요리 재료
+        public int gold;
+    }
+
+    public class SkillForm
+    {
+        public List<Dictionary<Language, string>> explain;
+        public SkillCategori categori;
+        public float cooltime;
+        public bool isTargetEnemy = false;
+        public List<List<SkillEffect>> effects;
+        public bool isAnim;
+        public List<string> visualEffect;
+        public bool isPre = false;
+        public Dictionary<Language, string> name;
+        public string id;
+        public Sprite sprite;
+        public Vector2 scale;
+        public Vector2 position;
+
+        public SkillForm SetName(Dictionary<Language, string> _name)
+        {
+            name = _name;
+            return this;
+        }
+        public SkillForm SetExplain(List<Dictionary<Language, string>> _explain)
+        {
+            explain = _explain;
+            return this;
+        }
+        public SkillForm SetCategori(SkillCategori _categori)
+        {
+            categori = _categori;
+            return this;
+        }
+        public SkillForm SetCooltime(float _cooltime)
+        {
+            cooltime = _cooltime;
+            return this;
+        }
+        public SkillForm SetIsTargetEnemy(bool _isTargetEnemy)
+        {
+            isTargetEnemy = _isTargetEnemy;
+            return this;
+        }
+        public SkillForm SetEffects(List<List<SkillEffect>> _effects)
+        {
+            effects = _effects;
+            return this;
+        }
+        public SkillForm SetIsAnim(bool _isAnim)
+        {
+            isAnim = _isAnim;
+            return this;
+        }
+        public SkillForm SetSkillEffect(List<string> _visualEffect)
+        {
+            visualEffect = _visualEffect;
+            return this;
+        }
+        public SkillForm SetIsPre(bool _isPre)
+        {
+            isPre = _isPre;
+            return this;
+        }
+        public SkillForm SetScale(Vector2 _scale)
+        {
+            scale = _scale;
+            return this;
+        }
+        public SkillForm SetPosition(Vector2 _position)
+        {
+            position = _position;
+            return this;
+        }
+        public SkillForm SetSprite(Sprite _sprite)
+        { 
+            sprite = _sprite;
+            return this;
+        }
+
+
+        public Skill LocalizeSkill(ItemGrade _grade)//Skill_n/n 형태의 x1을 기반으로 LoadManager에 있는 EffectForm을 가진 SkillStruct 접근해서 Effect를 가진 Skill를 리턴
+        {
+
+            return new Skill(this, _grade, 1);
+        }
+
+    }
+    public class Skill:Item
+    {
+        public Dictionary<Language, string> explain;
+        public SkillCategori categori;
+        public float cooltime;
+        public List<SkillEffect> effects;
+        public bool isTargetEnemy;
+        public bool isAnim;
+        public VisualEffect visualEffect;
+        public static float defaultAttackCooltime = 3f;
+        public bool isPre;
+        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position, bool _isCountable, int _amount) : base(_itemType, _itemId, _itemGrade, _name, _sprite, _scale, _position)
+        {
+        }
+        public Skill(SkillForm _skillForm, ItemGrade _grade, int _amount):this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.sprite, _skillForm.scale,_skillForm.position, true, _amount)
+        {
+            int gradeNum;
+            switch (_grade)
+            {
+                default:
+                    gradeNum = 0;
+                    break;
+                case ItemGrade.Rare:
+                    gradeNum = 1;
+                    break;
+                case ItemGrade.Unique:
+                    gradeNum = 2;
+                    break;
+            }
+            if (_skillForm.explain != null)
+                explain = _skillForm.explain[gradeNum];
+            categori = _skillForm.categori;
+            cooltime = _skillForm.cooltime;
+            isTargetEnemy = _skillForm.isTargetEnemy;
+            effects = new();
+            effects = _skillForm.effects[gradeNum];
+            isAnim = _skillForm.isAnim;
+            if (_skillForm.visualEffect != null)
+            {
+                string veName = _skillForm.visualEffect[gradeNum];
+                if (veName != string.Empty)
+                    visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
+            }
+            isPre = _skillForm.isPre;
+        }
+        public Skill()//Default Attack
+        {
+            cooltime = defaultAttackCooltime;
+            isTargetEnemy = true;
+            isAnim = true;
+            isPre = false;
+            effects = new()
+            {
+                new SkillEffect().
+                SetType(EffectType.Damage).
+                SetCount(1).
+                SetValueBase(ValueBase.Ability).
+                SetValue(1f).
+                SetDelay(0.5f).
+                SetRange(EffectRange.Dot).
+                SetIsPassive(false).
+                SetVamp(0f).
+                SetByAtt(false)
+            };
+        }
+        public Skill(List<SkillEffect> _effects)
+        {
+            effects = new();
+            foreach (var jobEffect in _effects)
+            {
+                SkillEffect skillEffet = new();
+                skillEffet.SetValueBase(ValueBase.Const).SetRange(EffectRange.Self).SetIsPassive(true).SetType(jobEffect.type).SetValue(jobEffect.value).SetByAtt(jobEffect.byAtt);
+                effects.Add(skillEffet);
+            }
+
+        }
+    }
+}

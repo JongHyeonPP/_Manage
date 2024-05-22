@@ -27,7 +27,10 @@ public class InvenCtrl_MapSC : MonoBehaviour
             return;
 
         returnFunc = rtnFunc;
-        CamObj.SetActive(true);
+        if (CamObj)
+        {
+            CamObj.SetActive(true);
+        }
  
         StartCoroutine(EffectScenechange_BlurMapToInven(func));
     }

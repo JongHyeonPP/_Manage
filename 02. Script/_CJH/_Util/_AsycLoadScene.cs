@@ -42,8 +42,6 @@ public class _AsycLoadScene : MonoBehaviour
         {
             asyncLoad.allowSceneActivation = true;
         }
-        else
-            Debug.Log("sooo sad");
     }
 
     public bool IsLoadedScene()

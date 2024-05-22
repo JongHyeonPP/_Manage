@@ -12,7 +12,6 @@ public class GUI_MapNodeInfo : MonoBehaviour
     public Transform _trans;
     public void SetGUI_toDefault()
     {
-        Debug.Log(_trans.name);
         _trans.localScale = Vector3.zero;
     }
     public void SetGUI_toActive()

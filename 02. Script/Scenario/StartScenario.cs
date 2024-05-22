@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public class StartScenario : MonoBehaviour
 {
     public Transform canvasStart;
-    private Transform panelMainMenu;
+    private Transform parentMainMenu;
     private Transform panelDifficultySelect;
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     TMP_Text
@@ -24,14 +24,15 @@ public class StartScenario : MonoBehaviour
 
     private void Awake()
     {
+        if (!GameManager.gameManager) return;
         GameManager.startScenario = this;
-        panelMainMenu = canvasStart.GetChild(1);
-        panelDifficultySelect = canvasStart.GetChild(2);
+        parentMainMenu = canvasStart.GetChild(2).GetChild(1);
+        panelDifficultySelect = canvasStart.GetChild(3);
 
-        textNewGame = panelMainMenu.GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textLoadGame = panelMainMenu.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textSetting = panelMainMenu.GetChild(2).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
-        textExit = panelMainMenu.GetChild(3).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textNewGame = parentMainMenu.GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textLoadGame = parentMainMenu.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textSetting = parentMainMenu.GetChild(2).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
+        textExit = parentMainMenu.GetChild(3).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
 
 
         textEasy = panelDifficultySelect.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
@@ -97,16 +98,17 @@ public class StartScenario : MonoBehaviour
                     },
                 };
         SettingManager.LanguageChangeEvent += LanguageChange;
-        LanguageChange(GameManager.language);
+        LanguageChange();
         SettingManager.settingManager.buttonSetting.SetActive(true);
         SettingManager.settingManager.InitVolumeSliders();
     }
     private void Start()
     {
-        if (GameManager.gameManager.progressDoc != null)
-        {
-            ActiveLoadBtn(true);
-        }
+        if (GameManager.gameManager)
+            if (GameManager.gameManager.progressDoc != null)
+            {
+                ActiveLoadBtn(true);
+            }
     }
     public void NewGameBtnClick()
     {
@@ -116,22 +118,24 @@ public class StartScenario : MonoBehaviour
     {
         //New Game
         DocumentReference docRef = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.Uid}");
-        Dictionary<string, object> newFieldDict = new();
-        newFieldDict.Add("NodeLevel", 0);
-        newFieldDict.Add("Stage", 0);
-        await docRef.DeleteAsync();
-        List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Characters");
-        foreach (DocumentSnapshot snapshot in snapshots)
-        {
-           await snapshot.Reference.DeleteAsync();
-        }
-        snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
-        foreach (DocumentSnapshot snapshot in snapshots)
-        {
-            await snapshot.Reference.DeleteAsync();
-        }
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction => {
+            docRef.DeleteAsync();
+            ClearCollection("Characters");
+            ClearCollection("Enemies");
+            ClearCollection("Inventory");
+            return Task.CompletedTask;
+        });
         GameManager.gameManager.difficulty = (Difficulty)i;
         SceneManager.LoadScene("Lobby");
+
+        static async void ClearCollection(string _collection)
+        {
+            List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/{_collection}");
+            foreach (DocumentSnapshot snapshot in snapshots)
+            {
+                await snapshot.Reference.DeleteAsync();
+            }
+        }
     }
     public void CloseDifficulty()
     {
@@ -145,13 +149,13 @@ public class StartScenario : MonoBehaviour
     {
         GameManager.gameManager.LoadGame();
     }
-    private void LanguageChange(Language _language)
+    private void LanguageChange()
     {
         foreach (KeyValuePair<TMP_Text, Dictionary<Language, string>> keyValue in texts)
         {
-            keyValue.Key.text = keyValue.Value[_language];
+            keyValue.Key.text = keyValue.Value[GameManager.language];
         }
     }
-    public void ActiveLoadBtn(bool _isActive) => panelMainMenu.GetChild(1).GetComponent<Button>().enabled = _isActive;
+    public void ActiveLoadBtn(bool _isActive) => parentMainMenu.GetChild(1).GetComponent<Button>().enabled = _isActive;
     public void GotoBattleSimulation() => SceneManager.LoadScene("BattleSimulation");
 }

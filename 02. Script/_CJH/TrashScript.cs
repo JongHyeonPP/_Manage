@@ -12,6 +12,6 @@ public class TrashScript : MonoBehaviour
     {
         CharacterManager _CharacterManager = CharacterManager.characterManager;
         CharacterData getChar = _CharacterManager.GetCharacter(index);
-        getChar.ChangeSkill(index, input);
+        //getChar.ChangeSkill(index, input);
     }
 }
