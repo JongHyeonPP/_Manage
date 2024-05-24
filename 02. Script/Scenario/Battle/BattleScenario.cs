@@ -421,7 +421,7 @@ public class BattleScenario : MonoBehaviour
                     data.hp = data.characterAtBattle.Hp;
                     DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
                 }
-                DataManager.dataManager.SetDocumentData("Scene", "Stage 0", "Progress", GameManager.gameManager.Uid);
+                DataManager.dataManager.SetDocumentData("Scene", "Map", "Progress", GameManager.gameManager.Uid);
                 return Task.CompletedTask;
             });
         }
@@ -456,7 +456,7 @@ public class BattleScenario : MonoBehaviour
                 x.InBattleFieldZero();
             }
             GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-            SceneManager.LoadScene("Stage 0");
+            SceneManager.LoadScene("Map");
         }
     }
     private IEnumerator MoveGaugeCor()

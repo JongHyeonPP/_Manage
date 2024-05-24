@@ -13,7 +13,9 @@ public class InventoryUi : MonoBehaviour
         slots = new();
         for (int i = 0; i < ItemManager.inventorySize; i++)
         {
-            slots.Add(parentSlot.GetChild(i).GetComponent<InventorySlot>());
+            InventorySlot slot = parentSlot.GetChild(i).GetComponent<InventorySlot>();
+            slots.Add(slot);
+            slot.slotIndex = i;
         }
         ClearInventory();
     }

@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
-            uiCamera.SetActive(false);
+            uiCamera.SetActive(true);
             //Until Steam API
             uid = "KF5U1XMs5cy7n13dgKjF";//Á¾Çö
             //uid = "FMefxTlgP9aHsgfE0Grc";
@@ -129,10 +129,6 @@ public class GameManager : MonoBehaviour
     {
         if (!(_arg0.name != "Awake" || _arg0.name != "Start"))
             DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
-        if (_arg0.name == "Battle")
-            uiCamera.SetActive(true);
-        else
-            uiCamera.SetActive(false);
     }
     private void InitGrids()
     {
@@ -213,7 +209,7 @@ public class GameManager : MonoBehaviour
         switch (scene)
         {
             case "Map":
-                scene = $"Stage {stage}";
+                scene = "Map";
                 break;
             case "Battle":
                 await BattleScenario.LoadEnemy();

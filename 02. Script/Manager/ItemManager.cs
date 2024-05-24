@@ -102,7 +102,7 @@ public class ItemManager : MonoBehaviour
                         break;
                 }
                 CountableItem ci = new(item);
-                main.Add(ci);
+                //main.Add(ci);
             }
             for (int i = 0; i < Random.Range(3, 5); i++)//재료는 3개나 4개
             {

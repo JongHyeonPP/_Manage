@@ -14,7 +14,7 @@ public class InventorySlot : MonoBehaviour
     public Image imageGrade;
     public Image imageItem;
     public TMP_Text textNum;
-
+    public int slotIndex;
     public void SetSlot(CountableItem _ci)
     {
         imageItem.gameObject.SetActive(true);
