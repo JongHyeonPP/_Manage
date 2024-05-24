@@ -211,12 +211,16 @@ namespace ItemCollection
             sprite = _sprite;
             return this;
         }
-
+        public SkillForm SetId(string _id)
+        {
+            id = _id;
+            return this;
+        }
 
         public Skill LocalizeSkill(ItemGrade _grade)//Skill_n/n 형태의 x1을 기반으로 LoadManager에 있는 EffectForm을 가진 SkillStruct 접근해서 Effect를 가진 Skill를 리턴
         {
 
-            return new Skill(this, _grade, 1);
+            return new Skill(this, _grade);
         }
 
     }
@@ -231,22 +235,26 @@ namespace ItemCollection
         public VisualEffect visualEffect;
         public static float defaultAttackCooltime = 3f;
         public bool isPre;
-        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position, bool _isCountable, int _amount) : base(_itemType, _itemId, _itemGrade, _name, _sprite, _scale, _position)
+        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name, _sprite, _scale, _position)
         {
         }
-        public Skill(SkillForm _skillForm, ItemGrade _grade, int _amount):this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.sprite, _skillForm.scale,_skillForm.position, true, _amount)
+        public Skill(SkillForm _skillForm, ItemGrade _grade):this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.sprite, _skillForm.scale,_skillForm.position)
         {
             int gradeNum;
+            string gradeStr;
             switch (_grade)
             {
                 default:
                     gradeNum = 0;
+                    gradeStr = "Normal";
                     break;
                 case ItemGrade.Rare:
                     gradeNum = 1;
+                    gradeStr = "Rare";
                     break;
                 case ItemGrade.Unique:
                     gradeNum = 2;
+                    gradeStr = "Unique";
                     break;
             }
             if (_skillForm.explain != null)
@@ -264,6 +272,7 @@ namespace ItemCollection
                     visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
             }
             isPre = _skillForm.isPre;
+            itemId = $"{_skillForm.id}:::{gradeStr}";
         }
         public Skill()//Default Attack
         {

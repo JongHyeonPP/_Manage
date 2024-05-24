@@ -20,8 +20,11 @@ public class ItemManager : MonoBehaviour
     public Material nameMat_Normal;
     public Material nameMat_Rare;
     public Material nameMat_Unique;
-    public Material itemMat_Skill;
     public InventoryUi inventoryUi;
+
+    public Sprite book_P;
+    public Sprite book_S;
+    public Sprite book_U;
 
     private List<Item> notReievedItem;
     private void Awake()
@@ -94,12 +97,12 @@ public class ItemManager : MonoBehaviour
 
                         break;
                     case 1://Skill
-                        id = GetRandomSkillIdByGrade(0);
+                        id = GetRandomSkillIdByGrade(ItemGrade.Normal);
                         item = GetItemClass(ItemType.Skill, id);
                         break;
                 }
                 CountableItem ci = new(item);
-                AddCiToArr(main, ci);
+                main.Add(ci);
             }
             for (int i = 0; i < Random.Range(3, 5); i++)//재료는 3개나 4개
             {
@@ -116,14 +119,13 @@ public class ItemManager : MonoBehaviour
         foreach (CountableItem ci in addMainSub)//
         {
             Debug.Log(inventoryUi.slots == null);
-            InventorySlot existingSlot = inventoryUi.slots.Where(data => data.ci?.Equals(ci) == true).FirstOrDefault();
+            InventorySlot existingSlot = inventoryUi.slots.Where(data => data.ci!=null).Where(data => data.ci.item.itemId == ci.item.itemId).FirstOrDefault();
             if (existingSlot == null)
             {
                 int ableIndex = GetAbleIndex();
                 if (ableIndex == -1)
                 {
-                    //더 이상 안 들어감
-                    break;
+                    continue;
                 }
                 inventoryUi.SetSlot(ci, ableIndex);
             }
@@ -134,7 +136,7 @@ public class ItemManager : MonoBehaviour
 
         }
         //전리품 Set
-        SetLootAtInvenDb();
+        SetInventoryAtDb();
         if (GameManager.battleScenario)
         {
             GameManager.battleScenario.LootUi.SetLootAtUi(main, sub, gold);
@@ -145,7 +147,7 @@ public class ItemManager : MonoBehaviour
             int ableIndex;
             for (ableIndex = 0; ableIndex < inventorySize; ableIndex++)
             {
-                if (inventoryUi.slots[ableIndex] == null)
+                if (inventoryUi.slots[ableIndex].ci == null)
                     break;
             }
             if (ableIndex >= inventorySize)
@@ -155,7 +157,7 @@ public class ItemManager : MonoBehaviour
     }
 
 
-    private void SetLootAtInvenDb()
+    private void SetInventoryAtDb()
     {
         object[] setDict = new object[24];
         for (int i = 0; i < inventorySize; i++)

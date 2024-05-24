@@ -15,6 +15,14 @@ public class InventoryUi : MonoBehaviour
         {
             slots.Add(parentSlot.GetChild(i).GetComponent<InventorySlot>());
         }
+        ClearInventory();
+    }
+    public void ClearInventory()
+    {
+        foreach (InventorySlot slot in slots)
+        {
+            slot.ClearSlot();
+        }
     }
     public void SetSlot(CountableItem _ci, int _index)
     {

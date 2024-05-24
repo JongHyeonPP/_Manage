@@ -17,6 +17,8 @@ public class InventorySlot : MonoBehaviour
 
     public void SetSlot(CountableItem _ci)
     {
+        imageItem.gameObject.SetActive(true);
+
         ci = _ci;
         Material gradeMat = null;
         switch (_ci.item.itemGrade)
@@ -24,23 +26,60 @@ public class InventorySlot : MonoBehaviour
             default:
                 break;
             case ItemGrade.Normal:
-                gradeMat = ItemManager.itemManager.nameMat_Normal;
+                gradeMat = ItemManager.itemManager.itemMat_Normal;
                 break;
             case ItemGrade.Rare:
-                gradeMat = ItemManager.itemManager.nameMat_Rare;
+                gradeMat = ItemManager.itemManager.itemMat_Rare;
                 break;
             case ItemGrade.Unique:
-                gradeMat = ItemManager.itemManager.nameMat_Unique;
+                gradeMat = ItemManager.itemManager.itemMat_Unique;
                 break;
         }
         imageGrade.material = gradeMat;
-        imageItem.sprite = _ci.item.sprite;
-        if (_ci.amount == 1)
+        Sprite itemSprite;
+        switch (ci.item.itemType)
+        {
+            default:
+                itemSprite = ci.item.sprite;
+                imageItem.transform.localScale = ci.item.scale;
+                break;
+            case ItemType.Skill:
+                switch (ci.item.itemId.Split("_")[0])
+                {
+                    default:
+                        itemSprite = ItemManager.itemManager.book_P;
+                        break;
+                    case "Util":
+                        itemSprite = ItemManager.itemManager.book_U;
+                        break;
+                    case "Sustain":
+                        itemSprite = ItemManager.itemManager.book_S;
+                        break;
+                }
+                imageItem.transform.localScale = Vector2.one * 0.6f;
+                break;
+
+        }
+
+        bool isIngredient = ci.item.itemType == ItemType.Ingredient;
+        imageItem.gameObject.SetActive(!isIngredient);
+        imageGrade.gameObject.SetActive(!isIngredient);
+
+        imageItem.sprite = itemSprite;
+        if (ci.amount == 1)
             textNum.gameObject.SetActive(false);
         else
         {
             textNum.gameObject.SetActive(true);
-            textNum.text = _ci.amount.ToString();
+            textNum.text = ci.amount.ToString();
         }
+    }
+
+    public void ClearSlot()
+    {
+        ci = null;
+        imageGrade.gameObject.SetActive(false);
+        imageItem.gameObject.SetActive(false);
+        textNum.gameObject.SetActive(false);
     }
 }

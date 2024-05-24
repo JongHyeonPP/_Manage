@@ -72,7 +72,7 @@ namespace EnumCollection
     }
     public enum ItemGrade : byte
     {
-       Default ,Normal, Rare, Unique
+      Normal, Rare, Unique, Default
     }
     public enum LobbyCase : byte
     {

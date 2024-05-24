@@ -256,7 +256,8 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             SetScale(scale).
             SetPosition(position).
             SetName(name).
-            SetSprite(sprite);
+            SetSprite(sprite).
+            SetId(doc.Id);
             skillsDict.Add(doc.Id, skillForm);
         }
     }
@@ -863,7 +864,9 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                 {
                     position = Vector2.zero;
                 }
-                WeaponClass weaponClass = new(ItemType.Weapon, doc.Id, grade, name, sprite,scale, position);
+
+                string itemId = $"{_weaponTypeStr}:::{doc.Id}";
+                WeaponClass weaponClass = new(ItemType.Weapon, itemId, grade, name, sprite,scale, position);
                 //Effects
                 List<SkillEffect> effects = InitEffect("Effects", dict);
                 if (effects != null)
