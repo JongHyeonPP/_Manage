@@ -1,38 +1,50 @@
-using BattleCollection;
-using DefaultCollection;
 using EnumCollection;
 using Firebase.Firestore;
 using ItemCollection;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 public class ItemManager : MonoBehaviour
 {
     public static ItemManager itemManager;
     public static readonly int inventorySize = 25;//5*5
-    public Material itemMat_Normal;
-    public Material itemMat_Rare;
-    public Material itemMat_Unique;
- 
-    public Material nameMat_Normal;
-    public Material nameMat_Rare;
-    public Material nameMat_Unique;
-    public InventoryUi inventoryUi;
+    public Sprite item_None;
+    public Sprite item_Normal;
+    public Sprite item_Rare;
+    public Sprite item_Unique;
 
+    public Sprite name_Normal;
+    public Sprite name_Rare;
+    public Sprite name_Unique;
+    public InventoryUi inventoryUi;
+    public GameObject inventoryButton;
     public Sprite book_P;
     public Sprite book_S;
     public Sprite book_U;
 
     private List<Item> notReievedItem;
+
+    public static readonly Color powerColor = new(1f, 0.12f, 0.12f);
+    public static readonly Color sustainColor = new(1f, 1f, 0.34f);
+    public static readonly Color utilColor = new(0.2003195f, 1f, 0.0235849f);
+
+    public InventorySlot targetInventorySlot;
+    public EquipSlot targetEquipSlot;
+    public InventorySlot draggingSlot;
+
+
+    public int selectedCharacterIndex;
     private void Awake()
     {
         if (!itemManager)
         {
             itemManager = this;
             inventoryUi.gameObject.SetActive(false);
+            inventoryButton.gameObject.SetActive(true);
+            inventoryUi.InitInventory();
         }
     }
 
@@ -67,7 +79,7 @@ public class ItemManager : MonoBehaviour
             amount = (int)(long)objDict["Amount"];
             Item item = GetItemClass(itemType, itemId);
             CountableItem ci = new(item, amount);
-            inventoryUi.SetSlot(ci, i);
+            inventoryUi.SetInventorySlot(ci, i);
         }
     }
 
@@ -102,7 +114,7 @@ public class ItemManager : MonoBehaviour
                         break;
                 }
                 CountableItem ci = new(item);
-                //main.Add(ci);
+                main.Add(ci);
             }
             for (int i = 0; i < Random.Range(3, 5); i++)//재료는 3개나 4개
             {
@@ -118,28 +130,33 @@ public class ItemManager : MonoBehaviour
         addMainSub.AddRange(sub);
         foreach (CountableItem ci in addMainSub)//
         {
-            Debug.Log(inventoryUi.slots == null);
-            InventorySlot existingSlot = inventoryUi.slots.Where(data => data.ci!=null).Where(data => data.ci.item.itemId == ci.item.itemId).FirstOrDefault();
+            InventorySlot existingSlot = null;
+
+            if (ci.item.itemType != ItemType.Weapon)
+            {
+                existingSlot = inventoryUi.inventorySlots
+                    .Where(data => data.ci != null && data.ci.item.itemId == ci.item.itemId)
+                    .FirstOrDefault();
+            }
+
             if (existingSlot == null)
             {
                 int ableIndex = GetAbleIndex();
-                if (ableIndex == -1)
+                if (ableIndex != -1)
                 {
-                    continue;
+                    inventoryUi.SetInventorySlot(ci, ableIndex);
                 }
-                inventoryUi.SetSlot(ci, ableIndex);
             }
             else
             {
                 existingSlot.ci.amount += ci.amount;
             }
-
         }
         //전리품 Set
-        SetInventoryAtDb();
+        await SetInventoryAtDb();
         if (GameManager.battleScenario)
         {
-            GameManager.battleScenario.LootUi.SetLootAtUi(main, sub, gold);
+            GameManager.battleScenario.lootUi.SetLootAtUi(main, sub, gold);
         }
 
         int GetAbleIndex()
@@ -147,7 +164,7 @@ public class ItemManager : MonoBehaviour
             int ableIndex;
             for (ableIndex = 0; ableIndex < inventorySize; ableIndex++)
             {
-                if (inventoryUi.slots[ableIndex].ci == null)
+                if (inventoryUi.inventorySlots[ableIndex].ci == null)
                     break;
             }
             if (ableIndex >= inventorySize)
@@ -157,12 +174,12 @@ public class ItemManager : MonoBehaviour
     }
 
 
-    private void SetInventoryAtDb()
+    private async Task SetInventoryAtDb()
     {
-        object[] setDict = new object[24];
+        object[] setArr = new object[inventorySize];
         for (int i = 0; i < inventorySize; i++)
         {
-            CountableItem ci = inventoryUi.slots[i].ci;
+            CountableItem ci = inventoryUi.inventorySlots[i].ci;
             if (ci == null)
                 continue;
             string typeStr;
@@ -187,10 +204,20 @@ public class ItemManager : MonoBehaviour
                 { "ItemId", ci.item.itemId },
                 { "Amount", ci.amount}
             };
-            setDict[i] = itemDict;
+            setArr[i] = itemDict;
         }
-        DataManager.dataManager.SetDocumentData("Inventory", setDict, "Progress", GameManager.gameManager.Uid);
+
+
+        await DataManager.dataManager.SetDocumentData("Inventory", setArr, "Progress", GameManager.gameManager.Uid);
     }
+    private async Task SetEquipAtDb()
+    {
+        foreach (CharacterData data in GameManager.gameManager.characterList)
+        {
+            await data.SetEquipAtDbAsync();
+        }
+    }
+
 
     private string GetRandomWeaponIdByGrade(ItemGrade _grade)
     {
@@ -219,7 +246,7 @@ public class ItemManager : MonoBehaviour
         Dictionary<string, WeaponClass> targetWeaponDict = LoadManager.loadManager.weaponDict[weaponType];
         List<string> targetKeyList = targetWeaponDict.Where(item => item.Value.itemGrade == _grade).Select(kvp => kvp.Key).ToList();
         string name = targetKeyList[Random.Range(0, targetKeyList.Count)];
-        return $"{weaponTypeStr}:::{name}" ;
+        return $"{weaponTypeStr}:::{name}";
     }
     private string GetRandomSkillIdByGrade(ItemGrade _grade)
     {
@@ -311,4 +338,57 @@ public class ItemManager : MonoBehaviour
             _list.Add(ci);
 
     }
+
+    public async void InventoryActive()
+    {
+        bool isActive = !inventoryUi.gameObject.activeSelf;
+        inventoryUi.gameObject.SetActive(isActive);
+        if (!isActive)
+        {
+            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+            {
+                await SetInventoryAtDb();
+                await SetEquipAtDb();
+                return Task.CompletedTask;
+            });
+        }
+    }
+    public void ActiveCharacter(bool _isActive)
+    {
+        inventoryUi.ch.gameObject.SetActive(_isActive);
+    }
+
+    public void LoadEquip()
+    {
+        CharacterData character = GameManager.gameManager.characterList[0];
+
+        Skill[] skills = character.skills;
+        WeaponClass weapon = character.weapon;
+        inventoryUi.SetEquipSlot(skills[0], 0);
+        inventoryUi.SetEquipSlot(skills[1], 1);
+        inventoryUi.SetEquipSlot(weapon, 2);
+    }
+    public void SetCategoriCharAtText(SkillCategori _categori, TMP_Text _text)
+    {
+        switch (_categori)
+        {
+            default:
+                _text.text = "P";
+                _text.color = powerColor;
+                _text.GetComponent<RectTransform>().anchoredPosition = new Vector3(1.13f, 0.49f, 0f);
+                break;
+            case SkillCategori.Util:
+                _text.text = "U";
+                _text.color = utilColor;
+                _text.GetComponent<RectTransform>().anchoredPosition = new Vector3(0.4300003f, 0.3599997f, 0f);
+                break;
+            case SkillCategori.Sustain:
+                _text.text = "S";
+                _text.color = sustainColor;
+                _text.GetComponent<RectTransform>().anchoredPosition = new Vector3(0.02999973f, 0.32f, 0f);
+                break;
+        }
+    }
+
+
 }

@@ -25,6 +25,7 @@ public class StartScenario : MonoBehaviour
     private void Awake()
     {
         if (!GameManager.gameManager) return;
+        //canvasStart.GetComponent<Canvas>().worldCamera = GameManager.gameManager.uiCamera;
         GameManager.startScenario = this;
         parentMainMenu = canvasStart.GetChild(2).GetChild(1);
         panelDifficultySelect = canvasStart.GetChild(3);

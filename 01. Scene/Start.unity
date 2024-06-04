@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -134,7 +133,7 @@ GameObject:
   - component: {fileID: 15137010}
   - component: {fileID: 15137012}
   - component: {fileID: 15137011}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -209,7 +208,7 @@ GameObject:
   - component: {fileID: 71604623}
   - component: {fileID: 71604625}
   - component: {fileID: 71604624}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -286,7 +285,7 @@ GameObject:
   - component: {fileID: 142965383}
   - component: {fileID: 142965382}
   - component: {fileID: 142965381}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Button_Exit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -431,7 +430,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 232626079}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Panel_Exit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -468,7 +467,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 349348935}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Panel_NewGame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -505,7 +504,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 391129626}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Panel_Setting
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -544,7 +543,7 @@ GameObject:
   - component: {fileID: 464257451}
   - component: {fileID: 464257453}
   - component: {fileID: 464257452}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -727,7 +726,7 @@ GameObject:
   - component: {fileID: 495812866}
   - component: {fileID: 495812868}
   - component: {fileID: 495812867}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -862,7 +861,7 @@ GameObject:
   - component: {fileID: 606312792}
   - component: {fileID: 606312791}
   - component: {fileID: 606312790}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Button_BattleSimulation
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -995,7 +994,7 @@ GameObject:
   - component: {fileID: 646337739}
   - component: {fileID: 646337738}
   - component: {fileID: 646337737}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Button_LoadGame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1173,7 +1172,7 @@ GameObject:
   - component: {fileID: 870903946}
   - component: {fileID: 870903945}
   - component: {fileID: 870903944}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Button_Exit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1304,7 +1303,7 @@ GameObject:
   m_Component:
   - component: {fileID: 886410678}
   - component: {fileID: 886410679}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: GridLayout_Difficulty
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1368,7 +1367,7 @@ GameObject:
   - component: {fileID: 1056550752}
   - component: {fileID: 1056550754}
   - component: {fileID: 1056550753}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1504,7 +1503,7 @@ GameObject:
   - component: {fileID: 1088127402}
   - component: {fileID: 1088127404}
   - component: {fileID: 1088127403}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TitleImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1577,7 +1576,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1193679747}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Panel_LoadGame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1617,7 +1616,7 @@ GameObject:
   - component: {fileID: 1238822880}
   - component: {fileID: 1238822879}
   - component: {fileID: 1238822878}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Canvas_Start
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1724,6 +1723,14 @@ PrefabInstance:
 
 '
       objectReference: {fileID: 0}
+    - target: {fileID: 2226785144700424213, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2226785145601644138, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 2226785145753130394, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -1755,6 +1762,10 @@ PrefabInstance:
     - target: {fileID: 2226785145753130396, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_Name
       value: Button_Difficulty_Easy
+      objectReference: {fileID: 0}
+    - target: {fileID: 2226785145753130396, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2226785145753130397, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_Pivot.x
@@ -1926,9 +1937,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1841092980}
     m_Modifications:
+    - target: {fileID: 1285662959062406, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1345258695532332, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 1831578341232902, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
       propertyPath: m_Name
       value: Frame_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1831578341232902, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1875804724568514, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1914719207939302, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1998181160508948, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 114435934401758400, guid: 21c03fded03f94d46a8e962c9be8eb64, type: 3}
       propertyPath: m_Color.b
@@ -2107,7 +2142,7 @@ GameObject:
   - component: {fileID: 1589458593}
   - component: {fileID: 1589458595}
   - component: {fileID: 1589458594}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2182,7 +2217,7 @@ GameObject:
   - component: {fileID: 1666212470}
   - component: {fileID: 1666212472}
   - component: {fileID: 1666212471}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Panel_DifficultySelect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2259,7 +2294,7 @@ GameObject:
   - component: {fileID: 1722037372}
   - component: {fileID: 1722037374}
   - component: {fileID: 1722037373}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2393,7 +2428,7 @@ GameObject:
   - component: {fileID: 1746574580}
   - component: {fileID: 1746574582}
   - component: {fileID: 1746574581}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2527,7 +2562,7 @@ GameObject:
   - component: {fileID: 1766260295}
   - component: {fileID: 1766260297}
   - component: {fileID: 1766260296}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2603,7 +2638,7 @@ GameObject:
   - component: {fileID: 1771384570}
   - component: {fileID: 1771384569}
   - component: {fileID: 1771384568}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Button_Setting
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2736,6 +2771,14 @@ PrefabInstance:
       propertyPath: m_text
       value: Normal
       objectReference: {fileID: 0}
+    - target: {fileID: 2226785144700424213, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2226785145601644138, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 2226785145753130394, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -2771,6 +2814,10 @@ PrefabInstance:
     - target: {fileID: 2226785145753130396, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_Name
       value: Button_Difficulty_Normal
+      objectReference: {fileID: 0}
+    - target: {fileID: 2226785145753130396, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2226785145753130397, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_Pivot.x
@@ -2875,7 +2922,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1841092980}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Panel_MainMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2914,7 +2961,7 @@ GameObject:
   - component: {fileID: 1849679844}
   - component: {fileID: 1849679846}
   - component: {fileID: 1849679845}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3049,7 +3096,7 @@ GameObject:
   - component: {fileID: 1902678496}
   - component: {fileID: 1902678495}
   - component: {fileID: 1902678494}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Button_NewGame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3181,7 +3228,7 @@ GameObject:
   - component: {fileID: 1912846347}
   - component: {fileID: 1912846349}
   - component: {fileID: 1912846350}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Parent_MainMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3255,9 +3302,21 @@ PrefabInstance:
       propertyPath: m_text
       value: Hard
       objectReference: {fileID: 0}
+    - target: {fileID: 2226785144700424213, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2226785145601644138, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 2226785145753130396, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_Name
       value: Button_Difficulty_Hard
+      objectReference: {fileID: 0}
+    - target: {fileID: 2226785145753130396, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2226785145753130397, guid: 0fdb42a414290a24f80c6a6b9ba66efa, type: 3}
       propertyPath: m_Pivot.x
@@ -3419,7 +3478,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147483647
+    m_Bits: 128
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -3484,12 +3543,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    quality: 3
-    frameInfluence: 0.1
-    jitterScale: 1
-    mipBias: 0
-    varianceClampScale: 0.9
-    contrastAdaptiveSharpening: 0
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -17,7 +17,7 @@ using static UnityEngine.EventSystems.EventTrigger;
 public class GameManager : MonoBehaviour
 {
     public static GameManager gameManager;
-    public GameObject uiCamera;
+    public Camera uiCamera;
     public Difficulty difficulty;
     public static Language language;
     private string uid;
@@ -57,6 +57,7 @@ public class GameManager : MonoBehaviour
     public int stage;
     public string scene;
     public string history;
+    public List<CharacterData> characterList;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -67,7 +68,7 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(uiCamera);
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
-            uiCamera.SetActive(true);
+            uiCamera.gameObject.SetActive(true);
             //Until Steam API
             uid = "KF5U1XMs5cy7n13dgKjF";//종현
             //uid = "FMefxTlgP9aHsgfE0Grc";
@@ -127,8 +128,19 @@ public class GameManager : MonoBehaviour
     }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
-        if (!(_arg0.name != "Awake" || _arg0.name != "Start"))
+        if (_arg0.name != "Awake" && _arg0.name != "Start")
+        {
             DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
+        }
+        if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby")
+        {
+            ItemManager.itemManager.inventoryButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            ItemManager.itemManager.inventoryButton.gameObject.SetActive(false);
+
+        }
     }
     private void InitGrids()
     {
@@ -205,12 +217,11 @@ public class GameManager : MonoBehaviour
         gold = GetFloatValue(progressDoc["Gold"]);
         stage = (int)(long)progressDoc["Stage"];
         await LoadCharacter();
-        ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
+        if (progressDoc.ContainsKey("Inventory"))
+            ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
+        ItemManager.itemManager.LoadEquip();
         switch (scene)
         {
-            case "Map":
-                scene = "Map";
-                break;
             case "Battle":
                 await BattleScenario.LoadEnemy();
                 break;
@@ -317,10 +328,13 @@ public class GameManager : MonoBehaviour
             {
                 if (tempDict.TryGetValue(string.Format("Skill_{0}", i0), out obj))
                 {
-                    string[] skillId = ((string)obj).Split(":::");
-                    SkillForm skillForm = LoadManager.loadManager.skillsDict[skillId[0]];
+                    string skillId = (string)obj;
+                    if (string.IsNullOrEmpty(skillId))
+                        continue;
+                    string[] splittedId = skillId.Split(":::");
+                    SkillForm skillForm = LoadManager.loadManager.skillsDict[splittedId[0]];
                     ItemGrade grade;
-                    switch (skillId[1])
+                    switch (splittedId[1])
                     {
                         default:
                             grade = ItemGrade.Normal;
@@ -332,7 +346,7 @@ public class GameManager : MonoBehaviour
                             grade = ItemGrade.Unique;
                             break;
                     }
-                    skillForm.LocalizeSkill(grade);
+                    skills[i0] = skillForm.LocalizeSkill(grade);
                 }
             }
             if (tempDict.TryGetValue("Body", out obj))
@@ -442,7 +456,7 @@ public class GameManager : MonoBehaviour
             GameObject characterObject = Instantiate(CharacterTemplate);
             //CharacterHierarchy
             CharacterHierarchy characterHierarchy = characterObject.transform.GetChild(0).GetComponent<CharacterHierarchy>();
-            characterHierarchy.SetBodySprite(hair, faceHair, eyesFront, eyesBack, head, armL, armR, hairColor);
+            characterHierarchy.SetBodySprite(hair, faceHair, eyesFront, eyesBack, head, armL, armR, weapon.sprite, hairColor);
 
             
             //CharacterData
@@ -457,7 +471,7 @@ public class GameManager : MonoBehaviour
             characterAtBattle.InitCharacter(data, _grid);
             BattleScenario.characters.Add(characterAtBattle);
         }
-        CharacterManager.characterManager.SetCharacters(dataList);
+        GameManager.gameManager.characterList = dataList;
     }
 
     public string GetJobId(Skill[] _skills)

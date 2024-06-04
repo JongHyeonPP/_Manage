@@ -26,7 +26,6 @@ public class CharacterInBattle : BaseInBattle
         if (job.effects != null)
             skills.Add(new(job.effects));
 
-        _data.SetWeaponSprite();
         weapon = _data.weapon;
 
         grid = BattleScenario.CharacterGrids[_data.index];

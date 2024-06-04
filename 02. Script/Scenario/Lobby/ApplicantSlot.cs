@@ -68,6 +68,7 @@ public class ApplicantSlot : MonoBehaviour
 
         void InitTemplateSprite(CharacterHierarchy characterHierarchy)
         {
+            characterHierarchy.transform.localScale = Vector3.one;
             Sprite hair;
             Sprite faceHair;
             Sprite head;
@@ -180,7 +181,7 @@ public class ApplicantSlot : MonoBehaviour
                 colorDict.Add("B", hairColor.b);
                 bodyDict.Add("HairColor", colorDict);
             }
-            characterHierarchy.SetBodySprite(hair, faceHair, eyeFront, eyeBack, head, armL, armR, hairColor);
+            characterHierarchy.SetBodySprite(hair, faceHair, eyeFront, eyeBack, head, armL, armR,null, hairColor);
         }
     }
     public void SlotBtnClicked()

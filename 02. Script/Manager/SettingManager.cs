@@ -191,6 +191,7 @@ public class SettingManager : MonoBehaviour
     public void CancelBtnClick()
     {
         settingClass.CancelBtnClick();
+        ItemManager.itemManager.ActiveCharacter(true);
     }
     public void SettingBtnClick()
     {
@@ -457,11 +458,13 @@ public class SettingManager : MonoBehaviour
 
         internal void SettingBtnClick()
         {
-            if (settingManager.panelSetting.activeSelf)
+            bool curActive = settingManager.panelSetting.activeSelf;
+            if (curActive)
             {
                 newSet = new(originSet);
             }
-            settingManager.panelSetting.SetActive(!settingManager.panelSetting.activeSelf);
+            ItemManager.itemManager.ActiveCharacter(curActive);
+            settingManager.panelSetting.SetActive(!curActive);
         }
     }
 }

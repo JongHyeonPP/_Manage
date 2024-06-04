@@ -30,7 +30,7 @@ public class CharacterHierarchy : MonoBehaviour
     [SerializeField] private SpriteRenderer footRightRenderer;
     [SerializeField] private SpriteRenderer footLeftRenderer;
 
-    public void SetBodySprite(Sprite _hair, Sprite _faceHair, Sprite _eyeFront, Sprite _eyeBack, Sprite _head, Sprite _armL, Sprite _armR, Color _hairColor)
+    public void SetBodySprite(Sprite _hair, Sprite _faceHair, Sprite _eyeFront, Sprite _eyeBack, Sprite _head, Sprite _armL, Sprite _armR,  Sprite _weapon,Color _hairColor)
     {
         hairColor = _hairColor;
         hairRenderer.sprite = _hair;
@@ -53,6 +53,7 @@ public class CharacterHierarchy : MonoBehaviour
             armLRenderer.sprite = _armL;
         if (_armR != null)
             armRRenderer.sprite = _armR;
+        weaponRenderer.sprite = _weapon;
     }
 
     public void SetWeaponSprite(WeaponClass _weapon)
@@ -61,6 +62,7 @@ public class CharacterHierarchy : MonoBehaviour
     }
     public void SetJob(string _jobId)
     {
+        hairRenderer.enabled = false;
         Dictionary<ClothesPart, Sprite> clothesDictPiece = LoadManager.loadManager.clothesDict[_jobId];
         ClothesSet(backRenderer,  ClothesPart.Back);
         ClothesSet(clothBodyRenderer, ClothesPart.ClothBody);
@@ -82,6 +84,7 @@ public class CharacterHierarchy : MonoBehaviour
     }
     public void CopyHierarchySprite(CharacterHierarchy _origin)
     {
+        hairRenderer.enabled = _origin.hairRenderer.enabled;
         List<Sprite> sprites = _origin.GetHierarchySprite(out Color _hairColor);
         hairColor = _hairColor;
         hairRenderer.sprite = sprites[0];

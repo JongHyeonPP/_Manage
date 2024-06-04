@@ -72,7 +72,7 @@ namespace EnumCollection
     }
     public enum ItemGrade : byte
     {
-      Normal, Rare, Unique, Default
+      Normal, Rare, Unique, None
     }
     public enum LobbyCase : byte
     {
@@ -96,7 +96,7 @@ namespace EnumCollection
     }
     public enum ItemType
     {
-        Weapon, Skill, Food, Ingredient
+        Weapon, Skill, Food, Ingredient, All
     }
     public enum IngredientType
     {

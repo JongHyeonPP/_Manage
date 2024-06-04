@@ -438,12 +438,14 @@ public class LobbyScenario : MonoBehaviour
             characterDict.Add("WeaponId", weaponId);
             characterDict.Add("GridIndex", gridIndex);
             characterDict.Add("CharacterIndex", i);
-
+            characterDict.Add("Skill_0", string.Empty);
+            characterDict.Add("Skill_1", string.Empty);
             string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.Uid}/Characters");
 
             WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType]["Default"];
             CharacterData data = _slot.templateObject.AddComponent<CharacterData>();
             data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new Skill[2] { null, null}, weapon);
+            data.characterHierarchy.SetWeaponSprite(weapon);
             characterDataList[i] = data;
 
             CharacterInBattle characterAtBattle = _slot.templateObject.AddComponent<CharacterInBattle>();
@@ -451,6 +453,6 @@ public class LobbyScenario : MonoBehaviour
             BattleScenario.characters.Add(characterAtBattle);
             data.characterAtBattle = characterAtBattle;
         }
-        CharacterManager.characterManager.SetCharacters(characterDataList);
+        GameManager.gameManager.characterList =  characterDataList;
     }
 }

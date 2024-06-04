@@ -1,7 +1,11 @@
 using BattleCollection;
 using EnumCollection;
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace ItemCollection
 {
@@ -21,12 +25,13 @@ namespace ItemCollection
         public string itemId;//DB에 셋하기 위함
         public ItemGrade itemGrade;
         public Dictionary<Language, string> name;
-        public Sprite sprite;
-        public Vector2 scale;
-        public Vector2 position;
+        public Sprite sprite { get; set; }
+        public Vector2 scale { get; set; }
+        public Vector2 position { get; set; }
         public bool isCountable;
-        protected Item(ItemType _itemType,string _itemId, ItemGrade _itemGrade,
-            Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position)
+        public Dictionary<Language, string> explain;
+        protected Item(ItemType _itemType, string _itemId, ItemGrade _itemGrade,
+            Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position)
         {
             itemType = _itemType;
             itemId = _itemId;
@@ -35,9 +40,20 @@ namespace ItemCollection
             sprite = _sprite;
             scale = _scale;
             position = _position;
+            explain = _explain;
         }
         protected Item()
         {
+        }
+        public virtual string GetExplain()
+        {
+            return explain[GameManager.language];
+        }
+        public virtual void SetSpriteToImage(Image _image)
+        {
+            _image.sprite = sprite;
+            _image.transform.localScale= scale;
+            _image.transform.localPosition= position;
         }
     }
     public class IngredientClass:Item
@@ -45,7 +61,7 @@ namespace ItemCollection
         public int num;
         public IngredientType type;
 
-        public IngredientClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType,_itemId, _itemGrade, _name, _sprite, _scale, _position)
+        public IngredientClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType,_itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
             itemType = _itemType;
             itemId = _itemId;
@@ -68,7 +84,7 @@ namespace ItemCollection
     {
         public int degree;//1~5
 
-        public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name, _sprite, _scale, _position)
+        public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
             itemType = _itemType;
             itemId = _itemId;
@@ -93,7 +109,8 @@ namespace ItemCollection
         public VisualEffect defaultVisualEffect;
         public VisualEffect skillVisualEffect;
 
-        public WeaponClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name, _sprite,_scale, _position)
+        public WeaponClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position)
+            : base(_itemType, _itemId, _itemGrade, _name, _explain, _sprite,_scale, _position)
         {
         }
 
@@ -224,9 +241,9 @@ namespace ItemCollection
         }
 
     }
+    [Serializable]
     public class Skill:Item
     {
-        public Dictionary<Language, string> explain;
         public SkillCategori categori;
         public float cooltime;
         public List<SkillEffect> effects;
@@ -235,28 +252,13 @@ namespace ItemCollection
         public VisualEffect visualEffect;
         public static float defaultAttackCooltime = 3f;
         public bool isPre;
-        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name, _sprite, _scale, _position)
+        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
         }
-        public Skill(SkillForm _skillForm, ItemGrade _grade):this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.sprite, _skillForm.scale,_skillForm.position)
+        public Skill(SkillForm _skillForm, ItemGrade _grade) : this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.explain[ConvertGradeToInt(_grade)], _skillForm.sprite, _skillForm.scale, _skillForm.position)
         {
-            int gradeNum;
-            string gradeStr;
-            switch (_grade)
-            {
-                default:
-                    gradeNum = 0;
-                    gradeStr = "Normal";
-                    break;
-                case ItemGrade.Rare:
-                    gradeNum = 1;
-                    gradeStr = "Rare";
-                    break;
-                case ItemGrade.Unique:
-                    gradeNum = 2;
-                    gradeStr = "Unique";
-                    break;
-            }
+            int gradeNum = ConvertGradeToInt(_grade);
+            string gradeStr = ConvertGradeToString(_grade);
             if (_skillForm.explain != null)
                 explain = _skillForm.explain[gradeNum];
             categori = _skillForm.categori;
@@ -274,6 +276,7 @@ namespace ItemCollection
             isPre = _skillForm.isPre;
             itemId = $"{_skillForm.id}:::{gradeStr}";
         }
+
         public Skill()//Default Attack
         {
             cooltime = defaultAttackCooltime;
@@ -305,5 +308,107 @@ namespace ItemCollection
             }
 
         }
+        private static int ConvertGradeToInt(ItemGrade grade)
+        {
+            switch (grade)
+            {
+                case ItemGrade.Rare:
+                    return 1;
+                case ItemGrade.Unique:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        private static string ConvertGradeToString(ItemGrade grade)
+        {
+            switch (grade)
+            {
+                case ItemGrade.Rare:
+                    return "Rare";
+                case ItemGrade.Unique:
+                    return "Unique";
+                default:
+                    return "Normal";
+            }
+        }
+        public override string GetExplain()
+        {
+            string originStr = explain[GameManager.language];
+            return ReplaceValues(originStr);
+
+        }
+        public string ReplaceValues(string original)
+        {
+            original = ReplaceByRegex(original, "Value");
+            original = ReplaceByRegex(original, "Count");
+            original = ReplaceByRegex(original, "Vamp");
+            return original;
+
+            string ReplaceByRegex(string original, string _field)
+            {
+                string fontColor;
+                float fontSize;
+                switch (_field)
+                {
+                    default://Value
+                        fontColor = "#0096FF";
+                        fontSize = 17.5f;
+                        break;
+                    case "Count":
+                        fontColor = "#4C4CFF";
+                        fontSize = 17.5f;
+                        break;
+                    case "Vamp":
+                        fontColor = "#4C4CFF";
+                        fontSize = 17.5f;
+                        break;
+                }
+                // 정규식 패턴 문자열 생성, % 포함 여부도 확인
+                string pattern = $@"\{{{_field}_(\d+)\}}(\%)?";
+                Regex regex = new Regex(pattern);
+
+                MatchCollection matches = regex.Matches(original);
+
+                foreach (Match match in matches)
+                {
+                    int index = int.Parse(match.Groups[1].Value); // {Value_i}에서 i 추출
+                    bool isPercent = match.Groups[2].Success; // % 기호 존재 여부 확인
+                    if (index >= 0 && index < effects.Count)
+                    {
+                        string replaceStr;
+                        switch (_field)
+                        {
+                            default://Value
+                                replaceStr = effects[index].value.ToString();
+                                if (effects[index].valueBase == ValueBase.Ability)
+                                    replaceStr += "AB";
+                                break;
+                            case "Count":
+                                replaceStr = effects[index].count.ToString();
+                                break;
+                            case "Vamp":
+                                replaceStr = effects[index].vamp.ToString();
+                                break;
+                        }
+                        if (isPercent)
+                        {
+                            double value = double.Parse(replaceStr) * 100;
+                            replaceStr = value.ToString("0.##") + "%"; // % 기호를 결과에 포함
+                        }
+
+                        string richF = $"<color={fontColor}><size={fontSize}><b>";
+                        string richB = "</b></size></color>";
+                        replaceStr = richF + replaceStr + richB;
+                        original = original.Replace(match.Value, replaceStr);
+                        original = original.Replace("\\n", "\n");
+                    }
+                }
+
+                return original;
+            }
+        }
+
     }
 }

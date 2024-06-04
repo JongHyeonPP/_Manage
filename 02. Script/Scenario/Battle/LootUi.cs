@@ -11,7 +11,7 @@ public class LootUi : MonoBehaviour
 
     private List<MainLootSlot> mainLootSlots;
     private List<SubLootSlot> subLootSlots;
-    private void Awake()
+    public void InitLootUi()
     {
         mainLootSlots = new List<MainLootSlot>();
         subLootSlots = new List<SubLootSlot>();

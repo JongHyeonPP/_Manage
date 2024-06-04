@@ -20,7 +20,7 @@ public class BattleScenario : MonoBehaviour
     #region UI
     public Transform canvasBattle;
     public Transform canvasTest;
-    public LootUi LootUi;
+    public LootUi lootUi;
     public Transform panelGameOver;
     #endregion
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
@@ -50,6 +50,7 @@ public class BattleScenario : MonoBehaviour
         Init_BattleSetAsync();
         Init_UiSet();
         Init_RegularEffectSet();
+        lootUi.InitLootUi();
     }
 
     private void SetBattleLevel()
@@ -119,7 +120,7 @@ public class BattleScenario : MonoBehaviour
     {
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
         GameManager.gameManager.canvasGrid.GetComponent<Canvas>().worldCamera = Camera.main;
-        LootUi.gameObject.SetActive(false);
+        lootUi.gameObject.SetActive(false);
         panelGameOver.gameObject.SetActive(false);
         texts =
                 new()
@@ -142,7 +143,7 @@ public class BattleScenario : MonoBehaviour
         if (battleScenarioTest)
             canvasTest.gameObject.SetActive(true);
         rectCharacterGroup = GameManager.gameManager.canvasGrid.GetChild(0).GetComponent<RectTransform>();
-        GameManager.gameManager.uiCamera.SetActive(true);
+        GameManager.gameManager.uiCamera.gameObject.SetActive(true);
 
 
         //Stage 0
@@ -217,7 +218,7 @@ public class BattleScenario : MonoBehaviour
             });
         }
         CharacterAtBattleInit();//Data->Base
-        List<CharacterData> characters = CharacterManager.characterManager.GetCharacters();
+        List<CharacterData> characters = GameManager.gameManager.characterList;
         for (int i = 0; i < 3; i++)
         {
             CharacterInBattle characterAtBattle = characters[i].characterAtBattle;
@@ -311,7 +312,7 @@ public class BattleScenario : MonoBehaviour
 
     private void CharacterAtBattleInit()
     {
-        List<CharacterData> characterDataList = CharacterManager.characterManager.GetCharacters();
+        List<CharacterData> characterDataList = GameManager.gameManager.characterList;
         for (int i = 0; i < characterDataList.Count; i++)
         {
             CharacterData data = characterDataList[i];
@@ -411,7 +412,7 @@ public class BattleScenario : MonoBehaviour
         GameManager.battleScenario.StopAllCoroutines();
         battlePatern = BattlePatern.OnReady;
         
-        List<CharacterData> dataList = CharacterManager.characterManager.GetCharacters();
+        List<CharacterData> dataList = GameManager.gameManager.characterList;
         if (!battleSimulator)
         {
             await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
@@ -432,7 +433,7 @@ public class BattleScenario : MonoBehaviour
         RefreshGrid();
         await ClearEnemyAsync();
         ItemManager.itemManager.SetLootAsync();
-        LootUi.gameObject.SetActive(true);
+        lootUi.gameObject.SetActive(true);
     }
 
     private static void RefreshGrid()

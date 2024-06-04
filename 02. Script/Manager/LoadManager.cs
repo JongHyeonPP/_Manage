@@ -7,6 +7,7 @@ using LobbyCollection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼­ ÀúÀåÇÏ°í ÀÖ´Â ½ºÅ©¸³Æ®
@@ -133,7 +134,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 List<SkillEffect> effect = InitEffect("Effect", skillDict);
                 effects = new() { effect };
-                explains = null;
+                explains = new() { new(),new(),new()};
             }
             else//¾Æ±º Ä³¸¯ÅÍ°¡ »ç¿ëÇÏ´Â ½ºÅ³
             {
@@ -521,8 +522,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Enemy");
         foreach (DocumentSnapshot doc in documents)
         {
-            try
-            {
                 EnemyClass enemyClass = new EnemyClass();
                 Dictionary<string, object> dict = doc.ToDictionary();
                 object obj;
@@ -578,11 +577,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
                 enemyiesDict.Add(doc.Id, enemyClass);
             }
-            catch
-            {
-                Debug.Log("Error At : " + doc.Id);
-            }
-        }
     }
     private async Task InitUpgrade()
     {
@@ -809,6 +803,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 
                 Dictionary<string, object> dict = doc.ToDictionary();
+                object obj;
                 //Name
                 Dictionary<Language, string> name = new();
                 Dictionary<string, object> nameTemp;
@@ -823,6 +818,19 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     name.Add(Language.Ko,string.Empty);
                     name.Add(Language.En, string.Empty);
                 }
+                //Explain
+                Dictionary<Language, string> explain = new();
+                if (dict.TryGetValue("Explain", out obj))
+                {
+                    Dictionary<string, object> explainObjDict = obj as Dictionary<string, object>;
+                    explain.Add(Language.Ko, (string)explainObjDict["Ko"]);
+                    explain.Add(Language.En, (string)explainObjDict["En"]);
+                }
+                else
+                {
+                    explain.Add(Language.Ko, string.Empty);
+                    explain.Add(Language.En, string.Empty);
+                };
                 //Sprite
                 Sprite sprite = Resources.Load<Sprite>(string.Format("{0}/{1}/{2}/{3}", "Texture", "Weapon", _weaponTypeStr, doc.Id));
                 //Grade
@@ -830,7 +838,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 switch (dict["Grade"])
                 {
                     default:
-                        grade = ItemGrade.Default;
+                        grade = ItemGrade.None;
                         break;
                     case "Normal":
                         grade = ItemGrade.Normal;
@@ -866,7 +874,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
 
                 string itemId = $"{_weaponTypeStr}:::{doc.Id}";
-                WeaponClass weaponClass = new(ItemType.Weapon, itemId, grade, name, sprite,scale, position);
+                WeaponClass weaponClass = new(ItemType.Weapon, itemId, grade, name,explain, sprite,scale, position);
                 //Effects
                 List<SkillEffect> effects = InitEffect("Effects", dict);
                 if (effects != null)
@@ -878,7 +886,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
 
                 weaponClass.SetGrade(grade);
                 //Stat
-                if (dict.TryGetValue("Status", out object obj))
+                if (dict.TryGetValue("Status", out obj))
                 {
                     Dictionary<string, object> statusDict = obj as Dictionary<string, object>;
                     object obj1;
@@ -938,13 +946,27 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     break;
                     //ÄÉÀÌ½º Ãß°¡ ÇÊ¿ä
             }
-            
+            //Name
             Dictionary<string, object> nameObjDict = dict["Name"] as Dictionary<string, object>;
             Dictionary<Language, string> name = new()
             {
                 { Language.Ko, (string)nameObjDict["Ko"] },
                 { Language.En, (string)nameObjDict["En"] }
             };
+            //Explain
+            Dictionary<Language, string> explain = new();
+            if (dict.TryGetValue("Explain", out object obj))
+            {
+                Dictionary<string, object> explainObjDict = obj as Dictionary<string, object>;
+                explain.Add(Language.Ko, (string)explainObjDict["Ko"]);
+                explain.Add(Language.En, (string)explainObjDict["En"]);
+            }
+            else
+            {
+                explain.Add(Language.Ko, string.Empty);
+                explain.Add(Language.En, string.Empty);
+            };
+
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
             //Scale
             Vector2 scale;
@@ -968,7 +990,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 position = Vector2.zero;
             }
-            IngredientClass ingredient = new(ItemType.Ingredient, doc.Id, ItemGrade.Default, name, sprite, scale, position);
+            IngredientClass ingredient = new(ItemType.Ingredient, doc.Id, ItemGrade.None, name, explain, sprite, scale, position);
             ingredient.SetNum(num);
             ingredient.SetIngredientType(ingredientType);
             ingredientDict.Add(doc.Id, ingredient);
@@ -985,11 +1007,25 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             Sprite sprite;
             degree = (int)(long)dict["Degree"];
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
+            //Name
             Dictionary<string, object> nameObjDict = dict["Name"] as Dictionary<string, object>;
             Dictionary<Language, string> name = new()
             {
                 { Language.Ko, (string)nameObjDict["Ko"] },
                 { Language.En, (string)nameObjDict["En"] }
+            };
+            //Explain
+            Dictionary<Language, string> explain = new();
+            if (dict.TryGetValue("Explain", out object obj))
+            {
+                Dictionary<string, object> explainObjDict = obj as Dictionary<string, object>;
+                explain.Add(Language.Ko, (string)explainObjDict["Ko"]);
+                explain.Add(Language.En, (string)explainObjDict["En"]);
+            }
+            else
+            {
+                explain.Add(Language.Ko, string.Empty);
+                explain.Add(Language.En, string.Empty);
             };
             //Scale
             Vector2 scale;
@@ -1013,7 +1049,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             {
                 position = Vector2.zero;
             }
-            FoodClass foodClass = new(ItemType.Food, doc.Id, ItemGrade.Default, name, sprite, scale, position);
+            FoodClass foodClass = new(ItemType.Food, doc.Id, ItemGrade.None, name,explain, sprite, scale, position);
             foodClass.SetDegree(degree);
             foodDict.Add(doc.Id, foodClass);
         }

@@ -85,7 +85,7 @@ public class DataManager : MonoBehaviour
         }
     }
 
-    public async void SetDocumentData(string _field, object _value, string _collectionRef, string _documentId)
+    public async Task SetDocumentData(string _field, object _value, string _collectionRef, string _documentId)
     {
         //기존 도큐먼트에 Set
         CollectionReference collectionRef = db.Collection(_collectionRef);
@@ -102,7 +102,7 @@ public class DataManager : MonoBehaviour
         await documentRef.SetAsync(dict, SetOptions.MergeAll);
         return documentRef.Id;
     }
-    public async void SetDocumentData(Dictionary<string, object> _dict, string _collectionRef, string _documentId)
+    public async Task SetDocumentData(Dictionary<string, object> _dict, string _collectionRef, string _documentId)
     {
         CollectionReference collectionRef = db.Collection(_collectionRef);
 
