@@ -4,6 +4,7 @@ using ItemCollection;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace BattleCollection
 {
@@ -70,17 +71,17 @@ namespace BattleCollection
     public class JobClass
     {
         public Dictionary<Language, string> name = null;
-
         public List<SkillEffect> effects;
-        public JobClass SetName(Dictionary<Language, string> _name)
+        public Dictionary<Language, string> effectExplain = null;
+        public Dictionary<ClothesPart, Sprite> spriteDict;
+
+        public JobClass(Dictionary<Language,string> _name, List<SkillEffect> _effects,
+            Dictionary<Language, string> _effectExplain, Dictionary<ClothesPart, Sprite>_spriteDict)
         {
             name = _name;
-            return this;
-        }
-        public JobClass SetEffects(List<SkillEffect> _effects)
-        {
             effects = _effects;
-            return this;
+            effectExplain = _effectExplain;
+            spriteDict = _spriteDict;
         }
     }
     public class EnemyClass

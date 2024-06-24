@@ -25,7 +25,7 @@ namespace EnumCollection
         ResistByDamage, Vamp, Critical, Revive,
         FameAscend, GoldAscend,
         //Á÷¾÷·ù
-        CorpseExplo, ResistAscend_P, BuffAscend, RewardAscend,
+        CorpseExplo, BuffAscend, RewardAscend,
         
         AttAscend_Torment, ResilienceAscend
     }
@@ -105,5 +105,9 @@ namespace EnumCollection
     public enum ValueBase
     {
         Const, Ability, Armor, HpMax_Enemy,HpMax_Caster
+    }
+    public enum StatusType
+    {
+        Hp, Ability, Resist, Speed
     }
 }

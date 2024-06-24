@@ -63,7 +63,7 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
     }
 
 
-    protected void HightlightOn()
+    public void HightlightOn()
     {
         if (ItemManager.itemManager.draggingSlot != null || this)
             if (highlightCoroutine != null)

@@ -43,6 +43,8 @@ public class GameManager : MonoBehaviour
     public static BattleScenario battleScenario;
     public static LobbyScenario lobbyScenario;
     public static StartScenario startScenario;
+    public static MapScenarioBase mapScenario;
+
     public GameObject CharacterTemplate;
     #region CanvasGrid
     public Transform canvasGrid;
@@ -58,6 +60,10 @@ public class GameManager : MonoBehaviour
     public string scene;
     public string history;
     public List<CharacterData> characterList;
+    #region Map
+    public GameObject smallDotPrefab;
+    #endregion
+
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)

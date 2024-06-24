@@ -7,7 +7,7 @@ using LobbyCollection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEditor.Experimental.GraphView;
+using Unity.Jobs;
 using UnityEngine;
 
 public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼­ ÀúÀåÇÏ°í ÀÖ´Â ½ºÅ©¸³Æ®
@@ -30,7 +30,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<Species, Dictionary<string, EyeClass>> eyeDict = new();
     public Dictionary<string, Sprite> hairDict = new();
     public Dictionary<string, Sprite> faceHairDict = new();
-    public Dictionary<string, Dictionary<ClothesPart, Sprite >> clothesDict = new();
     private void Awake()
     {
         if (!loadManager)
@@ -50,7 +49,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             await InitSkill();
             await Task.WhenAll(InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
                 InitUserDoc(), InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood());
-            InitBodyPart(); InitEye(); InitFaceHair(); InitHair(); InitClothes();
+            InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
             Debug.Log("LoadComplete");
             isInit = true;
         }
@@ -446,9 +445,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             case "CorpseExplo":
                 type = EffectType.CorpseExplo;
                 break;
-            case "ResistAscend_P":
-                type = EffectType.ResistAscend_P;
-                break;
             case "BuffAscend":
                 type = EffectType.BuffAscend;
                 break;
@@ -477,11 +473,16 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         {
             object obj;
             Dictionary<string, object> dict = doc.ToDictionary();
-            JobClass jobClass = new();
+            JobClass jobClass;
+            List<SkillEffect> effects = new();
+            Dictionary<Language, string> name = new();
+            Dictionary<Language, string> effectExplain = new();
+            Dictionary<ClothesPart, Sprite> spriteDict = new();
+            //Effect
             if (dict.TryGetValue("Effect", out obj))
             {
                 List<object> objList = obj as List<object>;
-                List<SkillEffect> effects = new();
+
                 foreach (object x in objList)
                 {
                     Dictionary<string, object> effectDict = x as Dictionary<string, object>;
@@ -504,17 +505,62 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     SkillEffect skillEffect = new SkillEffect().SetType(effectType).SetValue(value).SetByAtt(byAtt);
                     effects.Add(skillEffect);
                 }
-                jobClass.SetEffects(effects);
             }
-            string jobId = (string)dict["JobId"];
             //Name
-            Dictionary<Language, string> name = new();
-            Dictionary<string, object> nameTemp = dict["Name"] as Dictionary<string, object>;
-            name.Add(Language.Ko, (string)nameTemp["Ko"]);
-            name.Add(Language.En, (string)nameTemp["En"]);
-            jobClass.SetName(name);
+            Dictionary<string, object> nameDIct = dict["Name"] as Dictionary<string, object>;
+            name.Add(Language.Ko, (string)nameDIct["Ko"]);
+            name.Add(Language.En, (string)nameDIct["En"]);
+            //EffectExplain
+            if (dict.TryGetValue("EffectExplain", out obj))
+            {
+                Dictionary<string, object> explainDict = obj as Dictionary<string, object>;
+                effectExplain.Add(Language.Ko, (string)explainDict["Ko"]);
+                effectExplain.Add(Language.En, (string)explainDict["En"]);
+            }
+            //Sprite
+            Sprite[] sprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{doc.Id}");
+            Dictionary<ClothesPart, Sprite> tempDict = new();
+            foreach (Sprite sprite in sprites)
+            {
+                ClothesPart clothesPart;
+                switch (sprite.name)
+                {
+                    default:
+                        clothesPart = ClothesPart.Back;
+                        break;
+                    case "ClothBody":
+                        clothesPart = ClothesPart.ClothBody;
+                        break;
+                    case "ClothRight":
+                        clothesPart = ClothesPart.ClothRight;
+                        break;
+                    case "ClothLeft":
+                        clothesPart = ClothesPart.ClothLeft;
+                        break;
+                    case "ArmorBody":
+                        clothesPart = ClothesPart.ArmorBody;
+                        break;
+                    case "ArmorRight":
+                        clothesPart = ClothesPart.ArmorRight;
+                        break;
+                    case "ArmorLeft":
+                        clothesPart = ClothesPart.ArmorLeft;
+                        break;
+                    case "Helmet":
+                        clothesPart = ClothesPart.Helmet;
+                        break;
+                    case "FootRight":
+                        clothesPart = ClothesPart.FootRight;
+                        break;
+                    case "FootLeft":
+                        clothesPart = ClothesPart.FootLeft;
+                        break;
+                }
+                spriteDict.Add(clothesPart, sprite);
+            }
+            jobClass = new(name, effects, effectExplain, spriteDict);
 
-            jobsDict.Add(jobId, jobClass);
+            jobsDict.Add(doc.Id, jobClass);
         }
     }
     private async Task InitEnemy()
@@ -1177,59 +1223,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             return (int)(long)_obj;
         else
             return (float)(double)_obj;
-    }
-    private void InitClothes()
-    {
-        InitClothesPiece("002");
-        InitClothesPiece("011");
-        InitClothesPiece("020");
-        InitClothesPiece("101");
-        InitClothesPiece("110");
-        InitClothesPiece("200");
-        void InitClothesPiece(string _job)
-        {
-            Sprite[] sprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{_job}");
-            Dictionary<ClothesPart, Sprite> tempDict = new();
-            foreach (Sprite sprite in sprites)
-            {
-                ClothesPart clothesPart;
-                switch (sprite.name)
-                {
-                    default:
-                        clothesPart = ClothesPart.Back;
-                        break;
-                    case "ClothBody":
-                        clothesPart = ClothesPart.ClothBody;
-                        break;
-                    case "ClothRight":
-                        clothesPart = ClothesPart.ClothRight;
-                        break;
-                    case "ClothLeft":
-                        clothesPart = ClothesPart.ClothLeft;
-                        break;
-                    case "ArmorBody":
-                        clothesPart = ClothesPart.ArmorBody;
-                        break;
-                    case "ArmorRight":
-                        clothesPart = ClothesPart.ArmorRight;
-                        break;
-                    case "ArmorLeft":
-                        clothesPart = ClothesPart.ArmorLeft;
-                        break;
-                    case "Helmet":
-                        clothesPart = ClothesPart.Helmet;
-                        break;
-                    case "FootRight":
-                        clothesPart = ClothesPart.FootRight;
-                        break;
-                    case "FootLeft":
-                        clothesPart = ClothesPart.FootLeft;
-                        break;
-                }
-                tempDict.Add(clothesPart, sprite);
-            }
-            clothesDict.Add(_job, tempDict);
-        }
     }
     [ContextMenu("SetDoc")]
     public async void SetDoc()

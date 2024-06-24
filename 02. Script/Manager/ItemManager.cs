@@ -34,9 +34,9 @@ public class ItemManager : MonoBehaviour
     public InventorySlot targetInventorySlot;
     public EquipSlot targetEquipSlot;
     public InventorySlot draggingSlot;
+    public InventorySlot throwSlot;
 
-
-    public int selectedCharacterIndex;
+    public CharacterData selectedCharacter;
     private void Awake()
     {
         if (!itemManager)
@@ -134,18 +134,12 @@ public class ItemManager : MonoBehaviour
 
             if (ci.item.itemType != ItemType.Weapon)
             {
-                existingSlot = inventoryUi.inventorySlots
-                    .Where(data => data.ci != null && data.ci.item.itemId == ci.item.itemId)
-                    .FirstOrDefault();
+                existingSlot = GetExistingSlot(ci.item);
             }
 
             if (existingSlot == null)
             {
-                int ableIndex = GetAbleIndex();
-                if (ableIndex != -1)
-                {
-                    inventoryUi.SetInventorySlot(ci, ableIndex);
-                }
+                SetItemToAbleIndex(ci);
             }
             else
             {
@@ -159,20 +153,38 @@ public class ItemManager : MonoBehaviour
             GameManager.battleScenario.lootUi.SetLootAtUi(main, sub, gold);
         }
 
-        int GetAbleIndex()
-        {
-            int ableIndex;
-            for (ableIndex = 0; ableIndex < inventorySize; ableIndex++)
-            {
-                if (inventoryUi.inventorySlots[ableIndex].ci == null)
-                    break;
-            }
-            if (ableIndex >= inventorySize)
-                ableIndex = -1;
-            return ableIndex;
-        }
+
+
+        
     }
 
+    public InventorySlot GetExistingSlot(Item _item)
+    {
+        return inventoryUi.inventorySlots
+            .Where(data => data.ci != null && data.ci.item.itemId == _item.itemId)
+            .FirstOrDefault();
+    }
+
+    public void SetItemToAbleIndex(CountableItem ci)
+    {
+        int ableIndex = GetAbleIndex();
+        if (ableIndex != -1)
+        {
+            inventoryUi.SetInventorySlot(ci, ableIndex);
+        }
+    }
+    int GetAbleIndex()
+    {
+        int ableIndex;
+        for (ableIndex = 0; ableIndex < inventorySize; ableIndex++)
+        {
+            if (inventoryUi.inventorySlots[ableIndex].ci == null)
+                break;
+        }
+        if (ableIndex >= inventorySize)
+            ableIndex = -1;
+        return ableIndex;
+    }
 
     private async Task SetInventoryAtDb()
     {

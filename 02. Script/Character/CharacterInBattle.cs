@@ -16,13 +16,13 @@ public class CharacterInBattle : BaseInBattle
     public List<TalentStruct> talents;
     public void SynchronizeCharacterData(CharacterData _data)
     {
-        maxHp = maxHpInBattle = _data.maxHp;//Hp만 우선적 init 나머지는 CharacterBase.SetSkillsAndStart()에서
+        maxHp = maxHpInBattle = _data.maxHp;
         ability = _data.ability;
         speed = _data.speed;
         resist = _data.resist;
         Hp = _data.hp;
         skills = new(_data.skills);
-        job = LoadManager.loadManager.jobsDict[_data.jobId];
+        job = _data.jobClass;
         if (job.effects != null)
             skills.Add(new(job.effects));
 

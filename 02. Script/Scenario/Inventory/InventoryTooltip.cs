@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ItemCollection;
 using EnumCollection;
-using UnityEditor.ShaderGraph.Internal;
 
 public class InventoryTooltip : MonoBehaviour
 {
@@ -21,8 +18,8 @@ public class InventoryTooltip : MonoBehaviour
     public Transform parentStatus; 
     RectTransform rect;
     GridLayoutGroup parentStatus_Glg;
-    readonly float baseHeight = 140f;
-    readonly float verticalSpace = 10f;
+    readonly float baseHeight = 160f;
+    readonly float verticalSpace = 70f;
     private void Awake()
     {
         rect = GetComponent<RectTransform>();
@@ -99,6 +96,7 @@ public class InventoryTooltip : MonoBehaviour
             if (x.gameObject.activeSelf)
                 statusNum++;
         }
+        Canvas.ForceUpdateCanvases();
         rect.sizeDelta = new Vector2(rect.rect.width, baseHeight + explain.preferredHeight + (parentStatus_Glg.cellSize.y + parentStatus_Glg.spacing.y) * (statusNum+1 / 2));
         parentStatus.localPosition = new Vector3(0f,-(explain.preferredHeight + verticalSpace),0f);
     }

@@ -672,4 +672,9 @@ public class BattleScenario : MonoBehaviour
         RefreshGrid();
         SceneManager.LoadScene("BattleSimulation");
     }
+    public static float CalcResist(float _resist)
+    {
+        float damagePercentage = 100f / (100f + _resist);
+        return damagePercentage;
+    }
 }

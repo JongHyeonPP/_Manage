@@ -9,6 +9,7 @@ using System;
 using UnityEngine.EventSystems;
 using static UnityEngine.EventSystems.EventTrigger;
 using static UnityEngine.UI.GridLayoutGroup;
+using System.Security.Cryptography;
 
 public class InventorySlot : SlotBase
 {
@@ -22,12 +23,11 @@ public class InventorySlot : SlotBase
     public GameObject imageNoSelect;
     private bool isSelected;
     private InventoryUi inventoryUi;
-    private RectTransform rect;
     private void Start()
     {
         inventoryUi = ItemManager.itemManager.inventoryUi;
-        rect = GetComponent<RectTransform>();
         isSelected = true;
+        inventoryUi.throwConfirm.gameObject.SetActive(false);
     }
     public void SetSlot(CountableItem _ci)
     {
@@ -84,7 +84,17 @@ public class InventorySlot : SlotBase
             textNum.text = ci.amount.ToString();
         }
     }
-
+    public void ChangeCiAmount(int _value)
+    {
+        ci.amount += _value;
+        if (ci.amount == 1)
+            textNum.enabled = false;
+        else
+        {
+            textNum.enabled = true;
+            textNum.text = ci.amount.ToString();
+        }
+    }
     public void ClearSlot()
     {
         ci = null;
@@ -105,6 +115,7 @@ public class InventorySlot : SlotBase
         if (!isSelected)
             return;
         if (ci == null) return;
+        inventoryUi.throwReady = false;
         imageGrade.raycastTarget = false;
         imageItem.raycastTarget = false;
         imageHighlight.raycastTarget=false;
@@ -160,18 +171,28 @@ public class InventorySlot : SlotBase
         {
             EquipSlot targetSlot = ItemManager.itemManager.targetEquipSlot;
             CountableItem curCi = ci;
-
-            if (targetSlot.item != null)//교체하기
+            ItemType itemType = targetSlot.itemType;
+            if (ci.amount > 1)
             {
-                SetSlot(new CountableItem(targetSlot.item));
+                ChangeCiAmount(-1);
+
             }
-            else
+            else if (ci.amount == 1)
             {
                 ClearSlot();
             }
+            if (targetSlot.item != null)//교체하기
+            {
+                InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
+                if (existingSlot == null)
+                    ItemManager.itemManager.SetItemToAbleIndex(new CountableItem(targetSlot.item));
+                else
+                    existingSlot.ChangeCiAmount(1);
+            }
+
             targetSlot.SetSlot(curCi.item);
-            CharacterData targetCharacter = GameManager.gameManager.characterList[ItemManager.itemManager.selectedCharacterIndex];
-            switch(targetSlot.itemType)
+            CharacterData targetCharacter = ItemManager.itemManager.selectedCharacter;
+            switch (itemType)
             {
                 default:
                     targetCharacter.ChangeWeapon(curCi.item as WeaponClass);
@@ -180,14 +201,25 @@ public class InventorySlot : SlotBase
                     targetCharacter.skills[targetSlot.index] = curCi.item as Skill;
                     break;
             }
-            
+
             targetSlot.HightlightOff();
+        }
+        else if (inventoryUi.throwReady)
+        {
+            ItemManager.itemManager.throwSlot = ItemManager.itemManager.draggingSlot;
+            inventoryUi.throwReady = false;
+            inventoryUi.throwConfirm.gameObject.SetActive(true);
+            inventoryUi.statusExplain.gameObject.SetActive(false);
         }
         ItemManager.itemManager.draggingSlot = null;
 
         ItemManager.itemManager.targetInventorySlot = null;
+        ItemManager.itemManager.targetEquipSlot = null;
         imageGrade.transform.SetParent(panelBack);
         imageGrade.transform.localPosition = Vector3.zero;
+
+
+
     }
 
     public void OnPointerEnter()
@@ -203,9 +235,31 @@ public class InventorySlot : SlotBase
         {
             ItemManager.itemManager.targetInventorySlot = null;
         }
+        int row = slotIndex / 5;
+        float yOffset = 0f;
+        switch (row)
+        {
+            case 3:
+                yOffset += 40f;
+                break;
+            case 4:
+                yOffset += 80f;
+                break;
+        }
+        int column = slotIndex % 5;
+        float xOffset = 0f;
+        switch (column)
+        {
+            case 3:
+                xOffset -= 40f;
+                break;
+            case 4:
+                xOffset -= 80f;
+                break;
+        }
         if (ci != null)
         {
-            inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition, ci.item);
+            inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition +  new Vector3(xOffset,yOffset), ci.item);
         }
     }
 
@@ -221,6 +275,6 @@ public class InventorySlot : SlotBase
     public void SetSelected(bool _isSelect)
     {
         isSelected = _isSelect;
-        //imageNoSelect.SetActive(!isSelected);
+        imageNoSelect.SetActive(!isSelected);
     }
 }

@@ -24,7 +24,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler
         HightlightOn();
         if (item != null)
         {
-            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f,10f,0f), item);
+            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f,60f,0f), item);
         }
         if (draggingSlot != null)
         {

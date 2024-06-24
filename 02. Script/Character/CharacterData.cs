@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 public class CharacterData:MonoBehaviour
 {
     public string docId;
-    public string jobId;
+    public JobClass jobClass;
     public float maxHp;
     public float hp;
     public float ability;
@@ -27,7 +27,7 @@ public class CharacterData:MonoBehaviour
     internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, Skill[] _skills, WeaponClass _weapon)
     {
         docId = _docId;
-        jobId = _jobId;
+        jobClass = LoadManager.loadManager.jobsDict[_jobId];
         maxHp = _maxHp;
         hp = _hp;
         ability = _ability;

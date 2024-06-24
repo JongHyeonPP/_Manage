@@ -293,7 +293,7 @@ abstract public class BaseInBattle : MonoBehaviour
                     break;
 
                 case EffectType.ResistAscend:
-                    resistInBattle += _value * (1 + GetRegularValue(EffectType.ResistAscend_P));
+                    resistInBattle += _value * (1 + GetRegularValue(EffectType.ResistAscend));
                     break;
                 case EffectType.ResistDescend:
                     resistInBattle -= _value;
@@ -982,11 +982,7 @@ abstract public class BaseInBattle : MonoBehaviour
             switch (effect.type)
             {
                 case EffectType.Damage://타겟에 대한 보정값
-                                       //calcValue 
-                    float hpRatio = Mathf.Clamp01(1 - (target.hp / target.maxHpInBattle));
-                    hpRatio = 0.1f + 0.9f * hpRatio; // 0에서 1까지의 범위를 0.1에서 1로 이동
-                    calcValue *= 1f + hpRatio * caster.GetRegularValue(EffectType.AttAscend_Torment);
-                    calcValue *= 100f / (100f + target.resistInBattle);
+                    calcValue *= BattleScenario.CalcResist(target.resistInBattle);
                     calcValue -= target.GetRegularValue(EffectType.Reduce);
                     calcValue = Mathf.Max(calcValue, 0);
                     foreach (KeyValuePair<EffectType, float> kvp in caster.EffectsByAtt)
@@ -1000,10 +996,6 @@ abstract public class BaseInBattle : MonoBehaviour
             }
             caster.StartCoroutine(RoopEffect(calcValue, target));
         }
-
-
-
-
 
         private IEnumerator RoopEffect(float calcValue, BaseInBattle _target)
         {

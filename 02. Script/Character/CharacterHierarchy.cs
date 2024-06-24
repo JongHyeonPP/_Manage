@@ -63,7 +63,7 @@ public class CharacterHierarchy : MonoBehaviour
     public void SetJob(string _jobId)
     {
         hairRenderer.enabled = false;
-        Dictionary<ClothesPart, Sprite> clothesDictPiece = LoadManager.loadManager.clothesDict[_jobId];
+        Dictionary<ClothesPart, Sprite> clothesDictPiece = LoadManager.loadManager.jobsDict[_jobId].spriteDict;
         ClothesSet(backRenderer,  ClothesPart.Back);
         ClothesSet(clothBodyRenderer, ClothesPart.ClothBody);
         ClothesSet(clothLeftRenderer,  ClothesPart.ClothLeft);

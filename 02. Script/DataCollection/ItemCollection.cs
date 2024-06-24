@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace ItemCollection
 {
@@ -271,7 +270,7 @@ namespace ItemCollection
             {
                 string veName = _skillForm.visualEffect[gradeNum];
                 if (veName != string.Empty)
-                    visualEffect = LoadManager.loadManager.skillVisualEffectDict[veName];
+                    visualEffect = null;
             }
             isPre = _skillForm.isPre;
             itemId = $"{_skillForm.id}:::{gradeStr}";

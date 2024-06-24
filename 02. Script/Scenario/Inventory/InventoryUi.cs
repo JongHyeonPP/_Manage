@@ -19,12 +19,16 @@ public class InventoryUi : MonoBehaviour
     public TMP_Text speedText;
     public List<GameObject> characterSelectFocus = new();
     public InventoryTooltip tooltip;
+    public StatusExplain statusExplain;
     public List<EquipSlot> equipSlots;//스킬 0, 스킬 1, 무기
     public Transform parentItemTypeSelect;
     [SerializeField]private List<SelectButton> selectButtons = new();
+    public bool throwReady { get; set; }
+    public ThrowConfirm throwConfirm;
     private void Awake()
     {
         tooltip.gameObject.SetActive(false);
+        statusExplain.gameObject.SetActive(false);
     }
     private void Start()
     {
@@ -65,8 +69,7 @@ public class InventoryUi : MonoBehaviour
 
     public void SetCharacterAtInventory(int _index)
     {
-        ItemManager.itemManager.selectedCharacterIndex = _index;
-        CharacterData character = GameManager.gameManager.characterList[_index];
+        CharacterData character = ItemManager.itemManager.selectedCharacter = GameManager.gameManager.characterList[_index];
         if (character != null)
         {
             float maxHp = character.maxHp;
@@ -121,5 +124,12 @@ public class InventoryUi : MonoBehaviour
         tooltip.gameObject.SetActive(true);
         tooltip.transform.localPosition = _localPosition;// + new Vector3(25, -15, 0f);
         tooltip.SetTooltipInfo(_item);
+    }
+    public void EnterThrowZone()
+    {
+        if (ItemManager.itemManager.draggingSlot)
+        {
+            throwReady = true;
+        }
     }
 }
