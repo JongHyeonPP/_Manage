@@ -136,14 +136,16 @@ public class DestinationNode : MonoBehaviour
         buttonEnter.gameObject.SetActive(false);
         gameObject.SetActive(false);
     }
-    public void SetRandomNodeType()
+    public string SetRandomNodeType()
     {
-        List<NodeType> nodeTypes = LoadManager.loadManager.nodeTypesDict[backGroundType].Values.ToList();
-        nodeType = nodeTypes[Random.Range(0, nodeTypes.Count)];
+        List<KeyValuePair<string, NodeType>> nodeTypes = LoadManager.loadManager.nodeTypesDict[backGroundType].ToList();
+        KeyValuePair<string, NodeType> kpv = nodeTypes[Random.Range(0, nodeTypes.Count)];
+        nodeType = kpv.Value;
         textName.text = nodeType.name[GameManager.language];
         imageObject.sprite = nodeType.objectSprite;
         imageObject.SetNativeSize();
         RectTransform gradientRect = imageGradient.GetComponent<RectTransform>();
         gradientRect.sizeDelta = new(imageObject.sprite.rect.width, imageObject.sprite.rect.height);
+        return kpv.Key;
     }
 }

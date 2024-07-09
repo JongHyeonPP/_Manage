@@ -224,8 +224,7 @@ public class GameManager : MonoBehaviour
         if (progressDoc.ContainsKey("Inventory"))
             ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
         MapScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
-        List<object> nodeObjectObj = (List<object>)progressDoc["NodeObjects"];
-        MapScenarioBase.nodeObjects = nodeObjectObj.Select(item => item == null ? null : item.ToString()).ToArray();
+        MapScenarioBase.nodeTypes = MapScenarioBase.nodeTypes.Select(item => item == null ? null : item.ToString()).ToArray();
         MapScenarioBase.stageNum = (int)(long)progressDoc["StageNum"];
         ItemManager.itemManager.LoadEquip();
         switch (scene)
@@ -253,7 +252,7 @@ public class GameManager : MonoBehaviour
             { "Gold", gold },
             { "Scene", "Stage0" },
             { "Inventory", new object[24] },
-            {"NodeObjects", MapScenarioBase.nodeObjects },
+            {"NodeTypes", MapScenarioBase.nodeTypes },
             {"StageNum", 0 }
         };
         DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);

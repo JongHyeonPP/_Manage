@@ -27,7 +27,7 @@ public abstract class MapScenarioBase : MonoBehaviour
 
     public GameObject canvasPrefab;
     public static List<object> nodes;//¸â¹ö´Â nodeÀÇ ÀÎµ¦½º int°ª
-    public static string[] nodeObjects = new string[21];
+    public static string[] nodeTypes = new string[21];
     protected static float targetIntensity;
     protected static float targetSmoothness;
     protected virtual void Awake()

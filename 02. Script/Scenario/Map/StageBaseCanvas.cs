@@ -285,13 +285,11 @@ public class StageBaseCanvas : MonoBehaviour
     }
     public void EnterPhase()
     {
-        int phase = MapScenarioBase.phase;
-        var nodes = MapScenarioBase.nodes;
-        List<DestinationNode> to = allNodePhase[phase];
+        List<DestinationNode> to = allNodePhase[MapScenarioBase.phase];
 
-        parentNode.GetChild(phase).gameObject.SetActive(true);
+        parentNode.GetChild(MapScenarioBase.phase).gameObject.SetActive(true);
         List<DestinationNode> tempTo;
-        switch (phase)
+        switch (MapScenarioBase.phase)
         {
             default:
                 tempTo = new();
@@ -337,14 +335,15 @@ public class StageBaseCanvas : MonoBehaviour
             {
                 choiseNode += ":::" + node.arrayIndex;
             }
-            node.SetRandomNodeType();
-
+            string nodeTypeId =  node.SetRandomNodeType();
+            MapScenarioBase.nodeTypes[node.index] = nodeTypeId;
         }
-        nodes.Add(choiseNode);
-
+        MapScenarioBase.nodes.Add(choiseNode);
+        
         Dictionary<string, object> docDict = new()
         {
-            { "Nodes", nodes },
+            { "Nodes", MapScenarioBase.nodes },
+            { "NodeTypes", MapScenarioBase.nodeTypes },
         };
         DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.Uid);
         StartCoroutine(WaitAllConnect(tempTo));
