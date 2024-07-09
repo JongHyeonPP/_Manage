@@ -52,7 +52,12 @@ namespace EnumCollection
     }
     public enum BackgroundType : byte
     {
-        Plains, Ruins, Cave, Desert, Forest, Beach, Lava, IceField, Swamp
+        //Stage 0
+        Plains, Forest, Beach, Ruins, ElfCity,
+        //Stage1
+        MysteriousForest, VineForest, Swamp, WinterForest, IceField,
+        //Stage 2
+        DesertRuins, Cave, Desert, RedRock, Lava
     }
     public enum BattleDifficulty:byte
     {

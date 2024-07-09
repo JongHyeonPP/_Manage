@@ -391,8 +391,8 @@ public class LobbyScenario : MonoBehaviour
             await FromSlotToCharacter();
             GameManager.gameManager.InitProgress();
         });
-
-        SceneManager.LoadScene("Map");
+        MapScenarioBase.stageNum = 0;
+        SceneManager.LoadScene("Stage0");
         
     }
     async Task FromSlotToCharacter()

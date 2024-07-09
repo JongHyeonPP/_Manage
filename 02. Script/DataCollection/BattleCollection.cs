@@ -144,16 +144,23 @@ namespace BattleCollection
     public class EnemyCase
     {
         public List<EnemyPieceForm> pieces;//id, index
-        public List<int> levelRange;
-        public EnemyCase SetEnemies(List<EnemyPieceForm> _pieces)
+        public EnemyCase(List<EnemyPieceForm> _pieces)
         {
             pieces = _pieces;
-            return this;
         }
-        public EnemyCase SetLevelRange(List<int> _levelRange)
+    }
+    public class NodeType
+    {
+        public List<string> casesStr;
+        public Dictionary<Language, string> name;
+        public Sprite objectSprite;
+        public BackgroundType backgroundType;
+        public NodeType(List<string> _casesStr, Dictionary<Language, string> _name, Sprite _objectSprite, BackgroundType _backgroundType)
         {
-            levelRange = _levelRange;
-            return this;
+            casesStr = _casesStr;
+            name = _name;
+            objectSprite = _objectSprite;
+            backgroundType = _backgroundType;
         }
     }
     public class EnemyPieceForm

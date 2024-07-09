@@ -9,10 +9,16 @@ public class LobbySelect : MonoBehaviour
     private GameObject selectLight;
     private void Start()
     {
+        if (!GameManager.lobbyScenario)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
         selectLight = GameManager.lobbyScenario.selectLight;
     }
     public void OnPointerEnter()
     {
+
         selectLight.SetActive(true);
         selectLight.transform.SetParent(transform);
         selectLight.transform.localPosition = Vector3.zero;

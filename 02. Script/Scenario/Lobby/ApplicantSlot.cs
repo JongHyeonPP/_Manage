@@ -59,6 +59,14 @@ public class ApplicantSlot : MonoBehaviour
     private void InitCharacterTemplate()
     {
         templateObject = Instantiate(GameManager.gameManager.CharacterTemplate, transform);
+        foreach (Transform child in templateObject.transform)
+        {
+            if (null == child)
+            {
+                continue;
+            }
+            child.gameObject.layer = LayerMask.NameToLayer("Lobby");
+        }
         templateObject.transform.localPosition = new Vector3(0f, -0.5f, 0f);
         templateObject.transform.localScale = Vector3.one * 1.3f;
         templateAnimator = templateObject.transform.GetChild(0).GetComponent<Animator>();

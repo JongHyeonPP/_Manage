@@ -4,6 +4,7 @@ using EnumCollection;
 using Firebase.Firestore;
 using ItemCollection;
 using LobbyCollection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     public Dictionary<string, UpgradeClass> upgradeDict = new();
     public Dictionary<string, TalentFormStruct> talentDict = new();
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
+    public Dictionary<BackgroundType,Dictionary<string, NodeType>> nodeTypesDict = new();
     public Dictionary<WeaponType, Dictionary<string, WeaponClass>> weaponDict = new();
     public Dictionary<string, IngredientClass> ingredientDict = new();
     public Dictionary<string, FoodClass> foodDict = new();
@@ -48,7 +50,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             await LoadVisualEffect();
             await InitSkill();
             await Task.WhenAll(InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
-                InitUserDoc(), InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood());
+                InitUserDoc(), InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
+                InitNodeType());
             InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
             Debug.Log("LoadComplete");
             isInit = true;
@@ -780,7 +783,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("EnemyCase");
         foreach (DocumentSnapshot doc in documents)
         {
-            EnemyCase enemyCase = new EnemyCase();
             Dictionary<string, object> dict = doc.ToDictionary();
             //Enemies
             List<EnemyPieceForm> enemyPieces = new();//id, grid
@@ -805,15 +807,38 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 piece.SetIndex((int)(long)pieceObj["GridIndex"]);
                 enemyPieces.Add(piece);
             }
-            enemyCase.SetEnemies(enemyPieces);
-            //LevelRange
-            List<int> levelRange = new();
-            foreach (var x in dict["LevelRange"] as List<object>)
-            {
-                levelRange.Add((int)(long)x);
-            }
-            enemyCase.SetLevelRange(levelRange);
+            EnemyCase enemyCase = new(enemyPieces);
             enemyCaseDict.Add(doc.Id, enemyCase);
+        }
+    }
+    private async Task InitNodeType()
+    {
+        List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("NodeType");
+        BackgroundType[] allTypes = (BackgroundType[])Enum.GetValues(typeof(BackgroundType));
+        Sprite[] sprites = Resources.LoadAll<Sprite>("Texture/NodeType");
+        foreach (var type in allTypes)
+        {
+            nodeTypesDict.Add(type, new());
+        }
+        foreach (DocumentSnapshot doc in documents)
+        {
+            Dictionary<string, object> dict = doc.ToDictionary();
+            BackgroundType backgroundType = (BackgroundType)Enum.Parse(typeof(BackgroundType), (string)dict["BackgroundType"]);
+            Dictionary<string, NodeType> targetDict = nodeTypesDict[backgroundType];
+            List<string> casesStr = new();
+            foreach (object obj in (List<object>)dict["EnemyCases"])
+            {
+                casesStr.Add((string)obj);
+            }
+            Dictionary<string, object> nameFromDoc = (Dictionary<string, object>)dict["Name"];
+            Dictionary<Language, string> name = new()
+            {
+                { Language.Ko, (string)nameFromDoc["Ko"] },
+                { Language.En, (string)nameFromDoc["En"] }
+            };
+            Sprite objectSprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
+            NodeType nodeType = new(casesStr,name,objectSprite, backgroundType);
+            targetDict.Add(doc.Id ,nodeType);
         }
     }
     private async Task InitWeapon()

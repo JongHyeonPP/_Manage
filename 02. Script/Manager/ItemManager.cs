@@ -83,14 +83,13 @@ public class ItemManager : MonoBehaviour
         }
     }
 
-    public async void SetLootAsync()
+    public async Task SetLootAsync()
     {
-        int nodeNum = GameManager.gameManager.nodeNum;
         List<CountableItem> main = new();
         List<CountableItem> sub = new();
         Dictionary<string, object> documentDict = new();
         //傈府前 积己
-        if (nodeNum == 7 || nodeNum == 14)
+        if (false)
         {
 
         }

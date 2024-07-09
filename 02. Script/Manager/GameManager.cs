@@ -6,6 +6,7 @@ using ItemCollection;
 using LobbyCollection;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -55,13 +56,13 @@ public class GameManager : MonoBehaviour
     #endregion
     public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
     EventTrigger eventTrigger;
-    public int nodeNum;
     public int stage;
     public string scene;
     public string history;
     public List<CharacterData> characterList;
     #region Map
     public GameObject smallDotPrefab;
+    public GameObject[] stageBaseCanvases;
     #endregion
 
     void Awake()//매니저 세팅은 Awake
@@ -216,15 +217,16 @@ public class GameManager : MonoBehaviour
 
     public async void LoadGame()
     {
-        seed = (int)(long)progressDoc["Seed"];
         Random.InitState(seed);
         scene = (string)progressDoc["Scene"];
-        nodeNum = (int)(long)progressDoc["NodeNum"];
         gold = GetFloatValue(progressDoc["Gold"]);
-        stage = (int)(long)progressDoc["Stage"];
         await LoadCharacter();
         if (progressDoc.ContainsKey("Inventory"))
             ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
+        MapScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
+        List<object> nodeObjectObj = (List<object>)progressDoc["NodeObjects"];
+        MapScenarioBase.nodeObjects = nodeObjectObj.Select(item => item == null ? null : item.ToString()).ToArray();
+        MapScenarioBase.stageNum = (int)(long)progressDoc["StageNum"];
         ItemManager.itemManager.LoadEquip();
         switch (scene)
         {
@@ -232,23 +234,27 @@ public class GameManager : MonoBehaviour
                 await BattleScenario.LoadEnemy();
                 break;
         }
-        SceneManager.LoadScene(scene);
+        MapScenarioBase.MakeCanvas(MapScenarioBase.stageNum);
+
+        SceneManager.LoadSceneAsync(scene);
     }
+
+
+
     public void InitProgress()
     {
         //temp
-        nodeNum = 0;
         stage = 0;
         gold = 0f;
-        InitSeed();
+        MapScenarioBase.nodes = new();
         Dictionary<string, object> dict = new()
         {
-            { "Seed", seed },
-            { "NodeNum", nodeNum },
-            { "Stage", stage },
+            { "Nodes", MapScenarioBase.nodes },
             { "Gold", gold },
-            { "Scene", "Map" },
-            { "Inventory", new object[24] }
+            { "Scene", "Stage0" },
+            { "Inventory", new object[24] },
+            {"NodeObjects", MapScenarioBase.nodeObjects },
+            {"StageNum", 0 }
         };
         DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
     }
@@ -610,13 +616,6 @@ public class GameManager : MonoBehaviour
             progressDoc = null;
             battleScenario.panelGameOver.gameObject.SetActive(true);
         }
-    }
-    public void InitSeed()
-    {
-        seed = (int)System.DateTime.Now.Ticks;
-        Random.InitState(seed);
-        DataManager.dataManager.SetDocumentData("Seed", seed, "Progress", Uid);
-        Debug.Log("Seed : " + seed);
     }
     public static float GetRandomNumber(float _mean, float _standardDeviation)
     {

@@ -1,174 +1,155 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public abstract class MapScenarioBase : MonoBehaviour
 {
-    public CharacterInMap characterInMap;
+
+    public static int stageNum;
 
     public Volume volume;
     protected Vignette vignette;
-    public DestinationNode startNode;
-    public GameObject smallDotPrefab;
-    public Canvas canvasMap;
-    public DestinationNode currentNode;
 
-    public Transform parentNode;
-    public Transform parentEdge;
 
-    protected List<DestinationNode> nodePhase_0 = new();
-    protected List<DestinationNode> nodePhase_1 = new();
-    protected List<DestinationNode> nodePhase_2 = new();
-    protected List<DestinationNode> nodePhase_3 = new();
-    protected List<DestinationNode> nodePhase_4 = new();
-    protected List<DestinationNode> nodePhase_5 = new();
-    protected DestinationNode nodePhase_Last;
+    public static StageBaseCanvas stageBaseCanvas;
+    public static int phase;
 
-    public int TotalNodeNum;
-    public int phase;
 
-    private List<Coroutine> coroutines = new List<Coroutine>();
-    private Coroutine vignetteCoroutine;
 
-    private int coroutineCount = 0;
-    Dictionary<System.Tuple<int, int>, Transform> fromToSemiparent = new();
-    public bool isMove;
-
-    private void Awake()
+    public GameObject canvasPrefab;
+    public static List<object> nodes;//멤버는 node의 인덱스 int값
+    public static string[] nodeObjects = new string[21];
+    protected static float targetIntensity;
+    protected static float targetSmoothness;
+    protected virtual void Awake()
     {
-        currentNode = startNode;
-        //smallDotPrefab = GameManager.gameManager.smallDotPrefab;
         if (volume.profile.TryGet<Vignette>(out vignette))
         {
-            // 초기 Intensity 값을 설정할 수 있습니다.
-            vignette.intensity.value = 0.45f;
-            
+            Debug.Log("Vignette effect found!");
         }
         else
         {
             Debug.LogError("Vignette component not found in the volume profile.");
         }
-        TotalNodeNum = 1;
-        InitNode(nodePhase_0, 0);
-        InitNode(nodePhase_1, 1);
-        InitNode(nodePhase_2, 2);
-        InitNode(nodePhase_3, 3);
-        InitNode(nodePhase_4, 4);
-        InitNode(nodePhase_5, 5);
-        InitComposition();
-         vignetteCoroutine =  NextVignette(1);
-        EnterPhase(nodePhase_0);
         GameManager.mapScenario = this;
-    }
-    private void InitNode(List<DestinationNode> _nodes, int _phaseNum)
-    {
-        if (parentNode.childCount <= _phaseNum) return;
-        Transform nodes = parentNode.GetChild(_phaseNum);
-        for (int i = 0; i < nodes.childCount; i++)
+        GameObject remainCanvas = GameObject.FindWithTag("REMAINCANVAS");
+        Destroy(remainCanvas);
+        if (stageBaseCanvas == null)
         {
-            DestinationNode node = nodes.GetChild(i).GetComponent<DestinationNode>();
-            node.index = TotalNodeNum++;
-            _nodes.Add(node);
-            node.HideAlpha();
+            MakeCanvas(stageNum);
         }
-    }
-    protected IEnumerator OscillateVignetteIntensity(float minIntensity, float maxIntensity, float duration, float _smoothness)
-    {
-        vignette.smoothness.value = _smoothness;
-        while (true)
+        if (nodes.Count == 0)
         {
-            yield return StartCoroutine(ChangeIntensity(minIntensity, maxIntensity, duration));
-            yield return new WaitForSeconds(1f);
-            yield return StartCoroutine(ChangeIntensity(maxIntensity, minIntensity, duration));
-            yield return new WaitForSeconds(1f);
+            stageBaseCanvas.currentNode = stageBaseCanvas.startNode;
+            phase = 0;
+            ExtendVia(true);
+            MoveCameraXVia(stageBaseCanvas.currentNode, true);
         }
+        else
+        {
+            phase = nodes.Count - 1;
+            ExtendVia(true);
+            MoveCameraXVia(stageBaseCanvas.currentNode, true);
+            phase++;
+        }
+
+        stageBaseCanvas.gameObject.SetActive(true);
+        volume.gameObject.SetActive(true);
+
+        if (stageBaseCanvas.currentNode.buttonEnter)
+            stageBaseCanvas.currentNode.buttonEnter.gameObject.SetActive(false);
+        stageBaseCanvas.EnterPhase();
+
+    }
+    public static void MakeCanvas(int stageNum)
+    {
+        GameObject canvasGameObj = Instantiate(GameManager.gameManager.stageBaseCanvases[stageNum]);
+        stageBaseCanvas = canvasGameObj.GetComponent<StageBaseCanvas>();
+        DontDestroyOnLoad(canvasGameObj);
+        if (nodes.Count > 0)
+            stageBaseCanvas.SetLoadedNode();
     }
 
-    private IEnumerator ChangeIntensity(float startIntensity, float endIntensity, float duration)
-    {
-        float elapsedTime = 0f;
-        while (elapsedTime < duration)
-        {
-            elapsedTime += Time.deltaTime;
-            float newIntensity = Mathf.Lerp(startIntensity, endIntensity, elapsedTime / duration);
-            SetVignetteIntensity(newIntensity);
-            yield return null;
-        }
-        SetVignetteIntensity(endIntensity);
-    }
-    public void SetVignetteIntensity(float intensity)
-    {
-        if (vignette != null)
-        {
-            vignette.intensity.value = intensity;
-        }
-    }
-    protected IEnumerator ConnectDotsCoroutine(DestinationNode startDot, DestinationNode endDot, float dotSpacing)
-    {
-        Vector3 startPosition = startDot.nodeDot.position;
-        Vector3 endPosition = endDot.nodeDot.position;
-        Vector3 direction = (endPosition - startPosition).normalized; // 방향 벡터
-        float distance = Vector3.Distance(startPosition, endPosition);
-        int numberOfDots = Mathf.FloorToInt(distance / dotSpacing);
-        Transform semiParent =  new GameObject($"From{startDot.index}_To{endDot.index}").transform;
-        semiParent.SetParent(parentEdge);
-        fromToSemiparent.Add(new(startDot.index, endDot.index), semiParent);
-        for (int i = 1; i <= numberOfDots-1; i++) // 마지막 점을 생략하기 위해 numberOfDots - 1 사용
-        {
-            Vector3 position = startPosition + direction * (i * dotSpacing);
 
-            // 랜덤하게 약간의 변위를 추가
-            Vector3 randomOffset = new Vector3(Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f), 0f);
-            position += randomOffset;
-
-            var obj = Instantiate(smallDotPrefab, position, Quaternion.identity, canvasMap.transform);
-            obj.transform.SetParent(semiParent);
-            yield return new WaitForSeconds(0.3f); // 점을 생성하는 간격
-        }
-        coroutineCount--;
-    }
-    protected void EnterPhase( List<DestinationNode> _to)
+    [ContextMenu("NextPhase")]
+    public void NextPhase()
     {
         phase++;
-        for (int i = 0; i < _to.Count; i++)
-        {
-            DestinationNode node = _to[i];
-            coroutines.Add(StartCoroutine(ConnectDotsCoroutine(currentNode, node, 0.3f)));
-        }
-        StartCoroutine(WaitAllConnect(_to));
-
+        stageBaseCanvas. EnterPhase();
     }
 
-    private IEnumerator WaitAllConnect(List<DestinationNode> _to)
+
+
+
+
+    public abstract void  ExtendVia(bool _isInstant);
+
+
+
+    public abstract void MoveCameraXVia(DestinationNode _to, bool _isInstant);
+
+    public IEnumerator ExtendVignette(float targetIntensity, float targetSmoothness, float duration, float interval)
     {
-        coroutineCount = coroutines.Count;
-        yield return new WaitUntil(() => coroutineCount <= 0);
-        Debug.Log("All Connected");
-        foreach (var x in _to)
+        // 현재 Vignette의 intensity와 smoothness 값을 저장합니다.
+        float currentIntensity = vignette.intensity.value;
+        float currentSmoothness = vignette.smoothness.value;
+
+        // 경과 시간을 추적합니다.
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
         {
-            StartCoroutine(x.GraduallyAscendAlpha());
+            // 경과 시간을 업데이트합니다.
+            elapsedTime += interval;
+
+            // Lerp 함수를 사용하여 현재 값을 목표 값으로 점진적으로 변경합니다.
+            vignette.intensity.value = Mathf.Lerp(currentIntensity, targetIntensity, elapsedTime / duration);
+            vignette.smoothness.value = Mathf.Lerp(currentSmoothness, targetSmoothness, elapsedTime / duration);
+
+            // 다음 업데이트까지 기다립니다.
+            yield return new WaitForSeconds(interval);
         }
-        coroutines.Clear();
-        if (phase != 1)
-        {
-            StopCoroutine(vignetteCoroutine);
-            yield return new WaitForSeconds(1f);
-            //확장
-            vignetteCoroutine = NextVignette(phase);
-        }
+
+        // 최종 목표 값으로 설정합니다.
+        vignette.intensity.value = targetIntensity;
+        vignette.smoothness.value = targetSmoothness;
     }
-    public void CharacterMove(DestinationNode _to)
+
+
+
+    protected IEnumerator MoveCameraCoroutine( float targetX, float targetY, float duration)
     {
-        Transform semiParent = fromToSemiparent[new(currentNode.index, _to.index)];
-        var transforms = semiParent.GetComponentsInChildren<RectTransform>();
-        StartCoroutine( characterInMap.MoveToNewNode(transforms, _to.nodeDot.GetComponent<RectTransform>()));
+        float elapsedTime = 0f;
+        Vector3 startPos = Camera.main.transform.position;
+
+        while (elapsedTime < duration)
+        {
+            // 시간 경과에 따른 비율 계산
+            float t = elapsedTime / duration;
+
+            // Lerp를 사용하여 점진적으로 x좌표 변경
+            float newX = Mathf.Lerp(startPos.x, targetX, t);
+            float newY = Mathf.Lerp(startPos.y, targetY, t);
+            // 새로운 위치로 이동
+            Camera.main.transform.localPosition = new Vector3(newX,newY, Camera.main.transform.localPosition.z);
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 최종 위치 설정
+        Camera.main.transform.localPosition = new Vector3(targetX,targetY, Camera.main.transform.localPosition.z);
     }
-    protected abstract void InitComposition();
-    protected abstract Coroutine NextVignette(int _phase);
-    
+
+
 }
 

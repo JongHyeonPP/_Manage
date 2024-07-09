@@ -2550,11 +2550,13 @@ MonoBehaviour:
   prefabHpBarInScene: {fileID: 1515528649962624, guid: 5cb75b5e08ea95047b4e4ac1edb68189, type: 3}
   prefabFire0: {fileID: 5591336623368256643, guid: cf76108b366735b4db05979b421d0b16, type: 3}
   gridPre: {fileID: 1454590330282096227, guid: 4fa1193fda8aa2745a7521db0541f7da, type: 3}
-  nodeNum: 0
   stage: 0
   scene: 
   history: 
   characterList: []
+  smallDotPrefab: {fileID: 7061478075886800405, guid: 200334e69c523ef4a9450bb271e3156e, type: 3}
+  stageBaseCanvases:
+  - {fileID: 3360803501909264914, guid: a7359bc15e2288f4eac5bbaf9844bddd, type: 3}
 --- !u!4 &1498113263
 Transform:
   m_ObjectHideFlags: 0
@@ -2948,7 +2950,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 288
+    m_Bits: 32
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

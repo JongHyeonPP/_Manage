@@ -2,50 +2,95 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using static UnityEngine.GraphicsBuffer;
 
 public class MapScenario_2 : MapScenarioBase
 {
-    public int phaseNum;
-    protected override void InitComposition()
+    private void Update()
     {
-        Camera.main.transform.position = new Vector3(2.18f, -0.38f, -10f);
-        Camera.main.orthographicSize = 4.26f;
-
+        
     }
-    [ContextMenu("Phase1")]
-    public void Phase1()
+    protected override void Awake()
     {
-        EnterPhase(nodePhase_1);
-    }
-    [ContextMenu("Phase2")]
-    public void Phase2()
-    {
-        EnterPhase(nodePhase_2);
-    }
-    [ContextMenu("Phase3")]
-    public void Phase3()
-    {
-        EnterPhase(nodePhase_3);
+        base.Awake();
+        stageNum = 0;
     }
 
-    protected override Coroutine NextVignette(int _phase)
+    public override void ExtendVia(bool _isInstant)
     {
-        float vignetteFrom = 0f;
-        float vignetteTo = 0f;
-        float smoothness = 0f;
-        switch (_phase)
+        switch (phase)
         {
+            case 0:
+                targetIntensity = 0.526f;
+                targetSmoothness = 0.639f;
+                break;
             case 1:
-                vignetteFrom = 0.4f;
-                vignetteTo = 0.43f;
-                smoothness = 0.6f;
+                targetIntensity = 0.446f;
+                targetSmoothness = 0.261f;
                 break;
             case 2:
-                vignetteFrom = 0.35f;
-                vignetteTo = 0.36f;
-                smoothness = 0.375f;
+                targetIntensity = 0.4f;
+                targetSmoothness = 0.248f;
+                break;
+            case 3:
+                targetIntensity = 0.371f;
+                targetSmoothness = 0.195f;
+                break;
+            case 4:
+                targetIntensity = 0.295f;
+                targetSmoothness = 0.303f;
+                break;
+            case 5:
+                targetIntensity = 0.262f;
+                targetSmoothness = 0.303f;
+                break;
+
+        }
+        if (_isInstant)
+        {
+            vignette.intensity.value = targetIntensity;
+            vignette.smoothness.value = targetSmoothness;
+        }
+        else
+        StartCoroutine(ExtendVignette(targetIntensity, targetSmoothness, 1f, Time.deltaTime));
+    }
+
+    public override void MoveCameraXVia(DestinationNode _to, bool _isInstant)
+    {
+        float x;
+        float y = _to.transform.position.y / 4;
+
+        switch(phase)
+        {
+            default:
+                Debug.LogError("Unexpected Phase");
+                return;
+            case 0:
+                x = 2f;
+                
+                break;
+            case 1:
+                x = 0.62f;
+                break;
+            case 2:
+                x = -1.5f;
+                break;
+            case 3:
+                x = -3.5f;
+                break;
+            case 4:
+                x = -4.5f;
+                break;
+            case 5:
+                x = -5.5f;
+                break;
+            case 6:
+                x = -6.5f;
                 break;
         }
-        return StartCoroutine(OscillateVignetteIntensity(vignetteFrom, vignetteTo, 2f,smoothness));
+        if(!_isInstant)
+        StartCoroutine(MoveCameraCoroutine(x, y, 2f));
+        else
+            Camera.main.transform.localPosition = new Vector3(x, y, Camera.main.transform.localPosition.z);
     }
 }

@@ -21,6 +21,7 @@ public class BattleScenario : MonoBehaviour
     public Transform canvasBattle;
     public Transform canvasTest;
     public LootUi lootUi;
+    public GameObject buttonNext;
     public Transform panelGameOver;
     #endregion
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
@@ -37,71 +38,17 @@ public class BattleScenario : MonoBehaviour
     public static readonly float gridCorrection = 20f;
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
-    int battleLevel;
     private async void Awake()
     {
+        lootUi.gameObject.SetActive(false);
         if (!GameManager.gameManager)
             return;
         GameManager.battleScenario = this;
 
-        SetBattleLevel();
-        if (battleSimulator)
-            await GameManager.gameManager.LoadCharacter(battleLevel);
         Init_BattleSetAsync();
         Init_UiSet();
         Init_RegularEffectSet();
         lootUi.InitLootUi();
-    }
-
-    private void SetBattleLevel()
-    {
-        if (battleSimulator)
-        {
-            battleLevel = battleSimulator.currentLevel;
-
-        }
-        else
-        {
-            int i = GameManager.gameManager.nodeNum;
-            int result;
-            if (i <= 3)
-            {
-                result = 0;
-            }
-            else if (i <= 6)
-            {
-                result = 1;
-            }
-            else if (i <= 7)
-            {
-                result = 2;
-            }
-            else if (i <= 10)
-            {
-                result = 3;
-            }
-            else if (i <= 13)
-            {
-                result = 4;
-            }
-            else if (i <= 14)
-            {
-                result = 5;
-            }
-            else if (i <= 17)
-            {
-                result = 6;
-            }
-            else if (i <= 20)
-            {
-                result = 7;
-            }
-            else
-            {
-                result = 8;
-            }
-            battleLevel = result;
-        }
     }
 
     private void Init_RegularEffectSet()
@@ -119,9 +66,11 @@ public class BattleScenario : MonoBehaviour
     private void Init_UiSet()
     {
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
+        buttonNext.SetActive(false);
         GameManager.gameManager.canvasGrid.GetComponent<Canvas>().worldCamera = Camera.main;
         lootUi.gameObject.SetActive(false);
         panelGameOver.gameObject.SetActive(false);
+        canvasBattle.gameObject.SetActive(true);
         texts =
                 new()
                 {
@@ -149,61 +98,38 @@ public class BattleScenario : MonoBehaviour
         //Stage 0
         backgrounds[BackgroundType.Plains] = prefabSet.GetChild(0).gameObject;
         backgrounds[BackgroundType.Forest] = prefabSet.GetChild(1).gameObject;
-        backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(2).gameObject;
-        //Stage 1
-        backgrounds[BackgroundType.Beach] = prefabSet.GetChild(3).gameObject;
-        backgrounds[BackgroundType.Swamp] = prefabSet.GetChild(4).gameObject;
-        backgrounds[BackgroundType.Cave] = prefabSet.GetChild(5).gameObject;
-        //Stage 2
-        backgrounds[BackgroundType.Desert] = prefabSet.GetChild(6).gameObject;
-        backgrounds[BackgroundType.Lava] = prefabSet.GetChild(7).gameObject;
-        backgrounds[BackgroundType.IceField] = prefabSet.GetChild(8).gameObject;
+        backgrounds[BackgroundType.Beach] = prefabSet.GetChild(2).gameObject;
+        backgrounds[BackgroundType.Ruins] = prefabSet.GetChild(3).gameObject;
+        backgrounds[BackgroundType.ElfCity] = prefabSet.GetChild(4).gameObject;
+        
+        backgrounds[BackgroundType.MysteriousForest] = prefabSet.GetChild(5).gameObject;
+        backgrounds[BackgroundType.VineForest] = prefabSet.GetChild(6).gameObject;
+        backgrounds[BackgroundType.Swamp] = prefabSet.GetChild(7).gameObject;
+        backgrounds[BackgroundType.WinterForest] = prefabSet.GetChild(8).gameObject;
+        backgrounds[BackgroundType.IceField] = prefabSet.GetChild(9).gameObject;
+        
+        backgrounds[BackgroundType.DesertRuins] = prefabSet.GetChild(10).gameObject;
+        backgrounds[BackgroundType.Cave] = prefabSet.GetChild(11).gameObject;
+        backgrounds[BackgroundType.Desert] = prefabSet.GetChild(12).gameObject;
+        backgrounds[BackgroundType.RedRock] = prefabSet.GetChild(13).gameObject;
+        backgrounds[BackgroundType.Lava] = prefabSet.GetChild(14).gameObject;
 
-        switch (battleLevel)
-        {
-            default:
-                ChangeMap(BackgroundType.Plains);
-                break;
-            case 1:
-                ChangeMap(BackgroundType.Forest);
-                break;
-            case 2:
-                ChangeMap(BackgroundType.Ruins);
-                break;
-            case 3:
-                ChangeMap(BackgroundType.Beach);
-                break;
-            case 4:
-                ChangeMap(BackgroundType.Swamp);
-                break;
-            case 5:
-                ChangeMap(BackgroundType.IceField);
-                break;
-            case 6:
-                ChangeMap(BackgroundType.Cave);
-                break;
-            case 7:
-                ChangeMap(BackgroundType.Desert);
-                break;
-            case 8:
-                ChangeMap(BackgroundType.Lava);
-                break;
-        }
-
+        ChangeBackground(MapScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType);
     }
 
     private async void Init_BattleSetAsync()
     {
         if (battleSimulator)
         {
-            await LoadEnemy(battleLevel);
+            await LoadEnemy();
         }
         else//Enemies 绝促搁 BattleCase甫 烹秦辑 积己
             if (enemies.Count == 0)
         {
-            List<EnemyPiece> selectedCase = MakeEnemies(battleLevel);//利 积己
+            List<EnemyPiece> selectedCase = MakeEnemies();//利 积己
 
-            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction => {
+            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+            {
                 for (int i = 0; i < selectedCase.Count; i++)
                 {
                     Dictionary<string, object> enemyDict = new()
@@ -422,7 +348,7 @@ public class BattleScenario : MonoBehaviour
                     data.hp = data.characterAtBattle.Hp;
                     DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
                 }
-                DataManager.dataManager.SetDocumentData("Scene", "Map", "Progress", GameManager.gameManager.Uid);
+                DataManager.dataManager.SetDocumentData("Scene", "Stage" + MapScenarioBase.stageNum, "Progress", GameManager.gameManager.Uid);
                 return Task.CompletedTask;
             });
         }
@@ -432,8 +358,9 @@ public class BattleScenario : MonoBehaviour
         }
         RefreshGrid();
         await ClearEnemyAsync();
-        ItemManager.itemManager.SetLootAsync();
+        await ItemManager.itemManager.SetLootAsync();
         lootUi.gameObject.SetActive(true);
+        buttonNext.gameObject.SetActive(true);
     }
 
     private static void RefreshGrid()
@@ -457,7 +384,7 @@ public class BattleScenario : MonoBehaviour
                 x.InBattleFieldZero();
             }
             GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-            SceneManager.LoadScene("Map");
+            SceneManager.LoadSceneAsync("Stage" + MapScenarioBase.stageNum);
         }
     }
     private IEnumerator MoveGaugeCor()
@@ -485,14 +412,16 @@ public class BattleScenario : MonoBehaviour
         battlePatern = BattlePatern.Battle;
         StartCoroutine(MoveGaugeCor());
     }
-    private List<EnemyPiece> MakeEnemies(int _nodeLevel)
+    private List<EnemyPiece> MakeEnemies()
     {
-        Dictionary<string, EnemyCase> values = LoadManager.loadManager.enemyCaseDict;
-        List<string> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel))
-                              .Select(item => item.Key)
-                              .ToList();
-        string selectedCase = ableCases[Random.Range(0, ableCases.Count)];
-        List<EnemyPiece> enemyPieces = LoadEnemiesByCase(selectedCase);
+        List<string> casesStr = MapScenarioBase.stageBaseCanvas.currentNode.nodeType.casesStr;
+        string caseStr = casesStr[Random.Range(0, casesStr.Count)];
+        //Dictionary<string, EnemyCase> values = LoadManager.loadManager.enemyCaseDict;
+        //List<string> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel))
+        //                      .Select(item => item.Key)
+        //                      .ToList();
+        //string selectedCase = ableCases[Random.Range(0, ableCases.Count)];
+        List<EnemyPiece> enemyPieces = LoadEnemiesByCase(caseStr);
         return enemyPieces;
     }
     public async Task ClearEnemyAsync()
@@ -534,7 +463,7 @@ public class BattleScenario : MonoBehaviour
         characters.Clear();
     }
 
-    public void GoToStart() => SceneManager.LoadScene("Start");
+    public void GoToStart() => SceneManager.LoadSceneAsync("Start");
     public void CreateVisualEffect(VisualEffect _visualEffect, BaseInBattle _character, bool _isSkillVe)
     {
         Transform target;
@@ -552,7 +481,7 @@ public class BattleScenario : MonoBehaviour
         }
         Destroy(effectObj, _visualEffect.duration);
     }
-    public void ChangeMap(BackgroundType _backgroundType)
+    public void ChangeBackground(BackgroundType _backgroundType)
     {
         foreach (GameObject backgroundObj in backgrounds.Values)
         {
@@ -564,7 +493,7 @@ public class BattleScenario : MonoBehaviour
     public void ChangeTest()
     {
         BackgroundType[] enumValues = (BackgroundType[])System.Enum.GetValues(typeof(BackgroundType));
-        ChangeMap(enumValues[UnityEngine.Random.Range(0, enumValues.Length)]);
+        ChangeBackground(enumValues[UnityEngine.Random.Range(0, enumValues.Length)]);
     }
     public string visualEffectStr;
     public float visualEffectDur;
@@ -641,13 +570,10 @@ public class BattleScenario : MonoBehaviour
         }
         return enemyPieces;
     }
-    public static async Task LoadEnemy(int _simulationLevel = -1)
+    public static async Task LoadEnemy()
     {
         Dictionary<string, EnemyClass> enemyDict = LoadManager.loadManager.enemyiesDict;
         List<DocumentSnapshot> snapshots;
-        if (_simulationLevel > -1)
-            snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Simulation/Simulation_{_simulationLevel}/Enemies");
-        else
             snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
         foreach (DocumentSnapshot snapshot in snapshots)
         {
