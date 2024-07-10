@@ -4,6 +4,7 @@ using EnumCollection;
 using Firebase.Firestore;
 using ItemCollection;
 using LobbyCollection;
+using MapCollection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
     public Dictionary<string, UpgradeClass> upgradeDict = new();
     public Dictionary<string, TalentFormStruct> talentDict = new();
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
-    public Dictionary<BackgroundType,Dictionary<string, NodeType>> nodeTypesDict = new();
+    public Dictionary<string, NodeType> nodeTypesDict = new();
     public Dictionary<WeaponType, Dictionary<string, WeaponClass>> weaponDict = new();
     public Dictionary<string, IngredientClass> ingredientDict = new();
     public Dictionary<string, FoodClass> foodDict = new();
@@ -816,15 +817,11 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("NodeType");
         BackgroundType[] allTypes = (BackgroundType[])Enum.GetValues(typeof(BackgroundType));
         Sprite[] sprites = Resources.LoadAll<Sprite>("Texture/NodeType");
-        foreach (var type in allTypes)
-        {
-            nodeTypesDict.Add(type, new());
-        }
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
             BackgroundType backgroundType = (BackgroundType)Enum.Parse(typeof(BackgroundType), (string)dict["BackgroundType"]);
-            Dictionary<string, NodeType> targetDict = nodeTypesDict[backgroundType];
+            Dictionary<string, NodeType> targetDict = nodeTypesDict;
             List<string> casesStr = new();
             foreach (object obj in (List<object>)dict["EnemyCases"])
             {

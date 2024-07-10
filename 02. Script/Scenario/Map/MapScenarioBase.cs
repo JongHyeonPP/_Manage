@@ -1,4 +1,6 @@
 
+using EnumCollection;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,7 @@ using UnityEngine.UI;
 
 public abstract class MapScenarioBase : MonoBehaviour
 {
-
+    public static StateInMap state;
     public static int stageNum;
 
     public Volume volume;
@@ -65,9 +67,8 @@ public abstract class MapScenarioBase : MonoBehaviour
         stageBaseCanvas.gameObject.SetActive(true);
         volume.gameObject.SetActive(true);
 
-        if (stageBaseCanvas.currentNode.buttonEnter)
-            stageBaseCanvas.currentNode.buttonEnter.gameObject.SetActive(false);
-        stageBaseCanvas.EnterPhase();
+        if (state == StateInMap.NeedPhase)
+            stageBaseCanvas.EnterPhase();
 
     }
     public static void MakeCanvas(int stageNum)
@@ -149,7 +150,5 @@ public abstract class MapScenarioBase : MonoBehaviour
         // 최종 위치 설정
         Camera.main.transform.localPosition = new Vector3(targetX,targetY, Camera.main.transform.localPosition.z);
     }
-
-
 }
 

@@ -284,6 +284,7 @@ MonoBehaviour:
   buttonEnter: {fileID: 0}
   textEnter: {fileID: 0}
   arrayIndex: 0
+  backGroundType: 0
   phaseNum: 0
 --- !u!1 &2846626552849897562
 GameObject:
@@ -440,16 +441,12 @@ MonoBehaviour:
   currentNode: {fileID: 0}
   parentNode: {fileID: 6184520503570475674}
   parentEdge: {fileID: 100475854544952074}
-  nodePhase_0: []
-  nodePhase_1: []
-  nodePhase_2: []
-  nodePhase_3: []
-  nodePhase_4: []
-  nodePhase_5: []
+  allNodes: []
   nodePhase_Last: {fileID: 0}
   startNode: {fileID: 7603333280563656205}
   characterInMap: {fileID: 5547780750470309579}
   nodeBackgroundTypes: 000001010000010100020301020201010202010104
+  smallDotPrefab: {fileID: 0}
 --- !u!1 &3544076070947136668
 GameObject:
   m_ObjectHideFlags: 0

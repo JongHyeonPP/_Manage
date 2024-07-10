@@ -224,7 +224,7 @@ public class GameManager : MonoBehaviour
         if (progressDoc.ContainsKey("Inventory"))
             ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
         MapScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
-        MapScenarioBase.nodeTypes = MapScenarioBase.nodeTypes.Select(item => item == null ? null : item.ToString()).ToArray();
+        MapScenarioBase.nodeTypes = ((List<object>)progressDoc["NodeTypes"]).Select(item => item?.ToString()).ToArray();
         MapScenarioBase.stageNum = (int)(long)progressDoc["StageNum"];
         ItemManager.itemManager.LoadEquip();
         switch (scene)

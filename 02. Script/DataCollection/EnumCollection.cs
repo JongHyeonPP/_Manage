@@ -1,24 +1,24 @@
 namespace EnumCollection
 {
-    public enum DataSection:byte
+    public enum DataSection : byte
     {
         SoundSetting, Language
     }
-    public enum VolumeType:byte
+    public enum VolumeType : byte
     {
         All, Sfx, Bgm
     }
-    public enum SkillTarget:byte
+    public enum SkillTarget : byte
     {
-        Target, Nontarget 
+        Target, Nontarget
     }
-    public enum EffectType:byte
+    public enum EffectType : byte
     {
         //발동류
         Damage, Curse, Heal, Restoration, Armor, Bleed, AbilityVamp,
         //효과류
         AttAscend, ResistAscend, HealAscend, DebuffAscend, Reduce,
-        AttDescend,ResistDescend,SpeedAscend ,SpeedDescend,
+        AttDescend, ResistDescend, SpeedAscend, SpeedDescend,
         Confuse, BleedTransfer, Reflect, Paralyze, Necro,
         BarrierConv, Enchant, Repeat,
         DamageShare, AbilityAscend,
@@ -26,12 +26,12 @@ namespace EnumCollection
         FameAscend, GoldAscend,
         //직업류
         CorpseExplo, BuffAscend, RewardAscend,
-        
+
         AttAscend_Torment, ResilienceAscend
     }
     public enum UpgradeEffectType : byte
     {
-        AllocateNumberUp, StatusUp, TalentEffectUp,TalentLevelUp, FameUp, GoldUp
+        AllocateNumberUp, StatusUp, TalentEffectUp, TalentLevelUp, FameUp, GoldUp
     }
     public enum EffectRange : byte
     {
@@ -59,15 +59,15 @@ namespace EnumCollection
         //Stage 2
         DesertRuins, Cave, Desert, RedRock, Lava
     }
-    public enum BattleDifficulty:byte
+    public enum BattleDifficulty : byte
     {
         Normal, Elite, Boss
     }
-    public enum Difficulty:byte
+    public enum Difficulty : byte
     {
         Easy, Noraml, Hard
     }
-    public enum Language:byte
+    public enum Language : byte
     {
         Ko, En
     }
@@ -77,7 +77,7 @@ namespace EnumCollection
     }
     public enum ItemGrade : byte
     {
-      Normal, Rare, Unique, None
+        Normal, Rare, Unique, None
     }
     public enum LobbyCase : byte
     {
@@ -93,8 +93,8 @@ namespace EnumCollection
     }
     public enum ClothesPart : byte
     {
-        Back, 
-        ClothBody, ClothLeft, ClothRight, 
+        Back,
+        ClothBody, ClothLeft, ClothRight,
         ArmorBody, ArmorLeft, ArmorRight,
         Helmet,
         FootRight, FootLeft
@@ -109,10 +109,14 @@ namespace EnumCollection
     }
     public enum ValueBase
     {
-        Const, Ability, Armor, HpMax_Enemy,HpMax_Caster
+        Const, Ability, Armor, HpMax_Enemy, HpMax_Caster
     }
     public enum StatusType
     {
         Hp, Ability, Resist, Speed
+    }
+    public enum StateInMap
+    {
+        NeedPhase, NeedEnter,NeedMove
     }
 }

@@ -20,6 +20,7 @@ public class BattleScenario : MonoBehaviour
     #region UI
     public Transform canvasBattle;
     public Transform canvasTest;
+    public GameObject canvasClear;
     public LootUi lootUi;
     public GameObject buttonNext;
     public Transform panelGameOver;
@@ -40,7 +41,6 @@ public class BattleScenario : MonoBehaviour
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
     private async void Awake()
     {
-        lootUi.gameObject.SetActive(false);
         if (!GameManager.gameManager)
             return;
         GameManager.battleScenario = this;
@@ -68,7 +68,6 @@ public class BattleScenario : MonoBehaviour
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
         buttonNext.SetActive(false);
         GameManager.gameManager.canvasGrid.GetComponent<Canvas>().worldCamera = Camera.main;
-        lootUi.gameObject.SetActive(false);
         panelGameOver.gameObject.SetActive(false);
         canvasBattle.gameObject.SetActive(true);
         texts =
@@ -359,8 +358,9 @@ public class BattleScenario : MonoBehaviour
         RefreshGrid();
         await ClearEnemyAsync();
         await ItemManager.itemManager.SetLootAsync();
-        lootUi.gameObject.SetActive(true);
+        canvasClear.SetActive(true);
         buttonNext.gameObject.SetActive(true);
+        MapScenarioBase.state = StateInMap.NeedPhase;
     }
 
     private static void RefreshGrid()

@@ -7,6 +7,7 @@ using EnumCollection;
 using System.Linq;
 using UnityEngine.UI;
 using Unity.VisualScripting;
+using MapCollection;
 
 public class StageBaseCanvas : MonoBehaviour
 {
@@ -15,52 +16,53 @@ public class StageBaseCanvas : MonoBehaviour
     public Transform parentNode;
     public Transform parentEdge;
 
-    public List<DestinationNode> nodePhase_0 = new();
-    public List<DestinationNode> nodePhase_1 = new();
-    public List<DestinationNode> nodePhase_2 = new();
-    public List<DestinationNode> nodePhase_3 = new();
-    public List<DestinationNode> nodePhase_4 = new();
-    public List<DestinationNode> nodePhase_5 = new();
+    public List<DestinationNode> allNodes = new();
+    public List<DestinationNode>[] nodePhases = new List<DestinationNode>[6] { new(), new(), new(), new(), new(), new() };
     public DestinationNode nodePhase_Last;
     public DestinationNode startNode;
     public List<System.Tuple<int, int>> selectedEdgeTuple = new();
-    public List<List<DestinationNode>> allNodePhase = new();
+
     public CharacterInMap characterInMap;
     public List<BackgroundType> nodeBackgroundTypes;
     Dictionary<System.Tuple<int, int>, Transform> fromToSemiparent = new();
     public GameObject smallDotPrefab;
     private int coroutineCount = 0;
-    public bool canMove;
 
     private List<Coroutine> coroutines = new List<Coroutine>();
 
     private void Awake()
     {
         smallDotPrefab = GameManager.gameManager.smallDotPrefab;
-        int totalNodeNum = 0;
         startNode.phaseNum = -1;
         startNode.index = -1;
+        AddToAllNodePhase();
 
-        allNodePhase.Add(nodePhase_0);
-        allNodePhase.Add(nodePhase_1);
-        allNodePhase.Add(nodePhase_2);
-        allNodePhase.Add(nodePhase_3);
-        allNodePhase.Add(nodePhase_4);
-        allNodePhase.Add(nodePhase_5);
-        for (int phase = 0; phase < allNodePhase.Count; phase++)
+        void AddToAllNodePhase()
         {
-            Transform nodesPhase = parentNode.GetChild(phase);
-            for (int arrayIndex = 0; arrayIndex < nodesPhase.childCount; arrayIndex++)
+            int totalNodeNum = 0;
+            for (int i = 0; i < nodePhases.Length; i++)
             {
-                DestinationNode node = nodesPhase.GetChild(arrayIndex).GetComponent<DestinationNode>();
-                allNodePhase[phase].Add(node);
-                node.InitNode(totalNodeNum, arrayIndex, phase, nodeBackgroundTypes[totalNodeNum]);
-                totalNodeNum++;
-            }
+                Transform parent = parentNode.GetChild(i);
+                for (int j = 0; j < parent.childCount; j++)
+                {
+                   nodePhases[i].Add(parent.GetChild(j).GetComponent<DestinationNode>());
+                }
 
+                allNodes.AddRange(nodePhases[i]);
+                Transform nodesPhase = parentNode.GetChild(i);
+                for (int arrayIndex = 0; arrayIndex < nodesPhase.childCount; arrayIndex++)
+                {
+                    DestinationNode node = nodesPhase.GetChild(arrayIndex).GetComponent<DestinationNode>();
+                    node.InitNode(totalNodeNum, arrayIndex, i, nodeBackgroundTypes[totalNodeNum]);
+                    totalNodeNum++;
+                }
+            }
         }
 
     }
+
+
+
     public IEnumerator CharacterMove(DestinationNode _to)
     {
         System.Tuple<int, int> tuple = new(currentNode.index, _to.index);
@@ -74,10 +76,20 @@ public class StageBaseCanvas : MonoBehaviour
 
     public void SetLoadedNode()
     {
+        MapScenarioBase.state = StateInMap.NeedEnter;
         DestinationNode prevNode = startNode;
-        DestinationNode ccurrentNode = null;
-        bool canEnter = true;
         List<object> nodes = MapScenarioBase.nodes;
+        string[] nodeTypes = MapScenarioBase.nodeTypes;
+        for (int i = 0; i < nodeTypes.Length; i++)
+        {
+            string nodeTypeStr = nodeTypes[i];
+            NodeType nodeType;
+            if (nodeTypeStr == null)
+                nodeType = null;
+            else
+                nodeType = LoadManager.loadManager.nodeTypesDict[nodeTypeStr];
+            allNodes[i].SetNodeType(nodeType);
+        }
         for (int i = 0; i < nodes.Count; i++)
         {
             parentNode.GetChild(i).gameObject.SetActive(true);
@@ -104,11 +116,11 @@ public class StageBaseCanvas : MonoBehaviour
                 selectedEdgeTuple.Add(new(prevNode.index, temp.index));
                 if (prevNode.phaseNum != temp.phaseNum)
                     prevNode = temp;
-                ccurrentNode = temp;
+                currentNode = temp;
             }
             else
             {
-                canEnter = false;
+                MapScenarioBase.state = StateInMap.NeedMove;
                 foreach (int arrayIndex in arrayIndexes)
                 {
                     DestinationNode temp = SetNodeActive(i, arrayIndex);
@@ -117,25 +129,20 @@ public class StageBaseCanvas : MonoBehaviour
                     ConnectDots(prevNode, temp, 0.3f);
                 }
             }
+            
         }
-        if (ccurrentNode == null)
+        if (currentNode == null)
             currentNode = startNode;
-        else
-        {
-            currentNode = ccurrentNode;
-        }
-
         characterInMap.transform.position = currentNode.imageDot.transform.position;
-        if (canEnter)
+        if (MapScenarioBase.state == StateInMap.NeedEnter)
         {
             currentNode.buttonEnter.gameObject.SetActive(true);
         }
-        canMove = true;
-
+       
         DestinationNode SetNodeActive(int _phaseNum, int _arrayIndex)
         {
             DestinationNode returnValue = null;
-            List<DestinationNode> phaseNodes = allNodePhase[_phaseNum];
+            List<DestinationNode> phaseNodes = nodePhases[_phaseNum];
             for (int i = 0; i < phaseNodes.Count; i++)
             {
                 DestinationNode node = phaseNodes[i];
@@ -178,6 +185,7 @@ public class StageBaseCanvas : MonoBehaviour
     }
     protected void ConnectDots(DestinationNode startDot, DestinationNode endDot, float dotSpacing)
     {
+        endDot.SetNameText();
         Vector3 startPosition = startDot.imageDot.transform.position;
         Vector3 endPosition = endDot.imageDot.transform.position;
         Vector3 direction = (endPosition - startPosition).normalized; // ¹æÇâ º¤ÅÍ
@@ -207,7 +215,7 @@ public class StageBaseCanvas : MonoBehaviour
             allEdgeParent.Remove(x);
         }
         List<Image> targetImages = new();
-        List<DestinationNode> targetNodes = new(allNodePhase[MapScenarioBase.phase]);
+        List<DestinationNode> targetNodes = new(nodePhases[MapScenarioBase.phase]);
         targetNodes.Remove(currentNode);
         foreach (System.Tuple<int, int> x in allEdgeParent)
         {
@@ -269,11 +277,12 @@ public class StageBaseCanvas : MonoBehaviour
         coroutineCount = coroutines.Count;
         yield return new WaitUntil(() => coroutineCount <= 0);
         Debug.Log("All Connected");
-        foreach (var x in _to)
+        foreach (DestinationNode x in _to)
         {
             x.gameObject.SetActive(true);
             x.ActiveWithObject(true);
             StartCoroutine(x.GraduallyAscendBaseAlpha());
+            x.SetNameText();
         }
         coroutines.Clear();
 
@@ -281,11 +290,11 @@ public class StageBaseCanvas : MonoBehaviour
         {
             GameManager.mapScenario.ExtendVia(false);
         }
-        canMove = true;
+        MapScenarioBase.state = StateInMap.NeedMove;
     }
     public void EnterPhase()
     {
-        List<DestinationNode> to = allNodePhase[MapScenarioBase.phase];
+        List<DestinationNode> to = nodePhases[MapScenarioBase.phase];
 
         parentNode.GetChild(MapScenarioBase.phase).gameObject.SetActive(true);
         List<DestinationNode> tempTo;
@@ -335,8 +344,11 @@ public class StageBaseCanvas : MonoBehaviour
             {
                 choiseNode += ":::" + node.arrayIndex;
             }
-            string nodeTypeId =  node.SetRandomNodeType();
-            MapScenarioBase.nodeTypes[node.index] = nodeTypeId;
+            List<KeyValuePair<string, NodeType>> kvps = LoadManager.loadManager.nodeTypesDict.Where(item =>item.Value.backgroundType == node.backGroundType).ToList();
+            KeyValuePair<string, NodeType> selected = kvps[Random.Range(0, kvps.Count)];
+            node.SetNodeType(selected.Value);
+            MapScenarioBase.nodeTypes[node.index] = selected.Key;
+
         }
         MapScenarioBase.nodes.Add(choiseNode);
         

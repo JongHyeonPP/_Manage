@@ -1,5 +1,5 @@
-using BattleCollection;
 using EnumCollection;
+using MapCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,7 +29,7 @@ public class DestinationNode : MonoBehaviour
     public Image buttonEnter;
     public TMP_Text textEnter;
     public int arrayIndex;
-    private BackgroundType backGroundType;
+    public BackgroundType backGroundType;
     public int phaseNum;
 
     public NodeType nodeType;
@@ -64,7 +64,7 @@ public class DestinationNode : MonoBehaviour
 
     public void OnNodeClicked()
     {
-        if (!MapScenarioBase.stageBaseCanvas.canMove)
+        if (MapScenarioBase.state != StateInMap.NeedMove)
             return;
         GameManager.mapScenario.MoveCameraXVia(this, false);
         StartCoroutine(MoveWaitCor());
@@ -82,7 +82,7 @@ public class DestinationNode : MonoBehaviour
 
         yield return MapScenarioBase.stageBaseCanvas.CharacterMove(this);
         MapScenarioBase.stageBaseCanvas.currentNode = this;
-        MapScenarioBase.stageBaseCanvas.canMove = false;
+        MapScenarioBase.state = StateInMap.NeedEnter;
         StartCoroutine(MapScenarioBase.stageBaseCanvas.HideDeselectedEdgeNode());
 
         buttonEnter.color = new Color(1f, 1f, 1f, 0f);
@@ -112,6 +112,10 @@ public class DestinationNode : MonoBehaviour
     {
         buttonEnter.color = new Color(1f, 1f, 1f, _alpha);
         textEnter.color = new Color(1f, 1f, 1f, _alpha);
+        imageDot.color = new Color(1f, 1f, 1f, _alpha);
+        imageDotGradient.color = new Color(1f, 1f, 1f, _alpha);
+        textName.color = new Color(1f, 1f, 1f, _alpha);
+        imageName.color = new Color(1f, 1f, 1f, _alpha);
     }
     public void EnterBattle()
     {
@@ -136,16 +140,23 @@ public class DestinationNode : MonoBehaviour
         buttonEnter.gameObject.SetActive(false);
         gameObject.SetActive(false);
     }
-    public string SetRandomNodeType()
+    public void SetNodeType(NodeType _nodeType)
     {
-        List<KeyValuePair<string, NodeType>> nodeTypes = LoadManager.loadManager.nodeTypesDict[backGroundType].ToList();
-        KeyValuePair<string, NodeType> kpv = nodeTypes[Random.Range(0, nodeTypes.Count)];
-        nodeType = kpv.Value;
-        textName.text = nodeType.name[GameManager.language];
-        imageObject.sprite = nodeType.objectSprite;
-        imageObject.SetNativeSize();
-        RectTransform gradientRect = imageGradient.GetComponent<RectTransform>();
-        gradientRect.sizeDelta = new(imageObject.sprite.rect.width, imageObject.sprite.rect.height);
-        return kpv.Key;
+        nodeType = _nodeType;
+        if (_nodeType == null)
+        {
+            textName.gameObject.SetActive(false);
+            imageObject.gameObject.SetActive(false);
+        }
+        else
+        {
+            textName.gameObject.SetActive(true);
+            imageObject.gameObject.SetActive(true);
+            imageObject.sprite = nodeType.objectSprite;
+            imageObject.SetNativeSize();
+            RectTransform gradientRect = imageGradient.GetComponent<RectTransform>();
+            gradientRect.sizeDelta = new(imageObject.sprite.rect.width, imageObject.sprite.rect.height);
+        }
     }
+    public void SetNameText() => textName.text = nodeType.name[GameManager.language];
 }
