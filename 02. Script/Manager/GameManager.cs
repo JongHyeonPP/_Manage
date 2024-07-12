@@ -137,7 +137,10 @@ public class GameManager : MonoBehaviour
     {
         if (_arg0.name != "Awake" && _arg0.name != "Start")
         {
-            DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
+            if (_arg0.name.Contains("Stage"))
+                DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", Uid);
+            else
+                DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby")
         {
@@ -233,8 +236,14 @@ public class GameManager : MonoBehaviour
                 await BattleScenario.LoadEnemy();
                 break;
         }
-        MapScenarioBase.MakeCanvas(MapScenarioBase.stageNum);
-
+        StageBaseCanvas canvas = MapScenarioBase.MakeCanvas(MapScenarioBase.stageNum);
+        if (scene == "Stage")
+        {
+            scene += MapScenarioBase.stageNum;
+            canvas.gameObject.SetActive(true);
+        }
+        else
+            canvas.gameObject.SetActive(false);
         SceneManager.LoadSceneAsync(scene);
     }
 
@@ -250,7 +259,7 @@ public class GameManager : MonoBehaviour
         {
             { "Nodes", MapScenarioBase.nodes },
             { "Gold", gold },
-            { "Scene", "Stage0" },
+            { "Scene", "Stage" },
             { "Inventory", new object[24] },
             {"NodeTypes", MapScenarioBase.nodeTypes },
             {"StageNum", 0 }

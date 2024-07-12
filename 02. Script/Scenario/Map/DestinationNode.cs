@@ -66,8 +66,10 @@ public class DestinationNode : MonoBehaviour
     {
         if (MapScenarioBase.state != StateInMap.NeedMove)
             return;
+        MapScenarioBase.state = StateInMap.None;
         GameManager.mapScenario.MoveCameraXVia(this, false);
         StartCoroutine(MoveWaitCor());
+
         MapScenarioBase.nodes.RemoveAt(MapScenarioBase.nodes.Count - 1);
         MapScenarioBase.nodes.Add(arrayIndex);
         Dictionary<string, object> docDict = new()
@@ -79,23 +81,27 @@ public class DestinationNode : MonoBehaviour
 
     private IEnumerator MoveWaitCor()
     {
-
         yield return MapScenarioBase.stageBaseCanvas.CharacterMove(this);
+
         MapScenarioBase.stageBaseCanvas.currentNode = this;
-        MapScenarioBase.state = StateInMap.NeedEnter;
-        StartCoroutine(MapScenarioBase.stageBaseCanvas.HideDeselectedEdgeNode());
 
         buttonEnter.color = new Color(1f, 1f, 1f, 0f);
         textEnter.color = new Color(1f, 1f, 1f, 0f);
         buttonEnter.gameObject.SetActive(true);
         SetEnterAlpha(0f);
         imageName.gameObject.SetActive(true);
+
+        // 두 개의 코루틴을 동시에 실행
+
         StartCoroutine(GraduallyAscendEnterAlpha());
+        StartCoroutine(MapScenarioBase.stageBaseCanvas.HideDeselectedEdgeNodeCor());
+        yield return new WaitForSeconds(1.5f);
+        MapScenarioBase.state = StateInMap.NeedEnter;
     }
     public IEnumerator GraduallyAscendEnterAlpha()
     {
         float curAlpha = 0f;
-        float totalTime = 1f;
+        float totalTime = 0.5f;
         float elapsedTime = 0f;
         yield return new WaitForSeconds(1f);
         while (elapsedTime < totalTime)
@@ -112,13 +118,12 @@ public class DestinationNode : MonoBehaviour
     {
         buttonEnter.color = new Color(1f, 1f, 1f, _alpha);
         textEnter.color = new Color(1f, 1f, 1f, _alpha);
-        imageDot.color = new Color(1f, 1f, 1f, _alpha);
-        imageDotGradient.color = new Color(1f, 1f, 1f, _alpha);
-        textName.color = new Color(1f, 1f, 1f, _alpha);
-        imageName.color = new Color(1f, 1f, 1f, _alpha);
     }
     public void EnterBattle()
     {
+        if (MapScenarioBase.state != StateInMap.NeedEnter)
+            return;
+        MapScenarioBase.stageBaseCanvas.HideAndFadeOutDeselectedEdgeNodes();
         MapScenarioBase.stageBaseCanvas.gameObject.SetActive(false);
         buttonEnter.gameObject.SetActive(false);
         SceneManager.LoadScene("Battle");

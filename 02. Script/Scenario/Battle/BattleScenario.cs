@@ -118,11 +118,6 @@ public class BattleScenario : MonoBehaviour
 
     private async void Init_BattleSetAsync()
     {
-        if (battleSimulator)
-        {
-            await LoadEnemy();
-        }
-        else//Enemies 없다면 BattleCase를 통해서 생성
             if (enemies.Count == 0)
         {
             List<EnemyPiece> selectedCase = MakeEnemies();//적 생성
@@ -338,8 +333,7 @@ public class BattleScenario : MonoBehaviour
         battlePatern = BattlePatern.OnReady;
         
         List<CharacterData> dataList = GameManager.gameManager.characterList;
-        if (!battleSimulator)
-        {
+
             await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
             {
                 foreach (CharacterData data in dataList)
@@ -350,7 +344,7 @@ public class BattleScenario : MonoBehaviour
                 DataManager.dataManager.SetDocumentData("Scene", "Stage" + MapScenarioBase.stageNum, "Progress", GameManager.gameManager.Uid);
                 return Task.CompletedTask;
             });
-        }
+        
         foreach (BaseInBattle x in characters)
         {
             x.StopBattle();
@@ -373,19 +367,12 @@ public class BattleScenario : MonoBehaviour
 
     public void ToMap()
     {
-        if (battleSimulator)
+        foreach (BaseInBattle x in characters)
         {
-            GoToBattleSimulation();
+            x.InBattleFieldZero();
         }
-        else
-        {
-            foreach (BaseInBattle x in characters)
-            {
-                x.InBattleFieldZero();
-            }
-            GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-            SceneManager.LoadSceneAsync("Stage" + MapScenarioBase.stageNum);
-        }
+        GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
+        SceneManager.LoadSceneAsync("Stage" + MapScenarioBase.stageNum);
     }
     private IEnumerator MoveGaugeCor()
     {
@@ -497,7 +484,6 @@ public class BattleScenario : MonoBehaviour
     }
     public string visualEffectStr;
     public float visualEffectDur;
-    public static BattleSimulator battleSimulator;
 
     [ContextMenu("VisualEffetTest")]
     public void VisualEffectTest()

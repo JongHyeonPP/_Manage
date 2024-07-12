@@ -117,6 +117,6 @@ namespace EnumCollection
     }
     public enum StateInMap
     {
-        NeedPhase, NeedEnter,NeedMove
+        NeedPhase, NeedEnter,NeedMove, None
     }
 }

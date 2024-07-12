@@ -27,8 +27,8 @@ public class StartScenario : MonoBehaviour
         if (!GameManager.gameManager) return;
         //canvasStart.GetComponent<Canvas>().worldCamera = GameManager.gameManager.uiCamera;
         GameManager.startScenario = this;
-        parentMainMenu = canvasStart.GetChild(2).GetChild(1);
-        panelDifficultySelect = canvasStart.GetChild(3);
+        parentMainMenu = canvasStart.GetChild(1).GetChild(1);
+        panelDifficultySelect = canvasStart.GetChild(2);
 
         textNewGame = parentMainMenu.GetChild(0).GetChild(1).GetChild(0).GetComponent<TMP_Text>();
         textLoadGame = parentMainMenu.GetChild(1).GetChild(1).GetChild(0).GetComponent<TMP_Text>();

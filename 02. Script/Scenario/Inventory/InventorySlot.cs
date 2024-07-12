@@ -139,7 +139,7 @@ public class InventorySlot : SlotBase
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             inventoryRectTransform,
             mousePosition,
-            GameManager.gameManager.canvasGrid.GetComponent<Canvas>().worldCamera,
+            GameManager.gameManager.uiCamera,
             out localPoint
         );
 

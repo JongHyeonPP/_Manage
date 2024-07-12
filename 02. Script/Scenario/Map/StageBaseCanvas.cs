@@ -69,7 +69,6 @@ public class StageBaseCanvas : MonoBehaviour
         Transform semiParent = fromToSemiparent[tuple];
         selectedEdgeTuple.Add(tuple);
         var transforms = semiParent.GetComponentsInChildren<RectTransform>();
-        GameManager.mapScenario.MoveCameraXVia(_to, false);
         yield return StartCoroutine(characterInMap.MoveToNewNode(transforms, _to.imageDot.GetComponent<RectTransform>()));
 
     }
@@ -207,7 +206,7 @@ public class StageBaseCanvas : MonoBehaviour
             obj.transform.SetParent(semiParent);
         }
     }
-    public IEnumerator HideDeselectedEdgeNode()
+    public IEnumerator HideDeselectedEdgeNodeCor()
     {
         List<System.Tuple<int, int>> allEdgeParent = fromToSemiparent.Keys.ToList();
         foreach (System.Tuple<int, int> x in selectedEdgeTuple)
@@ -226,13 +225,19 @@ public class StageBaseCanvas : MonoBehaviour
                 targetImages.Add(edgeParent.GetComponent<Image>());
             }
         }
-        yield return StartCoroutine(FadeOutImages(targetImages, targetNodes, 5.0f));
+        yield return StartCoroutine(FadeOutImages(targetImages, targetNodes, 1.0f));
         foreach (System.Tuple<int, int> x in allEdgeParent)
         {
             Destroy(fromToSemiparent[x].gameObject);
             fromToSemiparent.Remove(x);
         }
+        foreach (var x in targetNodes)
+        {
+            x.imageName.gameObject.SetActive(false);
+            x.imageDotGradient.gameObject.SetActive(false);
+        }
     }
+
     private IEnumerator FadeOutImages(List<Image> _images, List<DestinationNode> _nodes, float _duration)
     {
         float currentTime = 0f;
@@ -260,17 +265,72 @@ public class StageBaseCanvas : MonoBehaviour
             }
             currentTime += Time.deltaTime;
             yield return null;
+        } 
+        
+    }
+    public void HideAndFadeOutDeselectedEdgeNodes()
+    {
+        // Step 1: Get all edge parent tuples and remove selected ones
+        List<System.Tuple<int, int>> allEdgeParent = fromToSemiparent.Keys.ToList();
+        foreach (System.Tuple<int, int> x in selectedEdgeTuple)
+        {
+            allEdgeParent.Remove(x);
         }
 
-        // 마지막으로 모든 Image의 알파값을 확실히 0으로 설정
-        foreach (Image img in _images)
+        // Step 2: Prepare the list of target images and nodes
+        List<Image> targetImages = new();
+        List<DestinationNode> targetNodes = new(nodePhases[MapScenarioBase.phase]);
+        targetNodes.Remove(currentNode);
+
+        foreach (System.Tuple<int, int> x in allEdgeParent)
         {
-            if (img != null)
+            Transform parent = fromToSemiparent[x];
+            for (int i = 0; i < parent.childCount; i++)
             {
-                Color finalColor = img.color;
-                img.color = new Color(finalColor.r, finalColor.g, finalColor.b, 0);
+                Transform edgeParent = parent.GetChild(i);
+                Image img = edgeParent.GetComponent<Image>();
+                if (img != null)
+                {
+                    targetImages.Add(img);
+                }
             }
         }
+
+        // Step 3: Set alpha of all target images and nodes to 0 (immediate fade out)
+        foreach (Image img in targetImages)
+        {
+            Color currentColor = img.color;
+            img.color = new Color(currentColor.r, currentColor.g, currentColor.b, 0);
+        }
+
+        foreach (var node in targetNodes)
+        {
+            if (node)
+            {
+                node.imageName.color = new Color(1f, 1f, 1f, 0);
+                node.textName.color = new Color(1f, 1f, 1f, 0);
+                node.imageDot.color = new Color(1f, 1f, 1f, 0);
+                node.imageDotGradient.color = new Color(1f, 1f, 1f, 0);
+            }
+        }
+
+        // Step 4: Destroy all edge parent objects and remove from dictionary
+        foreach (System.Tuple<int, int> x in allEdgeParent)
+        {
+            Destroy(fromToSemiparent[x].gameObject);
+            fromToSemiparent.Remove(x);
+        }
+
+        // Step 5: Deactivate node images and gradients
+        foreach (var node in targetNodes)
+        {
+            node.imageName.gameObject.SetActive(false);
+            node.imageDotGradient.gameObject.SetActive(false);
+        }
+    }
+    public void RemoveDeselectedEdge()
+    {
+
     }
     private IEnumerator WaitAllConnect(List<DestinationNode> _to)
     {

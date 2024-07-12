@@ -52,7 +52,7 @@ public abstract class MapScenarioBase : MonoBehaviour
         if (nodes.Count == 0)
         {
             stageBaseCanvas.currentNode = stageBaseCanvas.startNode;
-            phase = 0;
+            phase = -1;
             ExtendVia(true);
             MoveCameraXVia(stageBaseCanvas.currentNode, true);
         }
@@ -61,23 +61,27 @@ public abstract class MapScenarioBase : MonoBehaviour
             phase = nodes.Count - 1;
             ExtendVia(true);
             MoveCameraXVia(stageBaseCanvas.currentNode, true);
-            phase++;
+
         }
 
         stageBaseCanvas.gameObject.SetActive(true);
         volume.gameObject.SetActive(true);
 
         if (state == StateInMap.NeedPhase)
+        {
+            phase++;
             stageBaseCanvas.EnterPhase();
+        }
 
     }
-    public static void MakeCanvas(int stageNum)
+    public static StageBaseCanvas MakeCanvas(int stageNum)
     {
         GameObject canvasGameObj = Instantiate(GameManager.gameManager.stageBaseCanvases[stageNum]);
         stageBaseCanvas = canvasGameObj.GetComponent<StageBaseCanvas>();
         DontDestroyOnLoad(canvasGameObj);
         if (nodes.Count > 0)
             stageBaseCanvas.SetLoadedNode();
+        return stageBaseCanvas;
     }
 
 

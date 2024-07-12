@@ -20,7 +20,7 @@ public class MapScenario_2 : MapScenarioBase
     {
         switch (phase)
         {
-            case 0:
+            default:
                 targetIntensity = 0.526f;
                 targetSmoothness = 0.639f;
                 break;
@@ -59,11 +59,9 @@ public class MapScenario_2 : MapScenarioBase
     {
         float x;
         float y = _to.transform.position.y / 4;
-
-        switch(phase)
+        switch(_to.phaseNum)
         {
             default:
-                Debug.LogError("Unexpected Phase");
                 return;
             case 0:
                 x = 2f;
