@@ -12,6 +12,7 @@ public class JobExplainSlot : SlotBase
     }
     public void OnPointerEnter()
     {
+        return;
         statusExplain.transform.parent = transform.parent;
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition;

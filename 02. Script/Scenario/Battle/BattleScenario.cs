@@ -66,10 +66,10 @@ public class BattleScenario : MonoBehaviour
     private void Init_UiSet()
     {
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
-        buttonNext.SetActive(false);
         GameManager.gameManager.canvasGrid.GetComponent<Canvas>().worldCamera = Camera.main;
         panelGameOver.gameObject.SetActive(false);
         canvasBattle.gameObject.SetActive(true);
+        canvasClear.gameObject.SetActive(false);
         texts =
                 new()
                 {
@@ -113,7 +113,7 @@ public class BattleScenario : MonoBehaviour
         backgrounds[BackgroundType.RedRock] = prefabSet.GetChild(13).gameObject;
         backgrounds[BackgroundType.Lava] = prefabSet.GetChild(14).gameObject;
 
-        ChangeBackground(MapScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType);
+        ChangeBackground(StageScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType);
     }
 
     private async void Init_BattleSetAsync()
@@ -331,7 +331,7 @@ public class BattleScenario : MonoBehaviour
         Debug.Log("StageClear");
         GameManager.battleScenario.StopAllCoroutines();
         battlePatern = BattlePatern.OnReady;
-        
+        StageScenarioBase.nodes.Add(null);
         List<CharacterData> dataList = GameManager.gameManager.characterList;
 
             await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
@@ -341,7 +341,9 @@ public class BattleScenario : MonoBehaviour
                     data.hp = data.characterAtBattle.Hp;
                     DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
                 }
-                DataManager.dataManager.SetDocumentData("Scene", "Stage" + MapScenarioBase.stageNum, "Progress", GameManager.gameManager.Uid);
+                DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", GameManager.gameManager.Uid);
+                DataManager.dataManager.SetDocumentData("Nodes", StageScenarioBase.nodes, "Progress", GameManager.gameManager.Uid);
+
                 return Task.CompletedTask;
             });
         
@@ -354,7 +356,7 @@ public class BattleScenario : MonoBehaviour
         await ItemManager.itemManager.SetLootAsync();
         canvasClear.SetActive(true);
         buttonNext.gameObject.SetActive(true);
-        MapScenarioBase.state = StateInMap.NeedPhase;
+        StageScenarioBase.state = StateInMap.NeedPhase;
     }
 
     private static void RefreshGrid()
@@ -372,7 +374,7 @@ public class BattleScenario : MonoBehaviour
             x.InBattleFieldZero();
         }
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-        SceneManager.LoadSceneAsync("Stage" + MapScenarioBase.stageNum);
+        SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
     }
     private IEnumerator MoveGaugeCor()
     {
@@ -401,7 +403,7 @@ public class BattleScenario : MonoBehaviour
     }
     private List<EnemyPiece> MakeEnemies()
     {
-        List<string> casesStr = MapScenarioBase.stageBaseCanvas.currentNode.nodeType.casesStr;
+        List<string> casesStr = StageScenarioBase.stageBaseCanvas.currentNode.nodeType.casesStr;
         string caseStr = casesStr[Random.Range(0, casesStr.Count)];
         //Dictionary<string, EnemyCase> values = LoadManager.loadManager.enemyCaseDict;
         //List<string> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel))

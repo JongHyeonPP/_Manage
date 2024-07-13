@@ -6,11 +6,11 @@ public class ExplainPanel : MonoBehaviour
 {
     private TMP_Text textExplain;
     private TMP_Text textInfo;
-    private readonly float rectCorrection = 1f;
+    float rectCorrection = 100f;
     void Awake()
     {
-        textExplain = transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>();
-        textInfo = transform.GetChild(0).GetChild(1).GetComponent<TMP_Text>();
+        textExplain = transform.GetChild(0).GetComponent<TMP_Text>();
+        textInfo = transform.GetChild(1).GetComponent<TMP_Text>();
     }
     public void SetExplain(string _explain)
     {

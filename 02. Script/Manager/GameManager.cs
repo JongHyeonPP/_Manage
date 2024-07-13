@@ -28,7 +28,6 @@ public class GameManager : MonoBehaviour
     }
     public Dictionary<string, object> userDoc;
     public Dictionary<string, object> progressDoc;
-    public static int seed { get; private set; }
     public int fame;
     public float gold;
     public float fameAscend = 0f;
@@ -44,7 +43,7 @@ public class GameManager : MonoBehaviour
     public static BattleScenario battleScenario;
     public static LobbyScenario lobbyScenario;
     public static StartScenario startScenario;
-    public static MapScenarioBase mapScenario;
+    public static StageScenarioBase mapScenario;
 
     public GameObject CharacterTemplate;
     #region CanvasGrid
@@ -220,30 +219,34 @@ public class GameManager : MonoBehaviour
 
     public async void LoadGame()
     {
-        Random.InitState(seed);
         scene = (string)progressDoc["Scene"];
-        gold = GetFloatValue(progressDoc["Gold"]);
-        await LoadCharacter();
-        if (progressDoc.ContainsKey("Inventory"))
-            ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
-        MapScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
-        MapScenarioBase.nodeTypes = ((List<object>)progressDoc["NodeTypes"]).Select(item => item?.ToString()).ToArray();
-        MapScenarioBase.stageNum = (int)(long)progressDoc["StageNum"];
-        ItemManager.itemManager.LoadEquip();
-        switch (scene)
+        if (scene != "Lobby")
         {
-            case "Battle":
-                await BattleScenario.LoadEnemy();
-                break;
+            gold = GetFloatValue(progressDoc["Gold"]);
+            await LoadCharacter();
+            if (progressDoc.ContainsKey("Inventory"))
+                ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
+            StageScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
+            StageScenarioBase.nodeTypes = ((List<object>)progressDoc["NodeTypes"]).Select(item => item?.ToString()).ToArray();
+            StageScenarioBase.stageNum = (int)(long)progressDoc["StageNum"];
+            ItemManager.itemManager.LoadEquip();
+            switch (scene)
+            {
+                case "Battle":
+                    await BattleScenario.LoadEnemy();
+                    break;
+            }
+            StageBaseCanvas canvas = StageScenarioBase.MakeCanvas(StageScenarioBase.stageNum);
+            if (scene == "Stage")
+            {
+                scene += StageScenarioBase.stageNum;
+                canvas.gameObject.SetActive(true);
+            }
+            else
+            {
+                canvas.gameObject.SetActive(false);
+            }
         }
-        StageBaseCanvas canvas = MapScenarioBase.MakeCanvas(MapScenarioBase.stageNum);
-        if (scene == "Stage")
-        {
-            scene += MapScenarioBase.stageNum;
-            canvas.gameObject.SetActive(true);
-        }
-        else
-            canvas.gameObject.SetActive(false);
         SceneManager.LoadSceneAsync(scene);
     }
 
@@ -254,14 +257,14 @@ public class GameManager : MonoBehaviour
         //temp
         stage = 0;
         gold = 0f;
-        MapScenarioBase.nodes = new();
+        StageScenarioBase.nodes = new();
         Dictionary<string, object> dict = new()
         {
-            { "Nodes", MapScenarioBase.nodes },
+            { "Nodes", StageScenarioBase.nodes },
             { "Gold", gold },
             { "Scene", "Stage" },
             { "Inventory", new object[24] },
-            {"NodeTypes", MapScenarioBase.nodeTypes },
+            {"NodeTypes", StageScenarioBase.nodeTypes },
             {"StageNum", 0 }
         };
         DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);

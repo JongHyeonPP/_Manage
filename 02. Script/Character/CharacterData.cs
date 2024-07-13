@@ -48,18 +48,19 @@ public class CharacterData:MonoBehaviour
         }
         PermEffects[_effectType] += _value;
     }
-    public void ChangeWeapon(WeaponClass _newWeapon)//무기를 장착하고 해제된 무기 리턴
+    public void ChangeWeapon(WeaponClass _newWeapon)
     {
         ItemManager.itemManager.inventoryUi.ch.SetWeaponSprite(_newWeapon);
+        weapon = _newWeapon;
         characterHierarchy.SetWeaponSprite(_newWeapon);
         
     }
     public async Task SetEquipAtDbAsync()
     {
         Dictionary<string, object> setDict = new Dictionary<string, object>();
-        setDict.Add("Weapon",weapon.itemId);
-        if (skills[0]!=null)
-        setDict.Add("Skill_0", skills[0].itemId);
+        setDict.Add("WeaponId",weapon.itemId);
+        if (skills[0] != null)
+            setDict.Add("Skill_0", skills[0].itemId);
         if (skills[1]!=null)
             setDict.Add("Skill_1", skills[1].itemId);
         await DataManager.dataManager.SetDocumentData(setDict, $"Progress/{GameManager.gameManager.Uid}/Characters",docId);

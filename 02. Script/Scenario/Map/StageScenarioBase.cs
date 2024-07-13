@@ -13,7 +13,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public abstract class MapScenarioBase : MonoBehaviour
+public abstract class StageScenarioBase : MonoBehaviour
 {
     public static StateInMap state;
     public static int stageNum;
@@ -58,7 +58,7 @@ public abstract class MapScenarioBase : MonoBehaviour
         }
         else
         {
-            phase = nodes.Count - 1;
+            phase = nodes.Where(item=>item !=null).ToList().Count - 1;
             ExtendVia(true);
             MoveCameraXVia(stageBaseCanvas.currentNode, true);
 
@@ -66,13 +66,19 @@ public abstract class MapScenarioBase : MonoBehaviour
 
         stageBaseCanvas.gameObject.SetActive(true);
         volume.gameObject.SetActive(true);
-
+        if (nodes.Count>0&& nodes[^1] == null)
+        {
+            nodes.RemoveAt(nodes.Count - 1);
+            DataManager.dataManager.SetDocumentData("Nodes", nodes, "Progress", GameManager.gameManager.Uid);
+           state = StateInMap.NeedPhase;
+        }
         if (state == StateInMap.NeedPhase)
         {
             phase++;
             stageBaseCanvas.EnterPhase();
         }
-
+        if (stageBaseCanvas.currentNode.buttonEnter)
+            stageBaseCanvas.currentNode.buttonEnter.gameObject.SetActive(state == StateInMap.NeedEnter);
     }
     public static StageBaseCanvas MakeCanvas(int stageNum)
     {

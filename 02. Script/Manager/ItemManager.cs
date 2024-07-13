@@ -79,7 +79,7 @@ public class ItemManager : MonoBehaviour
             amount = (int)(long)objDict["Amount"];
             Item item = GetItemClass(itemType, itemId);
             CountableItem ci = new(item, amount);
-            inventoryUi.SetInventorySlot(ci, i);
+            inventoryUi.inventorySlots[i].SetSlot(ci);
         }
     }
 
@@ -164,13 +164,12 @@ public class ItemManager : MonoBehaviour
             .FirstOrDefault();
     }
 
-    public void SetItemToAbleIndex(CountableItem ci)
+    public void SetItemToAbleIndex(CountableItem _ci)
     {
         int ableIndex = GetAbleIndex();
         if (ableIndex != -1)
-        {
-            inventoryUi.SetInventorySlot(ci, ableIndex);
-        }
+            inventoryUi.inventorySlots[ableIndex].SetSlot(_ci);
+        
     }
     int GetAbleIndex()
     {
@@ -221,14 +220,15 @@ public class ItemManager : MonoBehaviour
 
         await DataManager.dataManager.SetDocumentData("Inventory", setArr, "Progress", GameManager.gameManager.Uid);
     }
-    private async Task SetEquipAtDb()
+    private Task SetEquipAtDb()
     {
         foreach (CharacterData data in GameManager.gameManager.characterList)
         {
-            await data.SetEquipAtDbAsync();
+            data.SetEquipAtDbAsync();
         }
-    }
 
+        return Task.CompletedTask;
+    }
 
     private string GetRandomWeaponIdByGrade(ItemGrade _grade)
     {

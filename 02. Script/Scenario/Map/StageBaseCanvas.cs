@@ -8,6 +8,7 @@ using System.Linq;
 using UnityEngine.UI;
 using Unity.VisualScripting;
 using MapCollection;
+using UnityEngine.SceneManagement;
 
 public class StageBaseCanvas : MonoBehaviour
 {
@@ -22,7 +23,7 @@ public class StageBaseCanvas : MonoBehaviour
     public DestinationNode startNode;
     public List<System.Tuple<int, int>> selectedEdgeTuple = new();
 
-    public CharacterInMap characterInMap;
+    public CharacterInStage characterInStage;
     public List<BackgroundType> nodeBackgroundTypes;
     Dictionary<System.Tuple<int, int>, Transform> fromToSemiparent = new();
     public GameObject smallDotPrefab;
@@ -69,16 +70,18 @@ public class StageBaseCanvas : MonoBehaviour
         Transform semiParent = fromToSemiparent[tuple];
         selectedEdgeTuple.Add(tuple);
         var transforms = semiParent.GetComponentsInChildren<RectTransform>();
-        yield return StartCoroutine(characterInMap.MoveToNewNode(transforms, _to.imageDot.GetComponent<RectTransform>()));
+        yield return StartCoroutine(characterInStage.MoveToNewNode(transforms, _to.imageDot.GetComponent<RectTransform>()));
 
     }
 
     public void SetLoadedNode()
     {
-        MapScenarioBase.state = StateInMap.NeedEnter;
+        StageScenarioBase.state = StateInMap.NeedEnter;
         DestinationNode prevNode = startNode;
-        List<object> nodes = MapScenarioBase.nodes;
-        string[] nodeTypes = MapScenarioBase.nodeTypes;
+        List<object> nodes = StageScenarioBase.nodes;
+        string[] nodeTypes = StageScenarioBase.nodeTypes;
+
+
         for (int i = 0; i < nodeTypes.Length; i++)
         {
             string nodeTypeStr = nodeTypes[i];
@@ -91,6 +94,8 @@ public class StageBaseCanvas : MonoBehaviour
         }
         for (int i = 0; i < nodes.Count; i++)
         {
+            if (nodes[i] == null)
+                continue;
             parentNode.GetChild(i).gameObject.SetActive(true);
             List<int> arrayIndexes = new();
             if (nodes[i] is string v)
@@ -119,7 +124,7 @@ public class StageBaseCanvas : MonoBehaviour
             }
             else
             {
-                MapScenarioBase.state = StateInMap.NeedMove;
+                StageScenarioBase.state = StateInMap.NeedMove;
                 foreach (int arrayIndex in arrayIndexes)
                 {
                     DestinationNode temp = SetNodeActive(i, arrayIndex);
@@ -132,8 +137,9 @@ public class StageBaseCanvas : MonoBehaviour
         }
         if (currentNode == null)
             currentNode = startNode;
-        characterInMap.transform.position = currentNode.imageDot.transform.position;
-        if (MapScenarioBase.state == StateInMap.NeedEnter)
+        characterInStage.transform.position = currentNode.imageDot.transform.position;
+
+        if (StageScenarioBase.state == StateInMap.NeedEnter)
         {
             currentNode.buttonEnter.gameObject.SetActive(true);
         }
@@ -214,7 +220,7 @@ public class StageBaseCanvas : MonoBehaviour
             allEdgeParent.Remove(x);
         }
         List<Image> targetImages = new();
-        List<DestinationNode> targetNodes = new(nodePhases[MapScenarioBase.phase]);
+        List<DestinationNode> targetNodes = new(nodePhases[StageScenarioBase.phase]);
         targetNodes.Remove(currentNode);
         foreach (System.Tuple<int, int> x in allEdgeParent)
         {
@@ -279,7 +285,7 @@ public class StageBaseCanvas : MonoBehaviour
 
         // Step 2: Prepare the list of target images and nodes
         List<Image> targetImages = new();
-        List<DestinationNode> targetNodes = new(nodePhases[MapScenarioBase.phase]);
+        List<DestinationNode> targetNodes = new(nodePhases[StageScenarioBase.phase]);
         targetNodes.Remove(currentNode);
 
         foreach (System.Tuple<int, int> x in allEdgeParent)
@@ -346,19 +352,19 @@ public class StageBaseCanvas : MonoBehaviour
         }
         coroutines.Clear();
 
-        if (MapScenarioBase.phase != 0)
+        if (StageScenarioBase.phase != 0)
         {
             GameManager.mapScenario.ExtendVia(false);
         }
-        MapScenarioBase.state = StateInMap.NeedMove;
+        StageScenarioBase.state = StateInMap.NeedMove;
     }
     public void EnterPhase()
     {
-        List<DestinationNode> to = nodePhases[MapScenarioBase.phase];
+        List<DestinationNode> to = nodePhases[StageScenarioBase.phase];
 
-        parentNode.GetChild(MapScenarioBase.phase).gameObject.SetActive(true);
+        parentNode.GetChild(StageScenarioBase.phase).gameObject.SetActive(true);
         List<DestinationNode> tempTo;
-        switch (MapScenarioBase.phase)
+        switch (StageScenarioBase.phase)
         {
             default:
                 tempTo = new();
@@ -407,15 +413,15 @@ public class StageBaseCanvas : MonoBehaviour
             List<KeyValuePair<string, NodeType>> kvps = LoadManager.loadManager.nodeTypesDict.Where(item =>item.Value.backgroundType == node.backGroundType).ToList();
             KeyValuePair<string, NodeType> selected = kvps[Random.Range(0, kvps.Count)];
             node.SetNodeType(selected.Value);
-            MapScenarioBase.nodeTypes[node.index] = selected.Key;
+            StageScenarioBase.nodeTypes[node.index] = selected.Key;
 
         }
-        MapScenarioBase.nodes.Add(choiseNode);
+        StageScenarioBase.nodes.Add(choiseNode);
         
         Dictionary<string, object> docDict = new()
         {
-            { "Nodes", MapScenarioBase.nodes },
-            { "NodeTypes", MapScenarioBase.nodeTypes },
+            { "Nodes", StageScenarioBase.nodes },
+            { "NodeTypes", StageScenarioBase.nodeTypes },
         };
         DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.Uid);
         StartCoroutine(WaitAllConnect(tempTo));

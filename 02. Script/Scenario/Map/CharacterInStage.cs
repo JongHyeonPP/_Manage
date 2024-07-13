@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterInMap : MonoBehaviour
+public class CharacterInStage : MonoBehaviour
 {
     public float speed = 1.0f;
     public CharacterHierarchy characterHierarchy;

@@ -67,8 +67,8 @@ public class ApplicantSlot : MonoBehaviour
             }
             child.gameObject.layer = LayerMask.NameToLayer("Lobby");
         }
-        templateObject.transform.localPosition = new Vector3(0f, -0.5f, 0f);
-        templateObject.transform.localScale = Vector3.one * 1.3f;
+        templateObject.transform.localPosition = new Vector3(0f, -35f, 0f);
+        templateObject.transform.localScale = Vector3.one * 100f;
         templateAnimator = templateObject.transform.GetChild(0).GetComponent<Animator>();
         templateAnimator.speed = 0f;
         CharacterHierarchy characterHierarchy = templateObject.transform.GetChild(0).GetComponent<CharacterHierarchy>();
@@ -197,11 +197,11 @@ public class ApplicantSlot : MonoBehaviour
         switch (isActived)
         {
             case true://활성화 돼있었다면 비활성화
-                GameManager.lobbyScenario.InitStatusText();
+                GameManager.lobbyScenario.recruitUi.InitStatusText();
                 IsActived = false;
                 break;
             case false://비활성화 돼있었다면 활성화
-                GameManager.lobbyScenario.SetStatusText(Hp, Ability, Speed, Resist);
+                GameManager.lobbyScenario.recruitUi.SetStatusText(Hp, Ability, Speed, Resist);
                 GameManager.lobbyScenario.InactiveEnterBtns();
                 IsActived = true;
                 break;
@@ -210,7 +210,7 @@ public class ApplicantSlot : MonoBehaviour
     }
     public void SelectBtnClicked()
     {
-        GameManager.lobbyScenario.InitStatusText();
+        GameManager.lobbyScenario.recruitUi.InitStatusText();
         IsActived = false;
         if (!isSelected)
         {

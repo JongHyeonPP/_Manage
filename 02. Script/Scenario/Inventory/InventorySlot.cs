@@ -27,7 +27,6 @@ public class InventorySlot : SlotBase
     {
         inventoryUi = ItemManager.itemManager.inventoryUi;
         isSelected = true;
-        inventoryUi.throwConfirm.gameObject.SetActive(false);
     }
     public void SetSlot(CountableItem _ci)
     {
@@ -151,7 +150,8 @@ public class InventorySlot : SlotBase
     {
         if (!isSelected)
             return;
-        if (ItemManager.itemManager.targetInventorySlot)//인벤토리에서 교환
+        //인벤토리에서 교환
+        if (ItemManager.itemManager.targetInventorySlot)
         {
             InventorySlot targetSlot = ItemManager.itemManager.targetInventorySlot;
             CountableItem curCi = ci;
@@ -167,9 +167,15 @@ public class InventorySlot : SlotBase
             targetSlot.SetSlot(curCi);
             targetSlot.HightlightOff();
         }
-        else if (ItemManager.itemManager.targetEquipSlot)//장비칸과 교환
+        //장비칸과 교환
+        else if (ItemManager.itemManager.targetEquipSlot)
         {
             EquipSlot targetSlot = ItemManager.itemManager.targetEquipSlot;
+            if (targetSlot.item.itemId == ci.item.itemId)
+            {
+                SetOriginLocation();
+                return;
+            }
             CountableItem curCi = ci;
             ItemType itemType = targetSlot.itemType;
             if (ci.amount > 1)
@@ -185,11 +191,18 @@ public class InventorySlot : SlotBase
             {
                 InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
                 if (existingSlot == null)
+                {
+                    if (ci.amount == 0)
+                    {
+                        SetSlot(new(targetSlot.item));
+                    }
+                    else
                     ItemManager.itemManager.SetItemToAbleIndex(new CountableItem(targetSlot.item));
+                }
                 else
                     existingSlot.ChangeCiAmount(1);
             }
-
+            
             targetSlot.SetSlot(curCi.item);
             CharacterData targetCharacter = ItemManager.itemManager.selectedCharacter;
             switch (itemType)
@@ -204,22 +217,25 @@ public class InventorySlot : SlotBase
 
             targetSlot.HightlightOff();
         }
+        //버리기
         else if (inventoryUi.throwReady)
         {
             ItemManager.itemManager.throwSlot = ItemManager.itemManager.draggingSlot;
             inventoryUi.throwReady = false;
-            inventoryUi.throwConfirm.gameObject.SetActive(true);
+            inventoryUi.panelThrow.gameObject.SetActive(true);
             inventoryUi.statusExplain.gameObject.SetActive(false);
         }
         ItemManager.itemManager.draggingSlot = null;
 
         ItemManager.itemManager.targetInventorySlot = null;
         ItemManager.itemManager.targetEquipSlot = null;
+        SetOriginLocation();
+    }
+
+    private void SetOriginLocation()
+    {
         imageGrade.transform.SetParent(panelBack);
         imageGrade.transform.localPosition = Vector3.zero;
-
-
-
     }
 
     public void OnPointerEnter()

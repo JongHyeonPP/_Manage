@@ -64,29 +64,27 @@ public class DestinationNode : MonoBehaviour
 
     public void OnNodeClicked()
     {
-        if (MapScenarioBase.state != StateInMap.NeedMove)
+        if (StageScenarioBase.state != StateInMap.NeedMove)
             return;
-        MapScenarioBase.state = StateInMap.None;
+        StageScenarioBase.state = StateInMap.None;
         GameManager.mapScenario.MoveCameraXVia(this, false);
         StartCoroutine(MoveWaitCor());
 
-        MapScenarioBase.nodes.RemoveAt(MapScenarioBase.nodes.Count - 1);
-        MapScenarioBase.nodes.Add(arrayIndex);
+        StageScenarioBase.nodes.RemoveAt(StageScenarioBase.nodes.Count - 1);
+        StageScenarioBase.nodes.Add(arrayIndex);
         Dictionary<string, object> docDict = new()
         {
-            { "Nodes", MapScenarioBase.nodes },
+            { "Nodes", StageScenarioBase.nodes },
         };
         DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.Uid);
     }
 
     private IEnumerator MoveWaitCor()
     {
-        yield return MapScenarioBase.stageBaseCanvas.CharacterMove(this);
+        yield return StageScenarioBase.stageBaseCanvas.CharacterMove(this);
 
-        MapScenarioBase.stageBaseCanvas.currentNode = this;
+        StageScenarioBase.stageBaseCanvas.currentNode = this;
 
-        buttonEnter.color = new Color(1f, 1f, 1f, 0f);
-        textEnter.color = new Color(1f, 1f, 1f, 0f);
         buttonEnter.gameObject.SetActive(true);
         SetEnterAlpha(0f);
         imageName.gameObject.SetActive(true);
@@ -94,9 +92,9 @@ public class DestinationNode : MonoBehaviour
         // 두 개의 코루틴을 동시에 실행
 
         StartCoroutine(GraduallyAscendEnterAlpha());
-        StartCoroutine(MapScenarioBase.stageBaseCanvas.HideDeselectedEdgeNodeCor());
+        StartCoroutine(StageScenarioBase.stageBaseCanvas.HideDeselectedEdgeNodeCor());
         yield return new WaitForSeconds(1.5f);
-        MapScenarioBase.state = StateInMap.NeedEnter;
+        StageScenarioBase.state = StateInMap.NeedEnter;
     }
     public IEnumerator GraduallyAscendEnterAlpha()
     {
@@ -121,10 +119,10 @@ public class DestinationNode : MonoBehaviour
     }
     public void EnterBattle()
     {
-        if (MapScenarioBase.state != StateInMap.NeedEnter)
+        if (StageScenarioBase.state != StateInMap.NeedEnter)
             return;
-        MapScenarioBase.stageBaseCanvas.HideAndFadeOutDeselectedEdgeNodes();
-        MapScenarioBase.stageBaseCanvas.gameObject.SetActive(false);
+        StageScenarioBase.stageBaseCanvas.HideAndFadeOutDeselectedEdgeNodes();
+        StageScenarioBase.stageBaseCanvas.gameObject.SetActive(false);
         buttonEnter.gameObject.SetActive(false);
         SceneManager.LoadScene("Battle");
     }

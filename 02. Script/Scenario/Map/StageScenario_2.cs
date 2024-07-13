@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using static UnityEngine.GraphicsBuffer;
 
-public class MapScenario_2 : MapScenarioBase
+public class StageScenario_2 : StageScenarioBase
 {
     private void Update()
     {

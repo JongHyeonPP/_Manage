@@ -49,10 +49,6 @@ public class LobbyScenario : MonoBehaviour
     public static readonly float speedSd = 0.1f;
     public static readonly float resistSd = 1f;
 
-    public TextStatus textStatusHp;
-    public TextStatus textStatusAbility;
-    public TextStatus textStatusSpeed;
-    public TextStatus textStatusResist;
     #endregion
     private void Awake()
     {
@@ -344,21 +340,7 @@ public class LobbyScenario : MonoBehaviour
             }
         }
     }
-    public void SetStatusText(float _hp, float _ability, float _speed, float _resist)
-    {
-        textStatusHp.textValue.text = _hp.ToString("F0");
-        textStatusAbility.textValue.text = _ability.ToString("F0");
-        textStatusSpeed.textValue.text = _speed.ToString("F1");
-        textStatusResist.textValue.text = _resist.ToString("F0");
-    }
-    public void InitStatusText()
-    {
-        textStatusHp.textValue.text =
-        textStatusAbility.textValue.text =
-        textStatusSpeed.textValue.text =
-        textStatusResist.textValue.text =
-        "-";
-    }
+
     public void InactiveEnterBtns()
     {
         foreach (ApplicantSlot slot in applicantSlots)
@@ -391,7 +373,7 @@ public class LobbyScenario : MonoBehaviour
             await FromSlotToCharacter();
             GameManager.gameManager.InitProgress();
         });
-        MapScenarioBase.stageNum = 0;
+        StageScenarioBase.stageNum = 0;
         SceneManager.LoadScene("Stage0");
         
     }

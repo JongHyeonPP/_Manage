@@ -6,22 +6,24 @@ using EnumCollection;
 
 public class RecruitUi : LobbyUiBase
 {
-    public TextStatus hpStatus;
-    public TextStatus abilityStatus;
-    public TextStatus speedStatus;
-    public TextStatus resistStatus;
-    private Dictionary<TMP_Text, Dictionary<Language, string>> texts = new();
-    private void Awake()
+    public TMP_Text textStatusHp;
+    public TMP_Text textStatusAbility;
+    public TMP_Text textStatusSpeed;
+    public TMP_Text textStatusResist;
+
+    public void SetStatusText(float _hp, float _ability, float _speed, float _resist)
     {
+        textStatusHp.text = _hp.ToString("F0");
+        textStatusAbility.text = _ability.ToString("F0");
+        textStatusSpeed.text = _speed.ToString("F1");
+        textStatusResist.text = _resist.ToString("F0");
     }
-    public void InitStatusText(float _hp, float _ability, float _textSpeed, float textResist)
+    public void InitStatusText()
     {
-    }
-    private void OnLanguageChange(Language _language)
-    {
-        foreach (KeyValuePair<TMP_Text, Dictionary<Language, string>> keyValue in texts)
-        {
-            
-        }
+        textStatusHp.text =
+        textStatusAbility.text =
+        textStatusSpeed.text =
+        textStatusResist.text =
+        "-";
     }
 }

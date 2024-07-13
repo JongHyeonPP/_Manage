@@ -24,11 +24,12 @@ public class InventoryUi : MonoBehaviour
     public Transform parentItemTypeSelect;
     [SerializeField]private List<SelectButton> selectButtons = new();
     public bool throwReady { get; set; }
-    public ThrowConfirm throwConfirm;
+    public PanelThrow panelThrow;
     private void Awake()
     {
         tooltip.gameObject.SetActive(false);
         statusExplain.gameObject.SetActive(false);
+        panelThrow.gameObject.SetActive(false);
     }
     private void Start()
     {
@@ -62,10 +63,7 @@ public class InventoryUi : MonoBehaviour
             slot.ClearSlot();
         }
     }
-    public void SetInventorySlot(CountableItem _ci, int _index)
-    {
-        inventorySlots[_index].SetSlot(_ci);
-    }
+
 
     public void SetCharacterAtInventory(int _index)
     {

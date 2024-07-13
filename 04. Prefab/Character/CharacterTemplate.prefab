@@ -2477,6 +2477,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5277107685190964379}
   - component: {fileID: 7691250149602326488}
+  - component: {fileID: 1621607456772477633}
   m_Layer: 8
   m_Name: CharacterTemplate
   m_TagString: Untagged
@@ -2526,6 +2527,21 @@ MonoBehaviour:
   UnitTypeChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1621607456772477633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5632782475894350284}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f5b0e05dbc402b4a97cd62245a11a5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 1
+  characterHierarchy: {fileID: 0}
+  animator: {fileID: 0}
 --- !u!1 &5772461789585171245
 GameObject:
   m_ObjectHideFlags: 0
