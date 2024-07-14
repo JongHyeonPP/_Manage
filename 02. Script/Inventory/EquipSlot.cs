@@ -19,20 +19,16 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler
     public void OnPointerEnter(PointerEventData eventData)
     {
         InventorySlot draggingSlot = ItemManager.itemManager.draggingSlot;
-
-        ItemManager.itemManager.targetEquipSlot = null;
-        HightlightOn();
         if (item != null)
         {
-            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f,60f,0f), item);
+            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 60f, 0f), item);
         }
-        if (draggingSlot != null)
-        {
-            if (draggingSlot.ci.item.itemType == itemType)
-            {
-                ItemManager.itemManager.targetEquipSlot = this;
-            }
-        }
+        if (!draggingSlot || draggingSlot.ci.item.itemType != itemType)
+            return;
+        ItemManager.itemManager.targetEquipSlot = null;
+        HightlightOn();
+
+        ItemManager.itemManager.targetEquipSlot = this;
 
     }
 

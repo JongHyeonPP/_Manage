@@ -284,8 +284,8 @@ public class ItemManager : MonoBehaviour
     }
     private string GetRandomIngredientId()
     {
-        List<string> skillList = LoadManager.loadManager.ingredientDict.Keys.ToList();
-        string ingredientId = skillList[Random.Range(0, skillList.Count)];
+        List<string> ingredientList = LoadManager.loadManager.ingredientDict.Keys.ToList();
+        string ingredientId = ingredientList[Random.Range(0, ingredientList.Count)];
         return ingredientId;
     }
     private Item GetItemClass(ItemType _type, string _id)
@@ -400,6 +400,5 @@ public class ItemManager : MonoBehaviour
                 break;
         }
     }
-
 
 }

@@ -71,17 +71,17 @@ namespace BattleCollection
     public class JobClass
     {
         public Dictionary<Language, string> name = null;
-        public List<SkillEffect> effects;
-        public Dictionary<Language, string> effectExplain = null;
+        public Skill jobSkill;
         public Dictionary<ClothesPart, Sprite> spriteDict;
-
-        public JobClass(Dictionary<Language,string> _name, List<SkillEffect> _effects,
-            Dictionary<Language, string> _effectExplain, Dictionary<ClothesPart, Sprite>_spriteDict)
+        public string jobId;
+        public Sprite jobIcon;
+        public JobClass(Dictionary<Language, string> _name, Skill _jobSkill, Dictionary<ClothesPart, Sprite> _spriteDict, string _jobId, Sprite _jobIcon)
         {
             name = _name;
-            effects = _effects;
-            effectExplain = _effectExplain;
+            jobSkill = _jobSkill;
             spriteDict = _spriteDict;
+            jobId = _jobId;
+            jobIcon = _jobIcon;
         }
     }
     public class EnemyClass

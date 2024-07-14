@@ -10,7 +10,7 @@ public class ApplicantSlot : MonoBehaviour
     public float Speed { get; private set; }
     public float Resist { get; private set; }
     public GameObject objectSelect;
-    public SpriteRenderer rendererCheck;
+    public SpriteRenderer imageNum;
     private TMP_Text textSelect;
     private bool isActived;
     private bool isSelected;
@@ -23,11 +23,11 @@ public class ApplicantSlot : MonoBehaviour
     private readonly Color WhiteHair = new Color(1f, 1f, 1f);
     private readonly Color GreenHair = new Color(0f, 190f / 255f, 0f);
     public GameObject templateObject;
-
+    public List<Sprite> numberTexture;
     public Dictionary<string, object> bodyDict { get; private set; } = new();
     private void Awake()
     {
-        rendererCheck.enabled = false;
+        imageNum.gameObject.SetActive(false);
         IsActived = false;
         isSelected = false;
         textSelect = objectSelect.transform.GetChild(0).GetComponent<TMP_Text>();
@@ -214,10 +214,13 @@ public class ApplicantSlot : MonoBehaviour
         IsActived = false;
         if (!isSelected)
         {
-            if (GameManager.lobbyScenario.AddSelectedSlot(this))//성공 여부
+            int currentSelectedNum = GameManager.lobbyScenario.AddSelectedSlot(this);
+            if (currentSelectedNum != -1)//성공 여부
             {
                 isSelected = true;
                 textSelect.text = "해제";
+                imageNum.gameObject.SetActive(true);
+                imageNum.sprite = numberTexture[currentSelectedNum - 1];
             }
         }
         else
@@ -225,8 +228,9 @@ public class ApplicantSlot : MonoBehaviour
             GameManager.lobbyScenario.RemoveSelectedSlot(this);
             isSelected = false;
             textSelect.text = "선택";
+            imageNum.gameObject.SetActive(false);
         }
-        rendererCheck.enabled = isSelected;
+
     }
     private float GetStatus(float _defaultStatus, float _standardDeviation)
     {

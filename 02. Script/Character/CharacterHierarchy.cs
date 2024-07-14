@@ -29,7 +29,7 @@ public class CharacterHierarchy : MonoBehaviour
     [SerializeField] private SpriteRenderer helmetRenderer;
     [SerializeField] private SpriteRenderer footRightRenderer;
     [SerializeField] private SpriteRenderer footLeftRenderer;
-
+    public Animator animator;
     public void SetBodySprite(Sprite _hair, Sprite _faceHair, Sprite _eyeFront, Sprite _eyeBack, Sprite _head, Sprite _armL, Sprite _armR,  Sprite _weapon,Color _hairColor)
     {
         hairColor = _hairColor;
@@ -60,7 +60,7 @@ public class CharacterHierarchy : MonoBehaviour
     {
         weaponRenderer.sprite = _weapon.sprite;
     }
-    public void SetJob(string _jobId)
+    public void SetJobSprite(string _jobId)
     {
         hairRenderer.enabled = false;
         Dictionary<ClothesPart, Sprite> clothesDictPiece = LoadManager.loadManager.jobsDict[_jobId].spriteDict;

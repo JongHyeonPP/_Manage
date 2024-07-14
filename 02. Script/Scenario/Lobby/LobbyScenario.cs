@@ -349,16 +349,16 @@ public class LobbyScenario : MonoBehaviour
                 slot.IsActived = false;
         }
     }
-    public bool AddSelectedSlot(ApplicantSlot _slot)
+    public int AddSelectedSlot(ApplicantSlot _slot)
     {
         if (selectedSlots.Count < 3)
         {
             selectedSlots.Add(_slot);
-            return true;
+            return selectedSlots.Count;
         }
         else
         {
-            return false;                                                                                                    
+            return -1;                                                                                                    
         }
     }
     public void RemoveSelectedSlot(ApplicantSlot _slot) => selectedSlots.Remove(_slot);
@@ -385,14 +385,15 @@ public class LobbyScenario : MonoBehaviour
             ApplicantSlot _slot = applicantSlots[i];
             _slot.templateAnimator.speed = 1f;
             int gridIndex = i + 3;
-            Dictionary<string, object> characterDict = new();
-
-            characterDict.Add("MaxHp", _slot.Hp);
-            characterDict.Add("Hp", _slot.Hp);
-            characterDict.Add("Ability", _slot.Ability);
-            characterDict.Add("Resist", _slot.Resist);
-            characterDict.Add("Speed", _slot.Speed);
-            characterDict.Add("Body", _slot.bodyDict);
+            Dictionary<string, object> characterDict = new()
+            {
+                { "MaxHp", _slot.Hp },
+                { "Hp", _slot.Hp },
+                { "Ability", _slot.Ability },
+                { "Resist", _slot.Resist },
+                { "Speed", _slot.Speed },
+                { "Body", _slot.bodyDict }
+            };
             int weaponTypeNum = GameManager.AllocateProbability(0.25f, 0.25f, 0.25f, 0.25f);
             WeaponType weaponType;
             string weaponTypeStr;
@@ -422,6 +423,7 @@ public class LobbyScenario : MonoBehaviour
             characterDict.Add("CharacterIndex", i);
             characterDict.Add("Skill_0", string.Empty);
             characterDict.Add("Skill_1", string.Empty);
+            characterDict.Add("JobId", "000");
             string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.Uid}/Characters");
 
             WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType]["Default"];

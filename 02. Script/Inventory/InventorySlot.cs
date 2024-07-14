@@ -10,10 +10,11 @@ using UnityEngine.EventSystems;
 using static UnityEngine.EventSystems.EventTrigger;
 using static UnityEngine.UI.GridLayoutGroup;
 using System.Security.Cryptography;
+using System.Linq;
 
 public class InventorySlot : SlotBase
 {
-    public CountableItem ci { get; private set; }
+    public CountableItem ci;
 
     public Transform panelBack;
     public Image imageGrade;
@@ -171,28 +172,21 @@ public class InventorySlot : SlotBase
         else if (ItemManager.itemManager.targetEquipSlot)
         {
             EquipSlot targetSlot = ItemManager.itemManager.targetEquipSlot;
-            if (targetSlot.item.itemId == ci.item.itemId)
-            {
-                SetOriginLocation();
-                return;
-            }
+            if (targetSlot.item != null)
+                if (targetSlot.item.itemId == ci.item.itemId)
+                {
+                    SetOriginLocation();
+                    return;
+                }
             CountableItem curCi = ci;
             ItemType itemType = targetSlot.itemType;
-            if (ci.amount > 1)
-            {
-                ChangeCiAmount(-1);
 
-            }
-            else if (ci.amount == 1)
-            {
-                ClearSlot();
-            }
             if (targetSlot.item != null)//교체하기
             {
                 InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
                 if (existingSlot == null)
                 {
-                    if (ci.amount == 0)
+                    if (curCi.amount == 1)
                     {
                         SetSlot(new(targetSlot.item));
                     }
@@ -202,7 +196,15 @@ public class InventorySlot : SlotBase
                 else
                     existingSlot.ChangeCiAmount(1);
             }
-            
+            if (ci.amount > 1)
+            {
+                ChangeCiAmount(-1);
+
+            }
+            else if (ci.amount == 1)
+            {
+                ClearSlot();
+            }
             targetSlot.SetSlot(curCi.item);
             CharacterData targetCharacter = ItemManager.itemManager.selectedCharacter;
             switch (itemType)
@@ -216,6 +218,11 @@ public class InventorySlot : SlotBase
             }
 
             targetSlot.HightlightOff();
+
+            if (!targetCharacter.skills.Contains(null))
+            {
+                inventoryUi.jobSlot.buttonExclaim.SetActive(true);
+            }
         }
         //버리기
         else if (inventoryUi.throwReady)
@@ -273,8 +280,9 @@ public class InventorySlot : SlotBase
                 xOffset -= 80f;
                 break;
         }
-        if (ci != null)
+        if (ci != null&&!ItemManager.itemManager.draggingSlot)
         {
+
             inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition +  new Vector3(xOffset,yOffset), ci.item);
         }
     }

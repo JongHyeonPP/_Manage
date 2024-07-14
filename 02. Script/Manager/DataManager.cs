@@ -93,15 +93,6 @@ public class DataManager : MonoBehaviour
         Dictionary<string, object> dict = new Dictionary<string, object> { { _field, _value } };
         await documentRef.SetAsync(dict, SetOptions.MergeAll);
     }
-    public async Task<string> SetDocumentData(string _field, object _value, string _collectionRef)
-    {
-        //도큐먼트 만들면서 Set
-        CollectionReference collectionRef = db.Collection(_collectionRef);
-        DocumentReference documentRef = collectionRef.Document();
-        Dictionary<string, object> dict = new Dictionary<string, object> { { _field, _value } };
-        await documentRef.SetAsync(dict, SetOptions.MergeAll);
-        return documentRef.Id;
-    }
     public async Task SetDocumentData(Dictionary<string, object> _dict, string _collectionRef, string _documentId)
     {
         CollectionReference collectionRef = db.Collection(_collectionRef);

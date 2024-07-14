@@ -6,11 +6,10 @@ public class CharacterInStage : MonoBehaviour
 {
     public float speed = 1.0f;
     public CharacterHierarchy characterHierarchy;
-    public Animator animator;
 
     public IEnumerator MoveToNewNode(RectTransform[] _edges, RectTransform _destination)
     {
-        animator.SetFloat("RunState", 0.5f);
+        characterHierarchy.animator.SetFloat("RunState", 0.5f);
 
         // 월드 좌표계를 사용하여 모든 위치를 배열에 저장
         Vector3[] points = new Vector3[_edges.Length + 1];
@@ -41,7 +40,7 @@ public class CharacterInStage : MonoBehaviour
         }
 
         // 애니메이터 상태를 원래대로 되돌림
-        animator.SetFloat("RunState", 0f);
+        characterHierarchy.animator.SetFloat("RunState", 0f);
         Debug.Log("On Moved");
     }
 }

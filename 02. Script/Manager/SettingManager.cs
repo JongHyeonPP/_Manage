@@ -41,7 +41,7 @@ public class SettingManager : MonoBehaviour
         {
             settingClass = new SettingClass();
             settingManager = this;
-            DontDestroyOnLoad(GameObject.FindWithTag("CANVASSETTING"));
+            DontDestroyOnLoad(GameObject.FindWithTag("CANVASGROUP"));
             volumeTypes = new List<VolumeType>((VolumeType[])Enum.GetValues(typeof(VolumeType)));
             panelSetting.SetActive(false);
             LanguageChangeEvent += OnLanguageChange;

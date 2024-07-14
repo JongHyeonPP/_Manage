@@ -474,7 +474,7 @@ public class GameManager : MonoBehaviour
             if (tempDict.ContainsKey("CharacterIndex"))
                 characterIndex = (int)(long)tempDict["CharacterIndex"];
             GridObject _grid = BattleScenario.CharacterGrids[gridIndex];
-            string jobId = GetJobId(skills);
+            string jobId = (string)tempDict["JobId"];
 
             GameObject characterObject = Instantiate(CharacterTemplate);
             //CharacterHierarchy

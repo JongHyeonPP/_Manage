@@ -23,8 +23,8 @@ public class CharacterInBattle : BaseInBattle
         Hp = _data.hp;
         skills = new(_data.skills);
         job = _data.jobClass;
-        if (job.effects != null)
-            skills.Add(new(job.effects));
+        if (job.jobSkill != null)
+            skills.Add(job.jobSkill);
 
         weapon = _data.weapon;
 

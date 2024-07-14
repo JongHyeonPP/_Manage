@@ -66,9 +66,9 @@ public abstract class StageScenarioBase : MonoBehaviour
 
         stageBaseCanvas.gameObject.SetActive(true);
         volume.gameObject.SetActive(true);
-        if (nodes.Count>0&& nodes[^1] == null)
+        if (nodes.Contains(null))
         {
-            nodes.RemoveAt(nodes.Count - 1);
+            nodes.RemoveAll(item => item == null);
             DataManager.dataManager.SetDocumentData("Nodes", nodes, "Progress", GameManager.gameManager.Uid);
            state = StateInMap.NeedPhase;
         }

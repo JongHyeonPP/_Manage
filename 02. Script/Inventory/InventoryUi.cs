@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using EnumCollection;
+using BattleCollection;
 
 public class InventoryUi : MonoBehaviour
 {
@@ -25,8 +26,11 @@ public class InventoryUi : MonoBehaviour
     [SerializeField]private List<SelectButton> selectButtons = new();
     public bool throwReady { get; set; }
     public PanelThrow panelThrow;
+    public JobSlot jobSlot;
+    public GetJobUi getJobUi;
     private void Awake()
     {
+        getJobUi.gameObject.SetActive(false);
         tooltip.gameObject.SetActive(false);
         statusExplain.gameObject.SetActive(false);
         panelThrow.gameObject.SetActive(false);
@@ -88,7 +92,19 @@ public class InventoryUi : MonoBehaviour
         equipSlots[0].SetSlot(character.skills[0]);
         equipSlots[1].SetSlot(character.skills[1]);
         equipSlots[2].SetSlot(character.weapon);
+        switch (character.jobClass.jobId)
+        {
+            case "000":
+                jobSlot.Case000(character);
+                break;
+            default:
+                jobSlot.SetJobIcon(character.jobClass.jobIcon);
+                break;
+
+        }
     }
+
+
 
     public void SetEquipSlot(Item _item, int _index)
     {
@@ -129,5 +145,10 @@ public class InventoryUi : MonoBehaviour
         {
             throwReady = true;
         }
+    }
+    public void SetGetJobUi()
+    {
+        getJobUi.gameObject.SetActive(true);
+        getJobUi.SetInfo(ItemManager.itemManager.selectedCharacter);
     }
 }

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
@@ -253,7 +254,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             SetCategori(categori).
             SetIsTargetEnemy(isTargetEnemy).
             SetIsAnim(isAnim).
-            SetSkillEffect(skillEffect).
+            SetVisualEffect(skillEffect).
             SetIsPre(isPre).
             SetEffects(effects).
             SetCooltime(cooltime).
@@ -473,6 +474,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     private async Task InitJob()
     {
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Job");
+        Sprite[] jobIconSpirtes = Resources.LoadAll<Sprite>($"Texture/JobIcon");
         foreach (DocumentSnapshot doc in documents)
         {
             object obj;
@@ -482,6 +484,18 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             Dictionary<Language, string> name = new();
             Dictionary<Language, string> effectExplain = new();
             Dictionary<ClothesPart, Sprite> spriteDict = new();
+            Skill jobSkill = null;
+            //Name
+            Dictionary<string, object> nameDIct = dict["Name"] as Dictionary<string, object>;
+            name.Add(Language.Ko, (string)nameDIct["Ko"]);
+            name.Add(Language.En, (string)nameDIct["En"]);
+            //EffectExplain
+            if (dict.TryGetValue("EffectExplain", out obj))
+            {
+                Dictionary<string, object> explainDict = obj as Dictionary<string, object>;
+                effectExplain.Add(Language.Ko, (string)explainDict["Ko"]);
+                effectExplain.Add(Language.En, (string)explainDict["En"]);
+            }
             //Effect
             if (dict.TryGetValue("Effect", out obj))
             {
@@ -492,6 +506,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     Dictionary<string, object> effectDict = x as Dictionary<string, object>;
                     string typeStr = (string)effectDict["Type"];
                     bool byAtt;
+                    bool isPassive;
                     if (effectDict.TryGetValue("ByAtt", out obj))
                     {
                         byAtt = (bool)obj;
@@ -506,25 +521,22 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     }
                     else
                         value = 0f;
-                    SkillEffect skillEffect = new SkillEffect().SetType(effectType).SetValue(value).SetByAtt(byAtt);
+                    if (effectDict.TryGetValue("IsPassive", out obj))
+                    {
+                        isPassive = (bool)obj;
+                    }
+                    else
+                        isPassive = true;
+                    SkillEffect skillEffect = new SkillEffect().SetType(effectType).SetValue(value).SetByAtt(byAtt).SetIsPassive(isPassive);
                     effects.Add(skillEffect);
                 }
-            }
-            //Name
-            Dictionary<string, object> nameDIct = dict["Name"] as Dictionary<string, object>;
-            name.Add(Language.Ko, (string)nameDIct["Ko"]);
-            name.Add(Language.En, (string)nameDIct["En"]);
-            //EffectExplain
-            if (dict.TryGetValue("EffectExplain", out obj))
-            {
-                Dictionary<string, object> explainDict = obj as Dictionary<string, object>;
-                effectExplain.Add(Language.Ko, (string)explainDict["Ko"]);
-                effectExplain.Add(Language.En, (string)explainDict["En"]);
+                SkillForm skillForm = new SkillForm().SetEffects(new() { effects }).SetExplain(new() { effectExplain });
+                jobSkill = new(skillForm, 0);
             }
             //Sprite
-            Sprite[] sprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{doc.Id}");
+            Sprite[] clothesSprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{doc.Id}");
             Dictionary<ClothesPart, Sprite> tempDict = new();
-            foreach (Sprite sprite in sprites)
+            foreach (Sprite sprite in clothesSprites)
             {
                 ClothesPart clothesPart;
                 switch (sprite.name)
@@ -562,7 +574,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
                 spriteDict.Add(clothesPart, sprite);
             }
-            jobClass = new(name, effects, effectExplain, spriteDict);
+            Sprite jobIcon = jobIconSpirtes.Where(item => item.name == doc.Id).FirstOrDefault();
+            jobClass = new(name, jobSkill, spriteDict, doc.Id, jobIcon);
 
             jobsDict.Add(doc.Id, jobClass);
         }
@@ -1002,11 +1015,11 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         Sprite[] sprites = Resources.LoadAll<Sprite>("Texture/Ingredient");
         foreach (DocumentSnapshot doc in documents)
         {
-            int num;
+            int pokerNum;
             IngredientType ingredientType;
             Sprite sprite;
             Dictionary<string, object> dict = doc.ToDictionary();
-            num = (int)(long)dict["Num"];
+            pokerNum = (int)(long)dict["PokerNum"];
             switch ((string)dict["IngredientType"])
             {
                 default:
@@ -1059,7 +1072,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 position = Vector2.zero;
             }
             IngredientClass ingredient = new(ItemType.Ingredient, doc.Id, ItemGrade.None, name, explain, sprite, scale, position);
-            ingredient.SetNum(num);
+            ingredient.SetPokerNum(pokerNum);
             ingredient.SetIngredientType(ingredientType);
             ingredientDict.Add(doc.Id, ingredient);
         }
@@ -1249,22 +1262,25 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     [ContextMenu("SetDoc")]
     public async void SetDoc()
     {
+        await NewMethod("Fruit");
+        await NewMethod("Bread");
+        await NewMethod("Vegetable");
+        await NewMethod("Meat");
+    }
 
-        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots($"Skill");
+    private static async Task NewMethod(string _type)
+    {
+        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots($"Ingredient");
         foreach (DocumentSnapshot doc in docs)
         {
-            Dictionary<string, object> dict = doc.ToDictionary();
-            for (int i = 0; i <= 3; i++)
+            Dictionary<string, object> dict = new()
             {
-                List<object> effectArr = dict[$"Effect_{i}"] as List<object>;
-                foreach (object x in effectArr)
-                {
-                    Dictionary<string, object> dict0 = x as Dictionary<string, object>;
-                    dict0.Add("ValueBase", "Const");
-                }
-            }
+
+                { "Scale", new Dictionary<string, object>(){ {"X",0.6f },{"Y",0.6f} } },
+            };
+            DataManager.dataManager.SetDocumentData(dict, "Ingredient",doc.Id);
+
         }
         Debug.Log("Fin");
     }
-
 }

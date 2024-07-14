@@ -38,7 +38,7 @@ public class CharacterData:MonoBehaviour
         characterHierarchy = transform.GetChild(0).GetComponent<CharacterHierarchy>();
         weapon = _weapon;
         if (_jobId != "000")
-            characterHierarchy.SetJob(_jobId);
+            characterHierarchy.SetJobSprite(_jobId);
     }
     public void SetPermEffects(EffectType _effectType, float _value)
     {
@@ -69,6 +69,6 @@ public class CharacterData:MonoBehaviour
     [ContextMenu("JobChangeTest")]
     public void JobChangeTest()
     {
-        characterHierarchy.SetJob("200");
+        characterHierarchy.SetJobSprite("200");
     }
 }

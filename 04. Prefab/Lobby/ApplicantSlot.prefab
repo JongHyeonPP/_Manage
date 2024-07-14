@@ -290,7 +290,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 6
+  m_SortingOrder: 7
   m_TargetDisplay: 0
 --- !u!114 &4046931573109200024
 MonoBehaviour:
@@ -401,9 +401,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objectSelect: {fileID: 7066257745263087029}
-  rendererCheck: {fileID: 2679201813382526315}
+  imageNum: {fileID: 2679201813382526315}
   templateAnimator: {fileID: 0}
   templateObject: {fileID: 0}
+  numberTexture:
+  - {fileID: 21300000, guid: c33c6ae4ffbbdc8439f47c9811ec4064, type: 3}
+  - {fileID: 21300000, guid: a67d80a1e6dd824409cb30f62dc28448, type: 3}
+  - {fileID: 21300000, guid: 4b8ac79055b2af4408f7a8ffd3b7610d, type: 3}
 --- !u!114 &2136429616074955575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -471,7 +475,7 @@ GameObject:
   - component: {fileID: 643005261293653309}
   - component: {fileID: 2679201813382526315}
   m_Layer: 9
-  m_Name: yes-tic
+  m_Name: Image_Num
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -486,7 +490,7 @@ Transform:
   m_GameObject: {fileID: 9047884857481423502}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 36.6, y: 38.4, z: 0}
   m_LocalScale: {x: 100, y: 100, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -533,8 +537,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 6
-  m_Sprite: {fileID: 21300000, guid: 54170754f62f077438faab9a4362bc46, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Sprite: {fileID: 21300000, guid: c33c6ae4ffbbdc8439f47c9811ec4064, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.69803923}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

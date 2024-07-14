@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 namespace ItemCollection
 {
+    [Serializable]
     public class CountableItem
     {
         public Item item { get; private set; }
@@ -68,7 +69,7 @@ namespace ItemCollection
             name = _name;
             sprite = _sprite;
         }
-        public IngredientClass SetNum(int _num) 
+        public IngredientClass SetPokerNum(int _num) 
         {
             num = _num;
             return this;
@@ -202,7 +203,7 @@ namespace ItemCollection
             isAnim = _isAnim;
             return this;
         }
-        public SkillForm SetSkillEffect(List<string> _visualEffect)
+        public SkillForm SetVisualEffect(List<string> _visualEffect)
         {
             visualEffect = _visualEffect;
             return this;
@@ -296,17 +297,7 @@ namespace ItemCollection
                 SetByAtt(false)
             };
         }
-        public Skill(List<SkillEffect> _effects)
-        {
-            effects = new();
-            foreach (var jobEffect in _effects)
-            {
-                SkillEffect skillEffet = new();
-                skillEffet.SetValueBase(ValueBase.Const).SetRange(EffectRange.Self).SetIsPassive(true).SetType(jobEffect.type).SetValue(jobEffect.value).SetByAtt(jobEffect.byAtt);
-                effects.Add(skillEffet);
-            }
-
-        }
+        
         private static int ConvertGradeToInt(ItemGrade grade)
         {
             switch (grade)
