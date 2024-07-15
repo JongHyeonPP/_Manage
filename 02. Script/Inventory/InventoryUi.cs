@@ -6,6 +6,9 @@ using UnityEngine;
 using TMPro;
 using EnumCollection;
 using BattleCollection;
+using System.Linq;
+using Firebase.Firestore;
+using System.Threading.Tasks;
 
 public class InventoryUi : MonoBehaviour
 {
@@ -23,11 +26,15 @@ public class InventoryUi : MonoBehaviour
     public StatusExplain statusExplain;
     public List<EquipSlot> equipSlots;//스킬 0, 스킬 1, 무기
     public Transform parentItemTypeSelect;
-    [SerializeField]private List<SelectButton> selectButtons = new();
+    [SerializeField] private List<SelectButton> selectButtons = new();
     public bool throwReady { get; set; }
     public PanelThrow panelThrow;
     public JobSlot jobSlot;
     public GetJobUi getJobUi;
+    public InventorySlot targetInventorySlot;
+    public EquipSlot targetEquipSlot;
+    public InventorySlot draggingSlot;
+    public InventorySlot throwSlot;
     private void Awake()
     {
         getJobUi.gameObject.SetActive(false);
@@ -78,8 +85,8 @@ public class InventoryUi : MonoBehaviour
             float hp = character.hp;
             float ability = character.ability;
             float resist = character.resist;
-            float speed =  character.speed;
-            hpText.text = hp.ToString("F0") +"/" + maxHp.ToString("F0");
+            float speed = character.speed;
+            hpText.text = hp.ToString("F0") + "/" + maxHp.ToString("F0");
             abilityText.text = ability.ToString("F0");
             resistText.text = resist.ToString("F0");
             speedText.text = speed.ToString("F1");
@@ -98,7 +105,7 @@ public class InventoryUi : MonoBehaviour
                 jobSlot.Case000(character);
                 break;
             default:
-                jobSlot.SetJobIcon(character.jobClass.jobIcon);
+                jobSlot.SetJobIcon(character.jobClass);
                 break;
 
         }
@@ -141,7 +148,7 @@ public class InventoryUi : MonoBehaviour
     }
     public void EnterThrowZone()
     {
-        if (ItemManager.itemManager.draggingSlot)
+        if (draggingSlot)
         {
             throwReady = true;
         }
@@ -150,5 +157,73 @@ public class InventoryUi : MonoBehaviour
     {
         getJobUi.gameObject.SetActive(true);
         getJobUi.SetInfo(ItemManager.itemManager.selectedCharacter);
+    }
+    public void InventorySorting()
+    {
+        List<CountableItem> ciList = new();
+        List<CountableItem> sortedList = new();
+        foreach (InventorySlot slot in inventorySlots)
+        {
+            if (slot.ci != null)
+                ciList.Add(slot.ci);
+        }
+
+        List<CountableItem> sortedWeaponList = ciList
+            .Where(data => data.item.itemType == ItemType.Weapon)
+            .Select(data => new { CountableItem = data, Weapon = (WeaponClass)data.item })
+            .OrderBy(data => data.Weapon.weaponType)
+            .ThenBy(data => data.Weapon.itemGrade)
+            .Select(data => data.CountableItem)
+            .ToList();
+
+        List<CountableItem> sortedSkillList = ciList
+    .Where(data => data.item.itemType == ItemType.Skill)
+    .Select(data => new { CountableItem = data, Skill = (Skill)data.item })
+    .OrderBy(data => data.Skill.categori)
+    .Select(data => data.CountableItem)
+    .ToList();
+
+        List<CountableItem> sortedIngredientList = ciList
+    .Where(data => data.item.itemType == ItemType.Ingredient)
+    .Select(data => new { CountableItem = data, Ingredient = (IngredientClass)data.item })
+    .OrderBy(data => data.Ingredient.ingredientType)
+    .ThenBy(data => data.Ingredient.itemGrade)
+    .ThenBy(data => data.Ingredient.pokerNum)
+    .Select(data => data.CountableItem)
+    .ToList();
+
+        List<CountableItem> sortedFoodList = ciList
+    .Where(data => data.item.itemType == ItemType.Food)
+    .Select(data => new { CountableItem = data, Food = (FoodClass)data.item })
+    .OrderBy(data => data.Food.degree)
+    .Select(data => data.CountableItem)
+    .ToList();
+        sortedList.AddRange(sortedWeaponList);
+        sortedList.AddRange(sortedSkillList);
+        sortedList.AddRange(sortedIngredientList);
+        sortedList.AddRange(sortedFoodList);
+        for (int i = 0; i < inventorySlots.Count; i++)
+        {
+            InventorySlot slot = inventorySlots[i];
+            if (i < sortedList.Count)
+                slot.SetSlot(sortedList[i]);
+            else
+                slot.ClearSlot();
+        }
+    }
+
+    public async void InventoryActive()
+    {
+        bool isActive = !gameObject.activeSelf;
+        gameObject.SetActive(isActive);
+        if (!isActive)
+        {
+            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+            {
+                await ItemManager.itemManager.SetInventoryAtDb();
+                await ItemManager.itemManager.SetEquipJobAtDb();
+                return Task.CompletedTask;
+            });
+        }
     }
 }

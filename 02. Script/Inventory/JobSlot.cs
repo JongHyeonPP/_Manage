@@ -9,13 +9,23 @@ public class JobSlot : SlotBase
     StatusExplain statusExplain;
     public Image jobIconSlot;
     public GameObject buttonExclaim;
+    public bool isInGetJob;
     private void Start()
     {
         statusExplain = ItemManager.itemManager.inventoryUi.statusExplain;
     }
     public void OnPointerEnter()
     {
-        JobClass job = ItemManager.itemManager.selectedCharacter.jobClass;
+        JobClass job;
+        if (isInGetJob)
+        {
+            string jobId = GameManager.gameManager.GetJobId(ItemManager.itemManager.selectedCharacter.skills);
+            job = LoadManager.loadManager.jobsDict[jobId];
+        }
+        else
+        {
+            job = ItemManager.itemManager.selectedCharacter.jobClass;
+        }
         if (job.jobId == "000")
             return;
         statusExplain.transform.parent = transform.parent;
@@ -29,8 +39,9 @@ public class JobSlot : SlotBase
         statusExplain.gameObject.SetActive(false);
         HightlightOff();
     }
-    public void SetJobIcon(Sprite _jobIcon)
+    public void SetJobIcon(JobClass _job)
     {
+        var _jobIcon = _job.jobIcon;
         buttonExclaim.SetActive(false);
         jobIconSlot.gameObject.SetActive(true);
         jobIconSlot.sprite = _jobIcon;

@@ -1,3 +1,4 @@
+using ItemCollection;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -8,9 +9,12 @@ public class SubLootSlot : MonoBehaviour
 {
     public Image imageLoot;
     public TMP_Text textAmount;
-    public void SetSubLoot(Sprite _sprite, int _amount)
+    public TMP_Text textPokerNum;
+    public void SetSubLoot(IngredientClass _ingredient, int _amount)
     {
-        imageLoot.sprite = _sprite;
-        textAmount.text = _amount.ToString();
+        imageLoot.sprite = _ingredient.sprite;
+        textAmount.text = _amount .ToString();
+        textPokerNum.text = _ingredient.pokerNum.ToString();
+        textPokerNum.color = _ingredient.GetPokerNumColor();
     }
 }

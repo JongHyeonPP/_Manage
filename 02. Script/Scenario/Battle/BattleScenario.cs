@@ -39,6 +39,7 @@ public class BattleScenario : MonoBehaviour
     public static readonly float gridCorrection = 20f;
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
+    public static BackgroundType currentBackground;
     private async void Awake()
     {
         if (!GameManager.gameManager)

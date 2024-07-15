@@ -900,7 +900,7 @@ abstract public class BaseInBattle : MonoBehaviour
 
             IEnumerator WeaponVisualEffect()
             {
-                switch (caster.weapon.type)
+                switch (caster.weapon.weaponType)
                 {
                     case WeaponType.Bow:
                         yield return new WaitForSeconds(0.3f);

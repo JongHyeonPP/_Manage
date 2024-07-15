@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
-
 public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해서 저장하고 있는 스크립트
 {
     public static LoadManager loadManager;
@@ -1025,7 +1024,15 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                 default:
                     ingredientType = IngredientType.Meat;
                     break;
-                    //케이스 추가 필요
+                case "Fruit":
+                    ingredientType = IngredientType.Fruit;
+                    break;
+                case "Vegetable":
+                    ingredientType = IngredientType.Vegetable;
+                    break;
+                case "Bread":
+                    ingredientType = IngredientType.Bread;
+                    break;
             }
             //Name
             Dictionary<string, object> nameObjDict = dict["Name"] as Dictionary<string, object>;

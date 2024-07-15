@@ -373,6 +373,7 @@ public class LobbyScenario : MonoBehaviour
             await FromSlotToCharacter();
             GameManager.gameManager.InitProgress();
         });
+        GameManager.gameManager.SetGold(0);
         StageScenarioBase.stageNum = 0;
         SceneManager.LoadScene("Stage0");
         

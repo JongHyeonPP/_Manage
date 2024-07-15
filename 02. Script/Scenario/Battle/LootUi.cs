@@ -50,9 +50,7 @@ public class LootUi : MonoBehaviour
             if (i < _sub.Count)
             {
                 loot.gameObject.SetActive(true);
-                Sprite sprite = _sub[i].item.sprite;
-                int amount = _sub[i].amount;
-                loot.SetSubLoot(sprite, amount);
+                loot.SetSubLoot((IngredientClass)_sub[i].item , _sub[i].amount);
             }
             else
             {

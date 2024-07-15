@@ -58,8 +58,8 @@ namespace ItemCollection
     }
     public class IngredientClass:Item
     {
-        public int num;
-        public IngredientType type;
+        public int pokerNum;
+        public IngredientType ingredientType;
 
         public IngredientClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType,_itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
@@ -69,15 +69,29 @@ namespace ItemCollection
             name = _name;
             sprite = _sprite;
         }
-        public IngredientClass SetPokerNum(int _num) 
+        public IngredientClass SetPokerNum(int _pokerNum) 
         {
-            num = _num;
+            pokerNum = _pokerNum;
             return this;
         }
-        public IngredientClass SetIngredientType(IngredientType _type) 
+        public IngredientClass SetIngredientType(IngredientType _ingredientType) 
         {
-            type = _type;
+            ingredientType = _ingredientType;
             return this;
+        }
+        public Color GetPokerNumColor()
+        {
+            switch (ingredientType)
+            {
+                default:
+                    return new(0.9716981f, 0.1979341f, 0.08708613f);
+                case IngredientType.Bread:
+                    return Color.yellow;
+                case IngredientType.Fruit:
+                    return new Color(0.2971698f, 0.496f, 1f);
+                case IngredientType.Vegetable:
+                    return Color.green;
+            }
         }
     }
     public class FoodClass:Item
@@ -102,7 +116,7 @@ namespace ItemCollection
     }
     public class WeaponClass:Item
     {
-        public WeaponType type;
+        public WeaponType weaponType;
         public List<SkillEffect> effects;
         public float ability, hp, resist, speed;
 
@@ -116,7 +130,7 @@ namespace ItemCollection
 
         public WeaponClass SetType(WeaponType _type)
         {
-            type = _type;
+            weaponType = _type;
             return this;
         }
         public WeaponClass SetGrade(ItemGrade _itemGrade)

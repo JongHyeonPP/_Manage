@@ -38,7 +38,7 @@ public class CharacterData:MonoBehaviour
         characterHierarchy = transform.GetChild(0).GetComponent<CharacterHierarchy>();
         weapon = _weapon;
         if (_jobId != "000")
-            characterHierarchy.SetJobSprite(_jobId);
+            characterHierarchy.SetJobSprite(jobClass);
     }
     public void SetPermEffects(EffectType _effectType, float _value)
     {
@@ -55,20 +55,17 @@ public class CharacterData:MonoBehaviour
         characterHierarchy.SetWeaponSprite(_newWeapon);
         
     }
-    public async Task SetEquipAtDbAsync()
+    public async Task SetEquipJobAtDbAsync()
     {
-        Dictionary<string, object> setDict = new Dictionary<string, object>();
-        setDict.Add("WeaponId",weapon.itemId);
+        Dictionary<string, object> setDict = new Dictionary<string, object>
+        {
+            { "WeaponId", weapon.itemId },
+            { "JobId", jobClass.jobId}
+        };
         if (skills[0] != null)
             setDict.Add("Skill_0", skills[0].itemId);
         if (skills[1]!=null)
             setDict.Add("Skill_1", skills[1].itemId);
         await DataManager.dataManager.SetDocumentData(setDict, $"Progress/{GameManager.gameManager.Uid}/Characters",docId);
-    }
-
-    [ContextMenu("JobChangeTest")]
-    public void JobChangeTest()
-    {
-        characterHierarchy.SetJobSprite("200");
     }
 }

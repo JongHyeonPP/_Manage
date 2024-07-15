@@ -105,7 +105,7 @@ namespace EnumCollection
     }
     public enum IngredientType
     {
-        Meat
+        Meat, Bread, Fruit, Vegetable, Special
     }
     public enum ValueBase
     {

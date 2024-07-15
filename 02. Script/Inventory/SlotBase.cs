@@ -20,6 +20,7 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
     imageHighlight.color.b,
     0f
 );
+
     }
     private IEnumerator HighlightFadeInRoutine()
     {
@@ -65,7 +66,7 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
 
     public void HightlightOn()
     {
-        if (ItemManager.itemManager.draggingSlot != null || this)
+        if (ItemManager.itemManager.inventoryUi.draggingSlot != null || this)
             if (highlightCoroutine != null)
             {
                 StopCoroutine(highlightCoroutine);
@@ -81,6 +82,6 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
             StopCoroutine(highlightCoroutine);
         }
         highlightCoroutine = StartCoroutine(HighlightFadeOutRoutine());
-        ItemManager.itemManager.targetInventorySlot = null;
+        ItemManager.itemManager.inventoryUi.targetInventorySlot = null;
     }
 }

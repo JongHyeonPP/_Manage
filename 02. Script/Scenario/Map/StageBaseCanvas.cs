@@ -96,7 +96,7 @@ public class StageBaseCanvas : MonoBehaviour
         {
             if (nodes[i] == null)
                 continue;
-            parentNode.GetChild(i).gameObject.SetActive(true);
+            //parentNode.GetChild(i).gameObject.SetActive(true);
             List<int> arrayIndexes = new();
             if (nodes[i] is string v)
             {
@@ -151,12 +151,12 @@ public class StageBaseCanvas : MonoBehaviour
             for (int i = 0; i < phaseNodes.Count; i++)
             {
                 DestinationNode node = phaseNodes[i];
-                node.gameObject.SetActive(true);
                 if (_arrayIndex == i)
                 {
                     returnValue = node;
                 }
             }
+            returnValue.gameObject.SetActive(true);
             return returnValue;
         }
     }
@@ -384,13 +384,13 @@ public class StageBaseCanvas : MonoBehaviour
                         break;
                 }
                 int removeIndex = Random.Range(0, 3);
-                tempTo[removeIndex].ActiveWithObject(false);
+                tempTo[removeIndex].gameObject.SetActive(false);
                 tempTo.RemoveAt(removeIndex);
                 break;
             case 0:
                 tempTo = new(to);
                 removeIndex = Random.Range(0, 3);
-                tempTo[removeIndex].ActiveWithObject(false);
+                tempTo[removeIndex].gameObject.SetActive(false);
                 tempTo.RemoveAt(removeIndex);
                 break;
             case 5:
@@ -401,6 +401,7 @@ public class StageBaseCanvas : MonoBehaviour
         for (int i = 0; i < tempTo.Count; i++)
         {
             DestinationNode node = tempTo[i];
+            node.SetBaseAlpha(0f);
             coroutines.Add(StartCoroutine(ConnectDotsCoroutine(currentNode, node, 0.3f)));
             if (i == 0)
             {

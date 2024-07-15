@@ -22,16 +22,16 @@ public class InventorySlot : SlotBase
     public TMP_Text textNum;
     public int slotIndex;
     public GameObject imageNoSelect;
+    public TMP_Text textPokerNum;
     private bool isSelected;
-    private InventoryUi inventoryUi;
-    private void Start()
+    private void Awake()
     {
-        inventoryUi = ItemManager.itemManager.inventoryUi;
+        textPokerNum.transform.parent.gameObject.SetActive(false);
         isSelected = true;
     }
     public void SetSlot(CountableItem _ci)
     {
-        imageItem.enabled = true;
+        imageItem.gameObject.SetActive(true);
         ci = _ci;
         Sprite gradeMat;
         switch (_ci.item.itemGrade)
@@ -74,34 +74,47 @@ public class InventorySlot : SlotBase
                 break;
 
         }
-        imageGrade.enabled = true;
-       
+        imageGrade.gameObject.SetActive(true);
+
         if (ci.amount == 1)
-            textNum.enabled = false;
+            textNum.gameObject.SetActive(false);
         else
         {
-            textNum.enabled = true;
+            textNum.gameObject.SetActive(true);
             textNum.text = ci.amount.ToString();
+        }
+
+        if (ci.item.itemType == ItemType.Ingredient)
+        {
+            textPokerNum.transform.parent.gameObject.SetActive(true);
+            IngredientClass ingredient = (IngredientClass)ci.item;
+            textPokerNum.text = ingredient.pokerNum.ToString();
+            textPokerNum.color = ingredient.GetPokerNumColor();
+        }
+        else
+        {
+            textPokerNum.transform.parent.gameObject.SetActive(false);
         }
     }
     public void ChangeCiAmount(int _value)
     {
         ci.amount += _value;
         if (ci.amount == 1)
-            textNum.enabled = false;
+            textNum.gameObject.SetActive(false);
         else
         {
-            textNum.enabled = true;
+            textNum.gameObject.SetActive(true);
             textNum.text = ci.amount.ToString();
         }
     }
     public void ClearSlot()
     {
         ci = null;
-        imageGrade.enabled = false;
-        imageItem.enabled = false;
-        textNum.enabled = false;
-        imageHighlight.enabled = true;
+        textPokerNum.transform.parent.gameObject.SetActive(false);
+        imageGrade.gameObject.SetActive(false);
+        imageItem.gameObject.SetActive(false);
+        textNum.gameObject.SetActive(false);
+        imageHighlight.gameObject.SetActive(true);
         imageHighlight.color = new Color(
                 imageHighlight.color.r,
                 imageHighlight.color.g,
@@ -115,11 +128,11 @@ public class InventorySlot : SlotBase
         if (!isSelected)
             return;
         if (ci == null) return;
-        inventoryUi.throwReady = false;
+        ItemManager.itemManager.inventoryUi.throwReady = false;
         imageGrade.raycastTarget = false;
         imageItem.raycastTarget = false;
         imageHighlight.raycastTarget=false;
-        ItemManager.itemManager.draggingSlot = this;
+        ItemManager.itemManager.inventoryUi.draggingSlot = this;
     }
 
     public void OnDrag()
@@ -127,13 +140,13 @@ public class InventorySlot : SlotBase
         if (!isSelected || ci == null)
             return;
 
-        // 부모를 inventoryUi로 변경
+        // 부모를 ItemManager.itemManager.inventoryUi로 변경
         imageGrade.transform.SetParent(ItemManager.itemManager.inventoryUi.transform, true);
 
         // 마우스의 현재 위치를 기준으로 이동
         Vector3 mousePosition = Input.mousePosition;
 
-        // inventoryUi의 RectTransform을 기준으로 로컬 좌표 계산
+        // ItemManager.itemManager.inventoryUi의 RectTransform을 기준으로 로컬 좌표 계산
         RectTransform inventoryRectTransform = ItemManager.itemManager.inventoryUi.GetComponent<RectTransform>();
         Vector2 localPoint;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -152,9 +165,9 @@ public class InventorySlot : SlotBase
         if (!isSelected)
             return;
         //인벤토리에서 교환
-        if (ItemManager.itemManager.targetInventorySlot)
+        if (ItemManager.itemManager.inventoryUi.targetInventorySlot)
         {
-            InventorySlot targetSlot = ItemManager.itemManager.targetInventorySlot;
+            InventorySlot targetSlot = ItemManager.itemManager.inventoryUi.targetInventorySlot;
             CountableItem curCi = ci;
 
             if (targetSlot.ci != null)//교체하기
@@ -169,33 +182,54 @@ public class InventorySlot : SlotBase
             targetSlot.HightlightOff();
         }
         //장비칸과 교환
-        else if (ItemManager.itemManager.targetEquipSlot)
+        else if (ItemManager.itemManager.inventoryUi.targetEquipSlot)
         {
-            EquipSlot targetSlot = ItemManager.itemManager.targetEquipSlot;
-            if (targetSlot.item != null)
-                if (targetSlot.item.itemId == ci.item.itemId)
-                {
-                    SetOriginLocation();
-                    return;
-                }
-            CountableItem curCi = ci;
-            ItemType itemType = targetSlot.itemType;
+            SwapWithEquip();
+        }
+        //버리기
+        else if (ItemManager.itemManager.inventoryUi.throwReady)
+        {
+            ItemManager.itemManager.inventoryUi.throwSlot = ItemManager.itemManager.inventoryUi.draggingSlot;
+            ItemManager.itemManager.inventoryUi.throwReady = false;
+            ItemManager.itemManager.inventoryUi.panelThrow.gameObject.SetActive(true);
+            ItemManager.itemManager.inventoryUi.statusExplain.gameObject.SetActive(false);
+        }
+        ItemManager.itemManager.inventoryUi.draggingSlot = null;
 
-            if (targetSlot.item != null)//교체하기
+        ItemManager.itemManager.inventoryUi.targetInventorySlot = null;
+        ItemManager.itemManager.inventoryUi.targetEquipSlot = null;
+        SetOriginLocation();
+    }
+
+    private void SwapWithEquip()
+    {
+        EquipSlot targetSlot = ItemManager.itemManager.inventoryUi.targetEquipSlot;
+        if (targetSlot.item != null)
+            if (targetSlot.item.itemId == ci.item.itemId)
             {
-                InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
-                if (existingSlot == null)
+                SetOriginLocation();
+                return;
+            }
+        CountableItem curCi = ci;
+        ItemType itemType = targetSlot.itemType;
+
+        if (targetSlot.item != null)//교체하기
+        {
+            InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
+            if (existingSlot == null)
+            {
+                if (curCi.amount == 1)
                 {
-                    if (curCi.amount == 1)
-                    {
-                        SetSlot(new(targetSlot.item));
-                    }
-                    else
-                    ItemManager.itemManager.SetItemToAbleIndex(new CountableItem(targetSlot.item));
+                    SetSlot(new(targetSlot.item));
                 }
                 else
-                    existingSlot.ChangeCiAmount(1);
+                    ItemManager.itemManager.SetItemToAbleIndex(new CountableItem(targetSlot.item));
             }
+            else
+                existingSlot.ChangeCiAmount(1);
+        }
+        else
+        {
             if (ci.amount > 1)
             {
                 ChangeCiAmount(-1);
@@ -205,38 +239,26 @@ public class InventorySlot : SlotBase
             {
                 ClearSlot();
             }
-            targetSlot.SetSlot(curCi.item);
-            CharacterData targetCharacter = ItemManager.itemManager.selectedCharacter;
-            switch (itemType)
-            {
-                default:
-                    targetCharacter.ChangeWeapon(curCi.item as WeaponClass);
-                    break;
-                case ItemType.Skill:
-                    targetCharacter.skills[targetSlot.index] = curCi.item as Skill;
-                    break;
-            }
-
-            targetSlot.HightlightOff();
-
-            if (!targetCharacter.skills.Contains(null))
-            {
-                inventoryUi.jobSlot.buttonExclaim.SetActive(true);
-            }
         }
-        //버리기
-        else if (inventoryUi.throwReady)
+
+        targetSlot.SetSlot(curCi.item);
+        CharacterData targetCharacter = ItemManager.itemManager.selectedCharacter;
+        switch (itemType)
         {
-            ItemManager.itemManager.throwSlot = ItemManager.itemManager.draggingSlot;
-            inventoryUi.throwReady = false;
-            inventoryUi.panelThrow.gameObject.SetActive(true);
-            inventoryUi.statusExplain.gameObject.SetActive(false);
+            default:
+                targetCharacter.ChangeWeapon(curCi.item as WeaponClass);
+                break;
+            case ItemType.Skill:
+                targetCharacter.skills[targetSlot.index] = curCi.item as Skill;
+                break;
         }
-        ItemManager.itemManager.draggingSlot = null;
 
-        ItemManager.itemManager.targetInventorySlot = null;
-        ItemManager.itemManager.targetEquipSlot = null;
-        SetOriginLocation();
+        targetSlot.HightlightOff();
+
+        if (!targetCharacter.skills.Contains(null))
+        {
+            ItemManager.itemManager.inventoryUi.jobSlot.buttonExclaim.SetActive(true);
+        }
     }
 
     private void SetOriginLocation()
@@ -250,13 +272,13 @@ public class InventorySlot : SlotBase
         if (!isSelected)
             return;
         HightlightOn();
-        if (ItemManager.itemManager.draggingSlot !=null)
+        if (ItemManager.itemManager.inventoryUi.draggingSlot !=null)
         {
-            ItemManager.itemManager.targetInventorySlot = this;
+            ItemManager.itemManager.inventoryUi.targetInventorySlot = this;
         }
         else
         {
-            ItemManager.itemManager.targetInventorySlot = null;
+            ItemManager.itemManager.inventoryUi.targetInventorySlot = null;
         }
         int row = slotIndex / 5;
         float yOffset = 0f;
@@ -280,10 +302,10 @@ public class InventorySlot : SlotBase
                 xOffset -= 80f;
                 break;
         }
-        if (ci != null&&!ItemManager.itemManager.draggingSlot)
+        if (ci != null&&!ItemManager.itemManager.inventoryUi.draggingSlot)
         {
 
-            inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition +  new Vector3(xOffset,yOffset), ci.item);
+            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition +  new Vector3(xOffset,yOffset), ci.item);
         }
     }
 
@@ -294,11 +316,45 @@ public class InventorySlot : SlotBase
         if (!isSelected)
             return;
         HightlightOff();
-        inventoryUi.tooltip.gameObject.SetActive(false);
+        ItemManager.itemManager.inventoryUi.tooltip.gameObject.SetActive(false);
     }
     public void SetSelected(bool _isSelect)
     {
         isSelected = _isSelect;
         imageNoSelect.SetActive(!isSelected);
+    }
+    public void OnPointerClick(BaseEventData data)
+    {
+        if (!isSelected || ci == null)
+            return;
+        PointerEventData pointerData = (PointerEventData)data;
+
+        // 우클릭 감지
+        if (pointerData.button == PointerEventData.InputButton.Right)
+        {
+            switch (ci.item.itemType)
+            {
+                case ItemType.Weapon:
+                    if (ItemManager.itemManager.inventoryUi.equipSlots[2].item == null)
+                    {
+                        
+                    }
+                    break;
+                case ItemType.Skill:
+                    if (ItemManager.itemManager.inventoryUi.equipSlots[0].item == null)
+                    {
+                    
+                    }
+                    else if (ItemManager.itemManager.inventoryUi.equipSlots[1].item == null)
+                    {
+                    
+                    }
+                    else
+                    {
+                    
+                    }
+                    break;
+            }
+        }
     }
 }

@@ -8,6 +8,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
@@ -63,7 +65,9 @@ public class GameManager : MonoBehaviour
     public GameObject smallDotPrefab;
     public GameObject[] stageBaseCanvases;
     #endregion
-
+    //Menu
+    public GameObject inventoryButton;
+    public TMP_Text textGold;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -75,9 +79,9 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
             uiCamera.gameObject.SetActive(true);
+            inventoryButton.SetActive(true);
             //Until Steam API
-            uid = "KF5U1XMs5cy7n13dgKjF";//종현
-            //uid = "FMefxTlgP9aHsgfE0Grc";
+            uid = "KF5U1XMs5cy7n13dgKjF";
         }
     }
     async void Start()
@@ -143,12 +147,13 @@ public class GameManager : MonoBehaviour
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby")
         {
-            ItemManager.itemManager.inventoryButton.gameObject.SetActive(true);
+            inventoryButton.SetActive(true);
+            textGold.transform.parent.gameObject.SetActive(true);
         }
         else
         {
-            ItemManager.itemManager.inventoryButton.gameObject.SetActive(false);
-
+            inventoryButton.SetActive(false);
+            textGold.transform.parent.gameObject.SetActive(false);
         }
     }
     private void InitGrids()
@@ -222,7 +227,8 @@ public class GameManager : MonoBehaviour
         scene = (string)progressDoc["Scene"];
         if (scene != "Lobby")
         {
-            gold = GetFloatValue(progressDoc["Gold"]);
+            float gold = GetFloatValue(progressDoc["Gold"]);
+            SetGold(gold);
             await LoadCharacter();
             if (progressDoc.ContainsKey("Inventory"))
                 ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
@@ -250,7 +256,11 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadSceneAsync(scene);
     }
 
-
+    public void SetGold(float _gold)
+    {
+        gold += _gold;
+        textGold.text = gold.ToString("F0");
+    }
 
     public void InitProgress()
     {
@@ -494,7 +504,7 @@ public class GameManager : MonoBehaviour
             characterAtBattle.InitCharacter(data, _grid);
             BattleScenario.characters.Add(characterAtBattle);
         }
-        GameManager.gameManager.characterList = dataList;
+        characterList = dataList;
     }
 
     public string GetJobId(Skill[] _skills)

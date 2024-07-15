@@ -1,3 +1,4 @@
+using BattleCollection;
 using EnumCollection;
 using Firebase.Firestore;
 using ItemCollection;
@@ -20,7 +21,6 @@ public class ItemManager : MonoBehaviour
     public Sprite name_Rare;
     public Sprite name_Unique;
     public InventoryUi inventoryUi;
-    public GameObject inventoryButton;
     public Sprite book_P;
     public Sprite book_S;
     public Sprite book_U;
@@ -31,10 +31,7 @@ public class ItemManager : MonoBehaviour
     public static readonly Color sustainColor = new(1f, 1f, 0.34f);
     public static readonly Color utilColor = new(0.2003195f, 1f, 0.0235849f);
 
-    public InventorySlot targetInventorySlot;
-    public EquipSlot targetEquipSlot;
-    public InventorySlot draggingSlot;
-    public InventorySlot throwSlot;
+
 
     public CharacterData selectedCharacter;
     private void Awake()
@@ -43,7 +40,6 @@ public class ItemManager : MonoBehaviour
         {
             itemManager = this;
             inventoryUi.gameObject.SetActive(false);
-            inventoryButton.gameObject.SetActive(true);
             inventoryUi.InitInventory();
         }
     }
@@ -89,11 +85,7 @@ public class ItemManager : MonoBehaviour
         List<CountableItem> sub = new();
         Dictionary<string, object> documentDict = new();
         //전리품 생성
-        if (false)
-        {
-
-        }
-        else
+        if (true)
         {
             for (int i = 0; i < 2; i++)
             {
@@ -115,16 +107,44 @@ public class ItemManager : MonoBehaviour
                 CountableItem ci = new(item);
                 main.Add(ci);
             }
+            IngredientType ingredientType = IngredientType.Meat;
+            switch (StageScenarioBase.stageBaseCanvas.currentNode.backGroundType)
+            {
+                case BackgroundType.Plains:
+                case BackgroundType.MysteriousForest:
+                case BackgroundType.DesertRuins:
+                    ingredientType = IngredientType.Meat;
+                    break;
+                case BackgroundType.Forest:
+                case BackgroundType.VineForest:
+                case BackgroundType.Cave:
+                    ingredientType = IngredientType.Bread;
+                    break;
+                case BackgroundType.Beach:
+                case BackgroundType.Swamp:
+                case BackgroundType.Desert:
+                    ingredientType = IngredientType.Fruit;
+                    break;
+                case BackgroundType.Ruins:
+                case BackgroundType.WinterForest:
+                case BackgroundType.RedRock:
+                    ingredientType = IngredientType.Vegetable;
+                    break;
+                case BackgroundType.ElfCity:
+                case BackgroundType.IceField:
+                    ingredientType = IngredientType.Special;
+                    break;
+            }
             for (int i = 0; i < Random.Range(3, 5); i++)//재료는 3개나 4개
             {
-                string ingredientId = GetRandomIngredientId();
+                string ingredientId = GetRandomIngredientId(ingredientType);
                 Item ingredientItem = GetItemClass(ItemType.Ingredient, ingredientId);
                 CountableItem ci = new(ingredientItem);
                 AddCiToArr(sub, ci);
             }
         }
         int gold = Random.Range(10, 13);
-        GameManager.gameManager.gold = gold;
+        GameManager.gameManager.SetGold(gold);
         List<CountableItem> addMainSub = new(main);
         addMainSub.AddRange(sub);
         foreach (CountableItem ci in addMainSub)//
@@ -154,7 +174,7 @@ public class ItemManager : MonoBehaviour
 
 
 
-        
+
     }
 
     public InventorySlot GetExistingSlot(Item _item)
@@ -184,7 +204,7 @@ public class ItemManager : MonoBehaviour
         return ableIndex;
     }
 
-    private async Task SetInventoryAtDb()
+    public async Task SetInventoryAtDb()
     {
         object[] setArr = new object[inventorySize];
         for (int i = 0; i < inventorySize; i++)
@@ -216,20 +236,26 @@ public class ItemManager : MonoBehaviour
             };
             setArr[i] = itemDict;
         }
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        {
+            DataManager.dataManager.SetDocumentData("Inventory", setArr, "Progress", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData("Gold", GameManager.gameManager.gold, "Progress", GameManager.gameManager.Uid);
+            return Task.CompletedTask;
+        });
 
 
-        await DataManager.dataManager.SetDocumentData("Inventory", setArr, "Progress", GameManager.gameManager.Uid);
     }
-    private Task SetEquipAtDb()
+    public Task SetEquipJobAtDb()
     {
         foreach (CharacterData data in GameManager.gameManager.characterList)
         {
-            data.SetEquipAtDbAsync();
+            data.SetEquipJobAtDbAsync();
         }
 
         return Task.CompletedTask;
     }
 
+    
     private string GetRandomWeaponIdByGrade(ItemGrade _grade)
     {
         int caseNum = GameManager.AllocateProbability(0.25f, 0.25f, 0.25f, 0.25f);
@@ -282,9 +308,12 @@ public class ItemManager : MonoBehaviour
         string skillId = skillList[Random.Range(0, skillList.Count)];
         return $"{skillId}:::{gradeStr}";
     }
-    private string GetRandomIngredientId()
+    private string GetRandomIngredientId(IngredientType _ingredientType)
     {
-        List<string> ingredientList = LoadManager.loadManager.ingredientDict.Keys.ToList();
+        List<string> ingredientList = LoadManager.loadManager.ingredientDict
+     .Where(item => item.Value.ingredientType == _ingredientType)
+     .Select(item => item.Key)
+     .ToList();
         string ingredientId = ingredientList[Random.Range(0, ingredientList.Count)];
         return ingredientId;
     }
@@ -350,20 +379,6 @@ public class ItemManager : MonoBehaviour
 
     }
 
-    public async void InventoryActive()
-    {
-        bool isActive = !inventoryUi.gameObject.activeSelf;
-        inventoryUi.gameObject.SetActive(isActive);
-        if (!isActive)
-        {
-            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
-            {
-                await SetInventoryAtDb();
-                await SetEquipAtDb();
-                return Task.CompletedTask;
-            });
-        }
-    }
     public void ActiveCharacter(bool _isActive)
     {
         inventoryUi.ch.gameObject.SetActive(_isActive);
@@ -400,5 +415,13 @@ public class ItemManager : MonoBehaviour
                 break;
         }
     }
-
+    public void SetJobAtSelectedCharacter()
+    {
+        string jobId = GameManager.gameManager.GetJobId(selectedCharacter.skills);
+        JobClass job = LoadManager.loadManager.jobsDict[jobId];
+        selectedCharacter.jobClass = job;
+        selectedCharacter.characterHierarchy.SetJobSprite(job);
+        inventoryUi.ch.SetJobSprite(job);
+        inventoryUi.jobSlot.SetJobIcon(job);
+    }
 }

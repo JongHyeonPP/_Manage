@@ -60,10 +60,10 @@ public class CharacterHierarchy : MonoBehaviour
     {
         weaponRenderer.sprite = _weapon.sprite;
     }
-    public void SetJobSprite(string _jobId)
+    public void SetJobSprite(JobClass _job)
     {
         hairRenderer.enabled = false;
-        Dictionary<ClothesPart, Sprite> clothesDictPiece = LoadManager.loadManager.jobsDict[_jobId].spriteDict;
+        Dictionary<ClothesPart, Sprite> clothesDictPiece = _job.spriteDict;
         ClothesSet(backRenderer,  ClothesPart.Back);
         ClothesSet(clothBodyRenderer, ClothesPart.ClothBody);
         ClothesSet(clothLeftRenderer,  ClothesPart.ClothLeft);

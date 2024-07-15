@@ -7,11 +7,10 @@ public class PanelThrow : MonoBehaviour
 {
     public TMP_Text textExplain;
     Dictionary<Language, string> thorwStr = new(){ {Language.Ko, "정말 버리시겠습니까?" },{Language.En,"haha" } }; 
-
     public void ConfirmButtonClicked()
     {
-        ItemManager.itemManager.throwSlot.ClearSlot();
-        ItemManager.itemManager.throwSlot = null;
+        ItemManager.itemManager.inventoryUi.throwSlot.ClearSlot();
+        ItemManager.itemManager.inventoryUi.throwSlot = null;
         gameObject.SetActive(false);
     }
 

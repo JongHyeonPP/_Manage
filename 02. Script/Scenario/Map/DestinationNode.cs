@@ -148,13 +148,11 @@ public class DestinationNode : MonoBehaviour
         nodeType = _nodeType;
         if (_nodeType == null)
         {
-            textName.gameObject.SetActive(false);
-            imageObject.gameObject.SetActive(false);
+            gameObject.SetActive(false);
         }
         else
         {
-            textName.gameObject.SetActive(true);
-            imageObject.gameObject.SetActive(true);
+            gameObject.SetActive(true);
             imageObject.sprite = nodeType.objectSprite;
             imageObject.SetNativeSize();
             RectTransform gradientRect = imageGradient.GetComponent<RectTransform>();
