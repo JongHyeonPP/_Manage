@@ -11,7 +11,7 @@ public class SelectButton : MonoBehaviour
     public ItemType type;
     public void OnClicked()
     {
-        ItemManager.itemManager.inventoryUi.OnSelectButtonClicked(this);
+        ItemManager.itemManager.inventoryUi.SelectButtonSelect(this);
     }
 
     public void ActiveHighlight(bool _isaActive)

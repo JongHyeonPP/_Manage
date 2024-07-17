@@ -20,11 +20,13 @@ public class CharacterData:MonoBehaviour
     public float speed;
     public int index;
     public Dictionary<EffectType, float> PermEffects { get; private set; }//º¸·ù
-    public Skill[] skills = new Skill[2];
+    public Skill[] skills;
+    public int[] level;
+    public float[] exp;
     public WeaponClass weapon;
     public CharacterHierarchy characterHierarchy;
     public CharacterInBattle characterAtBattle;
-    internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, Skill[] _skills, WeaponClass _weapon)
+    internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, Skill[] _skills, float[] _exp, WeaponClass _weapon)
     {
         docId = _docId;
         jobClass = LoadManager.loadManager.jobsDict[_jobId];
@@ -35,6 +37,7 @@ public class CharacterData:MonoBehaviour
         speed = _speed;
         index = _index;
         skills = _skills;
+        exp = _exp;
         characterHierarchy = transform.GetChild(0).GetComponent<CharacterHierarchy>();
         weapon = _weapon;
         if (_jobId != "000")
@@ -55,12 +58,13 @@ public class CharacterData:MonoBehaviour
         characterHierarchy.SetWeaponSprite(_newWeapon);
         
     }
-    public async Task SetEquipJobAtDbAsync()
+    public async Task SetCharacterAtDbAsync()
     {
         Dictionary<string, object> setDict = new Dictionary<string, object>
         {
             { "WeaponId", weapon.itemId },
-            { "JobId", jobClass.jobId}
+            { "JobId", jobClass.jobId},
+            {"Exp", exp }
         };
         if (skills[0] != null)
             setDict.Add("Skill_0", skills[0].itemId);

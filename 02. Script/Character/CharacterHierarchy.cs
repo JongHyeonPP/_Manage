@@ -30,6 +30,7 @@ public class CharacterHierarchy : MonoBehaviour
     [SerializeField] private SpriteRenderer footRightRenderer;
     [SerializeField] private SpriteRenderer footLeftRenderer;
     public Animator animator;
+
     public void SetBodySprite(Sprite _hair, Sprite _faceHair, Sprite _eyeFront, Sprite _eyeBack, Sprite _head, Sprite _armL, Sprite _armR,  Sprite _weapon,Color _hairColor)
     {
         hairColor = _hairColor;
@@ -99,7 +100,7 @@ public class CharacterHierarchy : MonoBehaviour
             x.sprite = sprites[4];
         }
         armLRenderer.sprite = sprites[5];
-        armLRenderer.sprite = sprites[6];
+        armRRenderer.sprite = sprites[6];
         weaponRenderer.sprite = sprites[7];
         backRenderer.sprite = sprites[8];
         clothBodyRenderer.sprite = sprites[9];
@@ -139,5 +140,37 @@ public class CharacterHierarchy : MonoBehaviour
         });
         _hairColor = hairColor;
         return returnValue;
+    }
+    public IEnumerator GraduallyChangeAlpha(bool _isFadeIn, float _duration)
+    {
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();
+
+        float elapsedTime = 0;  // 경과 시간 추적
+        float startAlpha = _isFadeIn ? 0 : 1;  // 시작 알파값
+        float endAlpha = _isFadeIn ? 1 : 0;    // 종료 알파값
+
+        // duration 시간 동안 반복 실행
+        while (elapsedTime < _duration)
+        {
+            // 경과 시간에 따라 알파값을 조정
+            foreach (var renderer in renderers)
+            {
+                Color newColor = renderer.color;
+                newColor.a = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / _duration);
+                renderer.color = newColor;
+            }
+
+            // 다음 프레임까지 기다린 후 경과 시간 업데이트
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 최종적으로 모든 renderer의 알파값을 종료 알파값으로 설정
+        foreach (var renderer in renderers)
+        {
+            Color finalColor = renderer.color;
+            finalColor.a = endAlpha;
+            renderer.color = finalColor;
+        }
     }
 }

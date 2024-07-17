@@ -179,7 +179,7 @@ namespace ItemCollection
         public Dictionary<Language, string> name;
         public string id;
         public Sprite sprite;
-        public Vector2 scale;
+        public Vector2 scale { get; set; }
         public Vector2 position;
 
         public SkillForm SetName(Dictionary<Language, string> _name)
@@ -266,10 +266,14 @@ namespace ItemCollection
         public VisualEffect visualEffect;
         public static float defaultAttackCooltime = 3f;
         public bool isPre;
-        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
+        public int level;
+        public static readonly int[] needExp = new int[] { 5, 20 };
+        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position)
+            : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
         }
-        public Skill(SkillForm _skillForm, ItemGrade _grade) : this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.explain[ConvertGradeToInt(_grade)], _skillForm.sprite, _skillForm.scale, _skillForm.position)
+        public Skill(SkillForm _skillForm, ItemGrade _grade) 
+            : this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.explain[ConvertGradeToInt(_grade)], _skillForm.sprite, _skillForm.scale, _skillForm.position)
         {
             int gradeNum = ConvertGradeToInt(_grade);
             string gradeStr = ConvertGradeToString(_grade);

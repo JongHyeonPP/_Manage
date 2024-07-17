@@ -9,6 +9,8 @@ using BattleCollection;
 using System.Linq;
 using Firebase.Firestore;
 using System.Threading.Tasks;
+using static UnityEngine.Rendering.DebugUI;
+using UnityEngine.UI;
 
 public class InventoryUi : MonoBehaviour
 {
@@ -26,30 +28,31 @@ public class InventoryUi : MonoBehaviour
     public StatusExplain statusExplain;
     public List<EquipSlot> equipSlots;//스킬 0, 스킬 1, 무기
     public Transform parentItemTypeSelect;
-    [SerializeField] private List<SelectButton> selectButtons = new();
+    public List<SelectButton> selectButtons = new();
     public bool throwReady { get; set; }
     public PanelThrow panelThrow;
+    public GameObject panelInventory;
     public JobSlot jobSlot;
-    public GetJobUi getJobUi;
     public InventorySlot targetInventorySlot;
     public EquipSlot targetEquipSlot;
     public InventorySlot draggingSlot;
     public InventorySlot throwSlot;
+    private SelectButton currentSelectButton;
+
     private void Awake()
     {
-        getJobUi.gameObject.SetActive(false);
         tooltip.gameObject.SetActive(false);
         statusExplain.gameObject.SetActive(false);
         panelThrow.gameObject.SetActive(false);
     }
+    private void OnEnable()
+    {
+        currentSelectButton = selectButtons[0];
+    }
     private void Start()
     {
         SetCharacterAtInventory(0);
-        for (int i = 0; i < 5; i++)
-        {
-            selectButtons.Add(parentItemTypeSelect.GetChild(i).GetComponent<SelectButton>());
-        }
-        OnSelectButtonClicked(selectButtons[0]);
+        SelectButtonSelect(selectButtons[0]);
     }
     public void InitInventory()
     {
@@ -99,6 +102,19 @@ public class InventoryUi : MonoBehaviour
         equipSlots[0].SetSlot(character.skills[0]);
         equipSlots[1].SetSlot(character.skills[1]);
         equipSlots[2].SetSlot(character.weapon);
+        if (character.jobClass.jobId !="000")
+            for (int i = 0; i < 2; i++)
+            {
+                equipSlots[i].expBar.SetActive(true);
+                //equipSlots[i].imageFill.fillAmount = character.exp[i]/Skill.needExp[character.skills[i].];경험치 적용 중이었음
+            }
+        else
+        {
+            for (int i = 0; i < 2; i++)
+                equipSlots[i].expBar.SetActive(false);
+        }
+
+        equipSlots[1].imageFill.fillAmount = character.exp[1];
         switch (character.jobClass.jobId)
         {
             case "000":
@@ -117,7 +133,7 @@ public class InventoryUi : MonoBehaviour
     {
         equipSlots[_index].SetSlot(_item);
     }
-    public void OnSelectButtonClicked(SelectButton _selectButton)
+    public void SelectButtonSelect(SelectButton _selectButton)
     {
         foreach (SelectButton sb in selectButtons)
         {
@@ -139,6 +155,23 @@ public class InventoryUi : MonoBehaviour
             slot.SetSelected(isActive);
         }
     }
+    public void UpgradeCase(SkillCategori _skillCategori)
+    {
+        foreach (SelectButton sb in selectButtons)
+        {
+            sb.ActiveHighlight(false);
+        }
+        foreach (InventorySlot slot in inventorySlots)
+        {
+            bool isActive = false;
+            if (slot.ci != null && slot.ci.item.itemType == ItemType.Skill && ((Skill)slot.ci.item).categori == _skillCategori)
+            {
+                isActive = true;
+            }
+            slot.SetSelected(isActive);
+        }
+        
+    }
     public void SetTooltipAtInventory(Transform _parent, Vector3 _localPosition, Item _item)
     {
         tooltip.transform.SetParent(_parent);
@@ -155,8 +188,7 @@ public class InventoryUi : MonoBehaviour
     }
     public void SetGetJobUi()
     {
-        getJobUi.gameObject.SetActive(true);
-        getJobUi.SetInfo(ItemManager.itemManager.selectedCharacter);
+        ItemManager.itemManager.SetGetJobUi();
     }
     public void InventorySorting()
     {
@@ -180,6 +212,7 @@ public class InventoryUi : MonoBehaviour
     .Where(data => data.item.itemType == ItemType.Skill)
     .Select(data => new { CountableItem = data, Skill = (Skill)data.item })
     .OrderBy(data => data.Skill.categori)
+    .ThenByDescending(data => data.CountableItem.amount)
     .Select(data => data.CountableItem)
     .ToList();
 
@@ -221,9 +254,23 @@ public class InventoryUi : MonoBehaviour
             await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
             {
                 await ItemManager.itemManager.SetInventoryAtDb();
-                await ItemManager.itemManager.SetEquipJobAtDb();
+                await ItemManager.itemManager.SetCharacterAtDb();
                 return Task.CompletedTask;
             });
+        }
+    }
+    public void SetCanvasForPanelInventory()
+    {
+        var canvas = panelInventory.AddComponent<Canvas>();
+        panelInventory.AddComponent<GraphicRaycaster>();
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = 7;
+    }
+    public void SetSlotCheckAll(bool _isCheck)
+    {
+        foreach (InventorySlot slot in inventorySlots)
+        {
+            slot.SetCheck(_isCheck);
         }
     }
 }

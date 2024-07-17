@@ -307,6 +307,7 @@ public class GameManager : MonoBehaviour
             float resist;
             float speed;
             Skill[] skills = new Skill[2];
+            float[] exp = new float[2];
             WeaponClass weapon;
 
             Sprite hair = null,
@@ -380,6 +381,14 @@ public class GameManager : MonoBehaviour
                             break;
                     }
                     skills[i0] = skillForm.LocalizeSkill(grade);
+                }
+            }
+            if (tempDict.TryGetValue("Exp", out obj))
+            {
+                List<object> list = (List<object>)obj;
+                for (int i1 = 0; i1 < list.Count; i1++)
+                {
+                  exp[i1] = GetFloatValue(list[i1]);
                 }
             }
             if (tempDict.TryGetValue("Body", out obj))
@@ -494,7 +503,7 @@ public class GameManager : MonoBehaviour
             
             //CharacterData
             CharacterData data = characterObject.AddComponent<CharacterData>();
-            data.InitCharacterData(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, gridIndex, skills, weapon);
+            data.InitCharacterData(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, gridIndex, skills, exp   , weapon);
             if (characterIndex != -1)
                 dataList[characterIndex] = data;
             else

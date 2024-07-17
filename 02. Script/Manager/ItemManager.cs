@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 public class ItemManager : MonoBehaviour
 {
@@ -20,7 +21,11 @@ public class ItemManager : MonoBehaviour
     public Sprite name_Normal;
     public Sprite name_Rare;
     public Sprite name_Unique;
+
     public InventoryUi inventoryUi;
+    public GetJobUi getJobUi;
+    public UpgradeSkillUi upgradeSkillUi;
+
     public Sprite book_P;
     public Sprite book_S;
     public Sprite book_U;
@@ -31,15 +36,19 @@ public class ItemManager : MonoBehaviour
     public static readonly Color sustainColor = new(1f, 1f, 0.34f);
     public static readonly Color utilColor = new(0.2003195f, 1f, 0.0235849f);
 
-
-
+    public GameObject backgroundInventoryAdd;
     public CharacterData selectedCharacter;
+
+    public bool isUpgradeCase;
     private void Awake()
     {
         if (!itemManager)
         {
             itemManager = this;
             inventoryUi.gameObject.SetActive(false);
+            getJobUi.gameObject.SetActive(false);
+            upgradeSkillUi.gameObject.SetActive(false);
+            backgroundInventoryAdd.gameObject.SetActive(false);
             inventoryUi.InitInventory();
         }
     }
@@ -245,11 +254,11 @@ public class ItemManager : MonoBehaviour
 
 
     }
-    public Task SetEquipJobAtDb()
+    public Task SetCharacterAtDb()
     {
         foreach (CharacterData data in GameManager.gameManager.characterList)
         {
-            data.SetEquipJobAtDbAsync();
+            data.SetCharacterAtDbAsync();
         }
 
         return Task.CompletedTask;
@@ -423,5 +432,15 @@ public class ItemManager : MonoBehaviour
         selectedCharacter.characterHierarchy.SetJobSprite(job);
         inventoryUi.ch.SetJobSprite(job);
         inventoryUi.jobSlot.SetJobIcon(job);
+        for (int i = 0; i < 2; i++)
+        {
+            inventoryUi.equipSlots[i].expBar.SetActive(true);
+            inventoryUi.equipSlots[i].imageFill.fillAmount = 0;
+        }
+    }
+    public void SetGetJobUi()
+    {
+        getJobUi.gameObject.SetActive(true);
+        getJobUi.SetInfo(selectedCharacter);
     }
 }

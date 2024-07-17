@@ -386,15 +386,7 @@ public class LobbyScenario : MonoBehaviour
             ApplicantSlot _slot = applicantSlots[i];
             _slot.templateAnimator.speed = 1f;
             int gridIndex = i + 3;
-            Dictionary<string, object> characterDict = new()
-            {
-                { "MaxHp", _slot.Hp },
-                { "Hp", _slot.Hp },
-                { "Ability", _slot.Ability },
-                { "Resist", _slot.Resist },
-                { "Speed", _slot.Speed },
-                { "Body", _slot.bodyDict }
-            };
+
             int weaponTypeNum = GameManager.AllocateProbability(0.25f, 0.25f, 0.25f, 0.25f);
             WeaponType weaponType;
             string weaponTypeStr;
@@ -418,18 +410,29 @@ public class LobbyScenario : MonoBehaviour
                     break;
 
             }
+
             string weaponId = $"{weaponTypeStr}:::Default";
-            characterDict.Add("WeaponId", weaponId);
-            characterDict.Add("GridIndex", gridIndex);
-            characterDict.Add("CharacterIndex", i);
-            characterDict.Add("Skill_0", string.Empty);
-            characterDict.Add("Skill_1", string.Empty);
-            characterDict.Add("JobId", "000");
+            Dictionary<string, object> characterDict = new()
+            {
+                { "MaxHp", _slot.Hp },
+                { "Hp", _slot.Hp },
+                { "Ability", _slot.Ability },
+                { "Resist", _slot.Resist },
+                { "Speed", _slot.Speed },
+                { "Body", _slot.bodyDict },
+                { "WeaponId", weaponId },
+                { "GridIndex", gridIndex },
+                { "CharacterIndex", i },
+                { "Skill_0", string.Empty },
+                { "Skill_1", string.Empty },
+                { "Exp", new float[]{ 0,0} },
+                { "JobId", "000" }
+            };
             string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.Uid}/Characters");
 
             WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType]["Default"];
             CharacterData data = _slot.templateObject.AddComponent<CharacterData>();
-            data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new Skill[2] { null, null}, weapon);
+            data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new Skill[2] { null, null},new float[2] {0,0 } ,weapon);
             data.characterHierarchy.SetWeaponSprite(weapon);
             characterDataList[i] = data;
 

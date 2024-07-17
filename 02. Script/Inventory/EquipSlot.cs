@@ -7,8 +7,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using Unity.VisualScripting;
 
-public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler
+public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPointerClickHandler
 {
     public Item item { get; private set; }
     public ItemType itemType { get; set; }
@@ -16,27 +17,37 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler
     public int index;
     public GameObject objectCategori;
     public TMP_Text textLevel;
-
+    public GameObject expBar;
+    public Image imageFill { get; set; }
+    private void Awake()
+    {
+        expBar.SetActive(false);
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
-        InventorySlot draggingSlot = ItemManager.itemManager.inventoryUi.draggingSlot;
-        if (item != null)
+        if (expBar.activeSelf)
         {
-            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 60f, 0f), item);
+            HightlightOn();
         }
-        if (!draggingSlot || draggingSlot.ci.item.itemType != itemType)
-            return;
-        ItemManager.itemManager.inventoryUi.targetEquipSlot = null;
-        HightlightOn();
-
-        ItemManager.itemManager.inventoryUi.targetEquipSlot = this;
-
+        else
+        {
+            InventorySlot draggingSlot = ItemManager.itemManager.inventoryUi.draggingSlot;
+            if (item != null)
+            {
+                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 60f, 0f), item);
+            }
+            if (!draggingSlot || draggingSlot.ci.item.itemType != itemType)
+                return;
+            HightlightOn();
+            ItemManager.itemManager.inventoryUi.targetEquipSlot = this;
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         HightlightOff();
         ItemManager.itemManager.inventoryUi.tooltip.gameObject.SetActive(false);
+        ItemManager.itemManager.inventoryUi.targetEquipSlot = null;
     }
 
     public void SetSlot(Item _item)
@@ -62,8 +73,6 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler
                         textLevel.text = "III";
                         break;
                 }
-
-
             }
             else
             {
@@ -75,6 +84,14 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler
             item = null;
             imageItem.gameObject.SetActive(false);
             objectCategori.SetActive(false);
+        }
+    }
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (expBar.activeSelf)
+        {
+            ItemManager.itemManager.upgradeSkillUi.SetUpgradeSkillUi((Skill)item, index);
+            ItemManager.itemManager.upgradeSkillUi.gameObject.SetActive(true);
         }
     }
 }

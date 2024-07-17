@@ -23,11 +23,14 @@ public class InventorySlot : SlotBase
     public int slotIndex;
     public GameObject imageNoSelect;
     public TMP_Text textPokerNum;
+    public Image imageCheck;
     private bool isSelected;
+    private bool isChecked;
     private void Awake()
     {
         textPokerNum.transform.parent.gameObject.SetActive(false);
         isSelected = true;
+        SetCheck(false);
     }
     public void SetSlot(CountableItem _ci)
     {
@@ -125,7 +128,7 @@ public class InventorySlot : SlotBase
 
     public void OnBeginDrag()
     {
-        if (!isSelected)
+        if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
         if (ci == null) return;
         ItemManager.itemManager.inventoryUi.throwReady = false;
@@ -137,7 +140,7 @@ public class InventorySlot : SlotBase
 
     public void OnDrag()
     {
-        if (!isSelected || ci == null)
+        if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
 
         // 부모를 ItemManager.itemManager.inventoryUi로 변경
@@ -162,7 +165,7 @@ public class InventorySlot : SlotBase
 
     public void OnEndDrag()
     {
-        if (!isSelected)
+        if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
         //인벤토리에서 교환
         if (ItemManager.itemManager.inventoryUi.targetInventorySlot)
@@ -211,35 +214,54 @@ public class InventorySlot : SlotBase
                 return;
             }
         CountableItem curCi = ci;
-        ItemType itemType = targetSlot.itemType;
-
-        if (targetSlot.item != null)//교체하기
+        if (ci.item.itemType == ItemType.Weapon)
         {
-            InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
-            if (existingSlot == null)
+            SetSlot( new(targetSlot.item));
+        }
+        else if (ci.item.itemType == ItemType.Skill)
+        {
+            if (targetSlot.item != null)//교체하기
             {
-                if (curCi.amount == 1)
+                InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
+                if (ci.amount > 1)
                 {
-                    SetSlot(new(targetSlot.item));
+                    ChangeCiAmount(-1);
                 }
                 else
-                    ItemManager.itemManager.SetItemToAbleIndex(new CountableItem(targetSlot.item));
+                {
+                    ClearSlot();
+                }
+                if (existingSlot == null)
+                {
+                    if (ci == null)
+                    {
+                        SetSlot(new(targetSlot.item));
+                    }
+                    else
+                    {
+                        ItemManager.itemManager.SetItemToAbleIndex(new CountableItem(targetSlot.item));
+                    }
+                }
+                else
+                    existingSlot.ChangeCiAmount(1);
             }
             else
-                existingSlot.ChangeCiAmount(1);
-        }
-        else
-        {
-            if (ci.amount > 1)
             {
-                ChangeCiAmount(-1);
+                if (ci.amount > 1)
+                {
+                    ChangeCiAmount(-1);
 
-            }
-            else if (ci.amount == 1)
-            {
-                ClearSlot();
+                }
+                else if (ci.amount == 1)
+                {
+                    ClearSlot();
+                }
             }
         }
+
+        ItemType itemType = targetSlot.itemType;
+
+
 
         targetSlot.SetSlot(curCi.item);
         CharacterData targetCharacter = ItemManager.itemManager.selectedCharacter;
@@ -302,10 +324,13 @@ public class InventorySlot : SlotBase
                 xOffset -= 80f;
                 break;
         }
-        if (ci != null&&!ItemManager.itemManager.inventoryUi.draggingSlot)
+        if (!ItemManager.itemManager.isUpgradeCase)
         {
+            if (ci != null && !ItemManager.itemManager.inventoryUi.draggingSlot)
+            {
 
-            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition +  new Vector3(xOffset,yOffset), ci.item);
+                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition + new Vector3(xOffset, yOffset), ci.item);
+            }
         }
     }
 
@@ -325,36 +350,47 @@ public class InventorySlot : SlotBase
     }
     public void OnPointerClick(BaseEventData data)
     {
-        if (!isSelected || ci == null)
-            return;
-        PointerEventData pointerData = (PointerEventData)data;
-
-        // 우클릭 감지
-        if (pointerData.button == PointerEventData.InputButton.Right)
+        if (ItemManager.itemManager.isUpgradeCase)
         {
-            switch (ci.item.itemType)
+            SetCheck(!isChecked);
+        }
+        else
+        {
+            if (!isSelected || ci == null)
+                return;
+            PointerEventData pointerData = (PointerEventData)data;
+
+            // 우클릭 감지
+            if (pointerData.button == PointerEventData.InputButton.Right)
             {
-                case ItemType.Weapon:
-                    if (ItemManager.itemManager.inventoryUi.equipSlots[2].item == null)
-                    {
-                        
-                    }
-                    break;
-                case ItemType.Skill:
-                    if (ItemManager.itemManager.inventoryUi.equipSlots[0].item == null)
-                    {
-                    
-                    }
-                    else if (ItemManager.itemManager.inventoryUi.equipSlots[1].item == null)
-                    {
-                    
-                    }
-                    else
-                    {
-                    
-                    }
-                    break;
+                switch (ci.item.itemType)
+                {
+                    case ItemType.Weapon:
+                        ItemManager.itemManager.inventoryUi.targetEquipSlot = ItemManager.itemManager.inventoryUi.equipSlots[2];
+                        break;
+                    case ItemType.Skill:
+                        if (ItemManager.itemManager.inventoryUi.equipSlots[0].item == null)
+                        {
+                            ItemManager.itemManager.inventoryUi.targetEquipSlot = ItemManager.itemManager.inventoryUi.equipSlots[0];
+                        }
+                        else if (ItemManager.itemManager.inventoryUi.equipSlots[1].item == null)
+                        {
+                            ItemManager.itemManager.inventoryUi.targetEquipSlot = ItemManager.itemManager.inventoryUi.equipSlots[1];
+                        }
+                        break;
+                }
+                if (ItemManager.itemManager.inventoryUi.targetEquipSlot)
+                {
+                    SwapWithEquip();
+                    ItemManager.itemManager.inventoryUi.targetEquipSlot = null;
+                }
             }
         }
+
+    }
+    public void SetCheck(bool _isCheck)
+    {
+        isChecked = _isCheck;
+        imageCheck.gameObject.SetActive(_isCheck);
     }
 }
