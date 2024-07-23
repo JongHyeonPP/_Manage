@@ -26,16 +26,6 @@ namespace LobbyCollection
             lobbyCase = _lobbyCase;
         }
     }
-    public struct TalentEffect
-    {
-        public float value;
-        public EffectType type;
-        public TalentEffect(float _value, EffectType _type)
-        {
-            value = _value;
-            type = _type;
-        }
-    }
     public struct UpgradeContent
     {
         public float value;

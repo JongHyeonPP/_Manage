@@ -74,7 +74,7 @@ public class InventoryTooltip : MonoBehaviour
                 break;
         }
         grade.text = gradeStr;
-        explain.text = _item.GetExplain();
+        explain.text = _item.explain[GameManager.language];
         if (_item.itemType == ItemType.Weapon)
         {
             WeaponClass _weapon = (WeaponClass)_item;

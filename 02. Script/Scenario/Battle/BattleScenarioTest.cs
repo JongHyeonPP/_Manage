@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using EnumCollection;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
+using UnityEngine.TextCore.Text;
 
 public class BattleScenarioTest : MonoBehaviour
 {
@@ -62,6 +63,11 @@ public class BattleScenarioTest : MonoBehaviour
 
     public async void StageClearTest()
     {
+        BattleScenario.RefreshGrid();
+        foreach (BaseInBattle x in BattleScenario.characters)
+        {
+            x.StopBattle();
+        }
         await battleScenario.StageClearAsync();
     }
     public void GameOverTest()

@@ -12,9 +12,6 @@ public class GridObject : MonoBehaviour
     public int index;
     public bool isEnemy;
     EventTrigger eventTrigger;
-    public delegate void PassiveEffectHandler(BaseInBattle _target);
-    public PassiveEffectHandler EnterOnGrid;
-    public PassiveEffectHandler ExitOnGrid;
     public Image imageRect { get; private set; }
     private Image imageBorder;
     public int preStack;
@@ -194,7 +191,7 @@ public class GridObject : MonoBehaviour
                 GameManager.battleScenario.moveGauge = 0f;
             }
         }
-
+        GameManager.battleScenario.PassiveReconnect();
         GameManager.battleScenario.gridOnPointer = null;
         GameManager.battleScenario.isDragging = false;
         GameManager.IsPaused = false;

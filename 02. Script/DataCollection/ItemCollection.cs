@@ -2,7 +2,9 @@ using BattleCollection;
 using EnumCollection;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,13 +43,6 @@ namespace ItemCollection
             scale = _scale;
             position = _position;
             explain = _explain;
-        }
-        protected Item()
-        {
-        }
-        public virtual string GetExplain()
-        {
-            return explain[GameManager.language];
         }
         public virtual void SetSpriteToImage(Image _image)
         {
@@ -166,257 +161,151 @@ namespace ItemCollection
         public int gold;
     }
 
-    public class SkillForm
+    [Serializable]
+    public class Skill
     {
-        public List<Dictionary<Language, string>> explain;
+        public string skillId;
         public SkillCategori categori;
         public float cooltime;
-        public bool isTargetEnemy = false;
-        public List<List<SkillEffect>> effects;
+        public List<List<SkillEffect>> effectsList;
         public bool isAnim;
-        public List<string> visualEffect;
-        public bool isPre = false;
+        public List<VisualEffect> visualEffects;
+        public bool isPre;
         public Dictionary<Language, string> name;
-        public string id;
-        public Sprite sprite;
-        public Vector2 scale { get; set; }
-        public Vector2 position;
-
-        public SkillForm SetName(Dictionary<Language, string> _name)
+        public List<Dictionary<Language, string>> explain;
+        public Sprite skillSprite;
+        public Skill(string _skillId, SkillCategori _categori, float _cooltime, List<List<SkillEffect>> _effectsList, bool _isAnim, List<VisualEffect> _visualEffect, bool _isPre, Dictionary<Language, string> _name, List<Dictionary<Language, string>> _explain, Sprite _skillSprite)
         {
-            name = _name;
-            return this;
-        }
-        public SkillForm SetExplain(List<Dictionary<Language, string>> _explain)
-        {
-            explain = _explain;
-            return this;
-        }
-        public SkillForm SetCategori(SkillCategori _categori)
-        {
+            skillId = _skillId;
             categori = _categori;
-            return this;
-        }
-        public SkillForm SetCooltime(float _cooltime)
-        {
             cooltime = _cooltime;
-            return this;
-        }
-        public SkillForm SetIsTargetEnemy(bool _isTargetEnemy)
-        {
-            isTargetEnemy = _isTargetEnemy;
-            return this;
-        }
-        public SkillForm SetEffects(List<List<SkillEffect>> _effects)
-        {
-            effects = _effects;
-            return this;
-        }
-        public SkillForm SetIsAnim(bool _isAnim)
-        {
+            effectsList = _effectsList;
             isAnim = _isAnim;
-            return this;
-        }
-        public SkillForm SetVisualEffect(List<string> _visualEffect)
-        {
-            visualEffect = _visualEffect;
-            return this;
-        }
-        public SkillForm SetIsPre(bool _isPre)
-        {
+            visualEffects = _visualEffect;
             isPre = _isPre;
-            return this;
+            name = _name;
+            explain = _explain;
+            skillSprite = _skillSprite;
+            if (explain != null)
+                SkillExplainReplace();
         }
-        public SkillForm SetScale(Vector2 _scale)
+        public SkillAsItem GetAsItem(int _level)
         {
-            scale = _scale;
-            return this;
+            SkillAsItem skillAsItem = new SkillAsItem(ItemType.Skill, skillId, (ItemGrade)_level, name, explain[_level], skillSprite, new Vector2(1f, 1f), Vector2.zero, categori, cooltime);
+            return skillAsItem;
         }
-        public SkillForm SetPosition(Vector2 _position)
+        public SkillInBattle GetInBattle(int _level)
         {
-            position = _position;
-            return this;
-        }
-        public SkillForm SetSprite(Sprite _sprite)
-        { 
-            sprite = _sprite;
-            return this;
-        }
-        public SkillForm SetId(string _id)
-        {
-            id = _id;
-            return this;
+            VisualEffect visualEffect;
+            if (visualEffects!=null&& visualEffects.Count < _level)
+                visualEffect = visualEffects[_level];
+            else
+                visualEffect = null;
+            SkillInBattle skillInBattle = new SkillInBattle(cooltime, effectsList[_level], isAnim, visualEffect, isPre);
+            return skillInBattle;
         }
 
-        public Skill LocalizeSkill(ItemGrade _grade)//Skill_n/n 형태의 x1을 기반으로 LoadManager에 있는 EffectForm을 가진 SkillStruct 접근해서 Effect를 가진 Skill를 리턴
+        public void SkillExplainReplace()
         {
+            for (int i = 0; i < explain.Count; i++)
+                explain[i] = ReplaceByRegex(i);
 
-            return new Skill(this, _grade);
+            Dictionary<Language, string> ReplaceByRegex(int _index)
+            {
+                List<SkillEffect> skillEffects = effectsList[_index];
+                Dictionary<Language, string> originDict = explain[_index];
+                Dictionary<Language, string> explainDict = new();
+                List<Language> allLangauge = new() {Language.Ko, Language.En };
+                List<string> allField = new() { "Value", "Count", "Vamp" };
+                foreach (var language in allLangauge)
+                {
+                    string replacedStr = originDict[language];
+                    foreach (var field in allField)
+                    {
+                        replacedStr = ReplaceByRegex(replacedStr, field);
+                    }
+                    explainDict.Add(language, replacedStr);
+                }
+
+                string ReplaceByRegex(string _origin, string _field)
+                {
+                    string fontColor;
+                    float fontSize;
+                    string replacedStr = _origin;
+                    switch (_field)
+                    {
+                        default://Value
+                            fontColor = "#0096FF";
+                            fontSize = 17.5f;
+                            break;
+                        case "Count":
+                            fontColor = "#4C4CFF";
+                            fontSize = 17.5f;
+                            break;
+                        case "Vamp":
+                            fontColor = "#4C4CFF";
+                            fontSize = 17.5f;
+                            break;
+                    }
+                    // 정규식 패턴 문자열 생성, % 포함 여부도 확인
+                    string pattern = $@"\{{{_field}_(\d+)\}}(\%)?";
+                    Regex regex = new Regex(pattern);
+
+                    MatchCollection matches = regex.Matches(_origin);
+
+                    foreach (Match match in matches)
+                    {
+                        int index = int.Parse(match.Groups[1].Value); // {Value_i}에서 i 추출
+                        bool isPercent = match.Groups[2].Success; // % 기호 존재 여부 확인
+                        if (index >= 0 && index < effectsList.Count)
+                        {
+                            string replaceStr;
+                                switch (_field)
+                                {
+                                    default://Value
+                                        replaceStr = skillEffects[index].value.ToString();
+                                        if (skillEffects[index].valueBase == ValueBase.Ability)
+                                            replaceStr += "AB";
+                                        break;
+                                    case "Count":
+                                        replaceStr = skillEffects[index].count.ToString();
+                                        break;
+                                    case "Vamp":
+                                        replaceStr = skillEffects[index].vamp.ToString();
+                                        break;
+                                }
+                                if (isPercent)
+                                {
+                                    double value = double.Parse(replaceStr) * 100;
+                                    replaceStr = value.ToString("0.##") + "%"; // % 기호를 결과에 포함
+                                }
+
+                                string richF = $"<color={fontColor}><size={fontSize}><b>";
+                                string richB = "</b></size></color>";
+                                replaceStr = richF + replaceStr + richB;
+                                replacedStr = replacedStr.Replace(match.Value, replaceStr);
+
+
+                        }
+                    }
+                    replacedStr = replacedStr.Replace("\\n", "\n");
+                    return replacedStr;
+                }
+                return explainDict;
+            }
         }
 
     }
-    [Serializable]
-    public class Skill:Item
+    public class SkillAsItem:Item
     {
         public SkillCategori categori;
         public float cooltime;
-        public List<SkillEffect> effects;
-        public bool isTargetEnemy;
-        public bool isAnim;
-        public VisualEffect visualEffect;
-        public static float defaultAttackCooltime = 3f;
-        public bool isPre;
-        public int level;
-        public static readonly int[] needExp = new int[] { 5, 20 };
-        public Skill(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position)
-            : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
+        public SkillAsItem(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name,
+            Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position, SkillCategori _categori, float _cooltime)
+    : base(_itemType, _itemId, _itemGrade, _name, _explain, _sprite, _scale, _position)
         {
+            categori = _categori;
+            cooltime = _cooltime;
         }
-        public Skill(SkillForm _skillForm, ItemGrade _grade) 
-            : this(ItemType.Skill, _skillForm.id, _grade, _skillForm.name, _skillForm.explain[ConvertGradeToInt(_grade)], _skillForm.sprite, _skillForm.scale, _skillForm.position)
-        {
-            int gradeNum = ConvertGradeToInt(_grade);
-            string gradeStr = ConvertGradeToString(_grade);
-            if (_skillForm.explain != null)
-                explain = _skillForm.explain[gradeNum];
-            categori = _skillForm.categori;
-            cooltime = _skillForm.cooltime;
-            isTargetEnemy = _skillForm.isTargetEnemy;
-            effects = new();
-            effects = _skillForm.effects[gradeNum];
-            isAnim = _skillForm.isAnim;
-            if (_skillForm.visualEffect != null)
-            {
-                string veName = _skillForm.visualEffect[gradeNum];
-                if (veName != string.Empty)
-                    visualEffect = null;
-            }
-            isPre = _skillForm.isPre;
-            itemId = $"{_skillForm.id}:::{gradeStr}";
-        }
-
-        public Skill()//Default Attack
-        {
-            cooltime = defaultAttackCooltime;
-            isTargetEnemy = true;
-            isAnim = true;
-            isPre = false;
-            effects = new()
-            {
-                new SkillEffect().
-                SetType(EffectType.Damage).
-                SetCount(1).
-                SetValueBase(ValueBase.Ability).
-                SetValue(1f).
-                SetDelay(0.5f).
-                SetRange(EffectRange.Dot).
-                SetIsPassive(false).
-                SetVamp(0f).
-                SetByAtt(false)
-            };
-        }
-        
-        private static int ConvertGradeToInt(ItemGrade grade)
-        {
-            switch (grade)
-            {
-                case ItemGrade.Rare:
-                    return 1;
-                case ItemGrade.Unique:
-                    return 2;
-                default:
-                    return 0;
-            }
-        }
-
-        private static string ConvertGradeToString(ItemGrade grade)
-        {
-            switch (grade)
-            {
-                case ItemGrade.Rare:
-                    return "Rare";
-                case ItemGrade.Unique:
-                    return "Unique";
-                default:
-                    return "Normal";
-            }
-        }
-        public override string GetExplain()
-        {
-            string originStr = explain[GameManager.language];
-            return ReplaceValues(originStr);
-
-        }
-        public string ReplaceValues(string original)
-        {
-            original = ReplaceByRegex(original, "Value");
-            original = ReplaceByRegex(original, "Count");
-            original = ReplaceByRegex(original, "Vamp");
-            return original;
-
-            string ReplaceByRegex(string original, string _field)
-            {
-                string fontColor;
-                float fontSize;
-                switch (_field)
-                {
-                    default://Value
-                        fontColor = "#0096FF";
-                        fontSize = 17.5f;
-                        break;
-                    case "Count":
-                        fontColor = "#4C4CFF";
-                        fontSize = 17.5f;
-                        break;
-                    case "Vamp":
-                        fontColor = "#4C4CFF";
-                        fontSize = 17.5f;
-                        break;
-                }
-                // 정규식 패턴 문자열 생성, % 포함 여부도 확인
-                string pattern = $@"\{{{_field}_(\d+)\}}(\%)?";
-                Regex regex = new Regex(pattern);
-
-                MatchCollection matches = regex.Matches(original);
-
-                foreach (Match match in matches)
-                {
-                    int index = int.Parse(match.Groups[1].Value); // {Value_i}에서 i 추출
-                    bool isPercent = match.Groups[2].Success; // % 기호 존재 여부 확인
-                    if (index >= 0 && index < effects.Count)
-                    {
-                        string replaceStr;
-                        switch (_field)
-                        {
-                            default://Value
-                                replaceStr = effects[index].value.ToString();
-                                if (effects[index].valueBase == ValueBase.Ability)
-                                    replaceStr += "AB";
-                                break;
-                            case "Count":
-                                replaceStr = effects[index].count.ToString();
-                                break;
-                            case "Vamp":
-                                replaceStr = effects[index].vamp.ToString();
-                                break;
-                        }
-                        if (isPercent)
-                        {
-                            double value = double.Parse(replaceStr) * 100;
-                            replaceStr = value.ToString("0.##") + "%"; // % 기호를 결과에 포함
-                        }
-
-                        string richF = $"<color={fontColor}><size={fontSize}><b>";
-                        string richB = "</b></size></color>";
-                        replaceStr = richF + replaceStr + richB;
-                        original = original.Replace(match.Value, replaceStr);
-                        original = original.Replace("\\n", "\n");
-                    }
-                }
-
-                return original;
-            }
-        }
-
     }
 }

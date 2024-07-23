@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace DefaultCollection
 {
-    public struct TalentFormStruct
+    public class TalentClass
     {
         public Dictionary<Language, string> name;
         public Dictionary<Language, string> explain;
         public int level;
         public int order;
-        public List<TalentEffectForm> effects;
-        public TalentFormStruct(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<TalentEffectForm> _effects, int _order)
+        public List<TalentEffect> effects;
+        public TalentClass(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<TalentEffect> _effects, int _order)
         {
             effects = _effects;
             name = _name;
@@ -20,35 +20,11 @@ namespace DefaultCollection
             order = _order;
         }
     }
-    public struct TalentEffectForm
+    public class TalentEffect
     {
-        public string value;
+        public List<float> value;
         public EffectType type;
-        public TalentEffectForm(string _value, EffectType _type)
-        {
-            value = _value;
-            type = _type;
-        }
-    }
-    public struct TalentStruct
-    {
-        public int level;
-        public Dictionary<Language, string> name;
-        public Dictionary<Language, string> explain;
-        public List<TalentEffect> effects;
-        public TalentStruct(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<TalentEffect> _effects)
-        {
-            effects = _effects;
-            name = _name;
-            level = _level;
-            explain = _explain;
-        }
-    }
-    public struct TalentEffect
-    {
-        public float value;
-        public EffectType type;
-        public TalentEffect(float _value, EffectType _type)
+        public TalentEffect(List<float> _value, EffectType _type)
         {
             value = _value;
             type = _type;

@@ -19,8 +19,7 @@ public class JobSlot : SlotBase
         JobClass job;
         if (isInGetJob)
         {
-            string jobId = GameManager.gameManager.GetJobId(ItemManager.itemManager.selectedCharacter.skills);
-            job = LoadManager.loadManager.jobsDict[jobId];
+            job = GameManager.gameManager.GetJob(ItemManager.itemManager.selectedCharacter.skillAsIItems[0].itemId, ItemManager.itemManager.selectedCharacter.skillAsIItems[1].itemId);
         }
         else
         {
@@ -31,7 +30,7 @@ public class JobSlot : SlotBase
         statusExplain.transform.parent = transform.parent;
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition;
-        statusExplain.SetExplain(job.name[GameManager.language], job.jobSkill.GetExplain());
+        statusExplain.SetExplain(job.name[GameManager.language], job.jobSkill.explain[0][GameManager.language]);
         HightlightOn();
     }
     public void OnPointerExit()
@@ -49,7 +48,7 @@ public class JobSlot : SlotBase
     public void Case000(CharacterData _character)
     {
         jobIconSlot.gameObject.SetActive(false);
-        if (_character.skills[0] != null && _character.skills[1] != null)//둘 다 null이 아니면
+        if (_character.skillAsIItems[0] != null && _character.skillAsIItems[1] != null)//둘 다 null이 아니면
         {
             buttonExclaim.SetActive(true);
         }

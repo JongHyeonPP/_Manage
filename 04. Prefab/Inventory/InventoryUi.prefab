@@ -1774,6 +1774,7 @@ MonoBehaviour:
   targetEquipSlot: {fileID: 0}
   draggingSlot: {fileID: 0}
   throwSlot: {fileID: 0}
+  currentSelectButton: {fileID: 0}
 --- !u!210 &1531914047380525636
 SortingGroup:
   m_ObjectHideFlags: 0
@@ -7820,14 +7821,17 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8380799607176143116, guid: 27672a3e9b12e4946b115af17d69aae5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7252510109146781201}
   m_SourcePrefab: {fileID: 100100000, guid: 27672a3e9b12e4946b115af17d69aae5, type: 3}
 --- !u!114 &398822822304354376 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4319692839937426944, guid: 27672a3e9b12e4946b115af17d69aae5, type: 3}
   m_PrefabInstance: {fileID: 4501988834858358344}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 5347129731063379780}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c14addd7645ec8049a7e94f68d6cb092, type: 3}
@@ -7838,6 +7842,34 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8836685482145152042, guid: 27672a3e9b12e4946b115af17d69aae5, type: 3}
   m_PrefabInstance: {fileID: 4501988834858358344}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5347129731063379780 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8380799607176143116, guid: 27672a3e9b12e4946b115af17d69aae5, type: 3}
+  m_PrefabInstance: {fileID: 4501988834858358344}
+  m_PrefabAsset: {fileID: 0}
+--- !u!223 &7252510109146781201
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347129731063379780}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 25
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 8
+  m_TargetDisplay: 0
 --- !u!1001 &4553123816723931926
 PrefabInstance:
   m_ObjectHideFlags: 0

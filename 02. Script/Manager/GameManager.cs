@@ -306,7 +306,7 @@ public class GameManager : MonoBehaviour
             float hp;
             float resist;
             float speed;
-            Skill[] skills = new Skill[2];
+            SkillAsItem[] skills = new SkillAsItem[2];
             float[] exp = new float[2];
             WeaponClass weapon;
 
@@ -366,21 +366,22 @@ public class GameManager : MonoBehaviour
                     if (string.IsNullOrEmpty(skillId))
                         continue;
                     string[] splittedId = skillId.Split(":::");
-                    SkillForm skillForm = LoadManager.loadManager.skillsDict[splittedId[0]];
-                    ItemGrade grade;
+                    Skill skill = LoadManager.loadManager.skillsDict[splittedId[0]];
+                    int level;
                     switch (splittedId[1])
                     {
                         default:
-                            grade = ItemGrade.Normal;
+                            level = 0;
                             break;
                         case "Rare":
-                            grade = ItemGrade.Rare;
+                            level = 1;
                             break;
                         case "Unique":
-                            grade = ItemGrade.Unique;
+                            level = 2;
                             break;
+
                     }
-                    skills[i0] = skillForm.LocalizeSkill(grade);
+                    skills[i0] = skill.GetAsItem(level);
                 }
             }
             if (tempDict.TryGetValue("Exp", out obj))
@@ -503,7 +504,7 @@ public class GameManager : MonoBehaviour
             
             //CharacterData
             CharacterData data = characterObject.AddComponent<CharacterData>();
-            data.InitCharacterData(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, gridIndex, skills, exp   , weapon);
+            data.InitCharacterData(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, gridIndex, skills, exp, weapon);
             if (characterIndex != -1)
                 dataList[characterIndex] = data;
             else
@@ -513,17 +514,16 @@ public class GameManager : MonoBehaviour
             characterAtBattle.InitCharacter(data, _grid);
             BattleScenario.characters.Add(characterAtBattle);
         }
-        characterList = dataList;
+        characterList = dataList.Where(item=>item != null).ToList();
     }
 
-    public string GetJobId(Skill[] _skills)
+    public JobClass GetJob(string _id0,string _id1)
     {
         int job = 0;
         int num = 0;
-        foreach (Skill skill in _skills)
+        SkillCategori[] categories = new SkillCategori[2] { LoadManager.loadManager.skillsDict[_id0].categori, LoadManager.loadManager.skillsDict[_id1].categori }; 
+        foreach (var categori in categories)
         {
-            if (skill == null) continue;
-            SkillCategori categori = skill.categori;
             switch (categori)
             {
                 case SkillCategori.Power:
@@ -540,36 +540,23 @@ public class GameManager : MonoBehaviour
                     break;
             }
         }
-        if (num == 2)
-        {
-            return AddZero(job);
-        }
-        else
-            return "000";
+        string jobId = AddZero(job);
+        return LoadManager.loadManager.jobsDict[jobId];
     }
 
-    public GameObject GetEnemyPrefab(string _characterId, bool _isMonster = false)
+    public GameObject GetEnemyPrefab(string _characterId)
     {
-        GameObject characterObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/Enemy/" + _characterId)));
-        if (_isMonster)
-        {
-            Transform body = characterObject.transform.GetChild(0);
+        GameObject enemyObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/Enemy/" + _characterId)));
+
+            Transform body = enemyObject.transform.GetChild(0);
             body.localScale = Vector3.one * 60f;
             var sortingGroup = body.gameObject.AddComponent<SortingGroup>();
             sortingGroup.sortingOrder = 0;
             Vector3 curRot = body.eulerAngles;
             curRot.y = 180f;
             body.eulerAngles = curRot;
-        }
-        else
-        {
-            characterObject.transform.GetChild(0).localScale = Vector3.one * 17f;
 
-            RectTransform rectTransform = characterObject.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition3D = new Vector3(0, 0, 0);
-            rectTransform.localScale = new Vector2(1, 1);
-        }
-        return characterObject;
+        return enemyObject;
     }
     float GetFloatValue(object _obj)
     {

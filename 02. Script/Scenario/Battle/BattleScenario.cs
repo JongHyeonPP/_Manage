@@ -140,7 +140,7 @@ public class BattleScenario : MonoBehaviour
         }
         CharacterAtBattleInit();//Data->Base
         List<CharacterData> characters = GameManager.gameManager.characterList;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < characters.Count; i++)
         {
             CharacterInBattle characterAtBattle = characters[i].characterAtBattle;
 
@@ -247,7 +247,7 @@ public class BattleScenario : MonoBehaviour
                 //이미지 셋도 여기서 해야하는듯
                 for (int i1 = 0; i1 < 2; i1++)
                 {
-                    if (data.skills[i1]!=null)
+                    if (data.skillAsIItems[i1]!=null)
                         hpBarInUI.skillObject[i1].SetActive(true);
                     else
                         hpBarInUI.skillObject[i1].SetActive(false);
@@ -321,38 +321,43 @@ public class BattleScenario : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.5f);
             if (regularEffect != null)
                 regularEffect();
         }
     }
-
+    public IEnumerator StageClearCoroutine()
+    {
+        RefreshGrid();
+        foreach (BaseInBattle x in characters)
+        {
+            x.StopBattle();
+        }
+        yield return new WaitForSeconds(2f);
+        StageClearAsync();
+    }
     public async Task StageClearAsync()
     {
         Debug.Log("StageClear");
         GameManager.battleScenario.StopAllCoroutines();
         battlePatern = BattlePatern.OnReady;
         StageScenarioBase.nodes.Add(null);
-        List<CharacterData> dataList = GameManager.gameManager.characterList;
+        //List<CharacterData> dataList = GameManager.gameManager.characterList;
 
-            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
-            {
-                foreach (CharacterData data in dataList)
-                {
-                    data.hp = data.characterAtBattle.Hp;
-                    DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
-                }
-                DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", GameManager.gameManager.Uid);
-                DataManager.dataManager.SetDocumentData("Nodes", StageScenarioBase.nodes, "Progress", GameManager.gameManager.Uid);
+        //    await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+        //    {
+        //        foreach (CharacterData data in dataList)
+        //        {
+        //            data.hp = data.characterAtBattle.Hp;
+        //            DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
+        //        }
+        //        DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", GameManager.gameManager.Uid);
+        //        DataManager.dataManager.SetDocumentData("Nodes", StageScenarioBase.nodes, "Progress", GameManager.gameManager.Uid);
 
-                return Task.CompletedTask;
-            });
-        
-        foreach (BaseInBattle x in characters)
-        {
-            x.StopBattle();
-        }
-        RefreshGrid();
+        //        return Task.CompletedTask;
+        //    });
+
+
         await ClearEnemyAsync();
         await ItemManager.itemManager.SetLootAsync();
         canvasClear.SetActive(true);
@@ -360,7 +365,7 @@ public class BattleScenario : MonoBehaviour
         StageScenarioBase.state = StateInMap.NeedPhase;
     }
 
-    private static void RefreshGrid()
+    public static void RefreshGrid()
     {
         foreach (GridObject grid in CharacterGrids)
         {
@@ -391,7 +396,7 @@ public class BattleScenario : MonoBehaviour
     {
         foreach (var x in enemies)
         {
-            x.StartBattle();
+            //x.StartBattle();
         }
         foreach (var x in characters)
         {
@@ -461,8 +466,8 @@ public class BattleScenario : MonoBehaviour
         GameObject effectObj = Instantiate(_visualEffect.effectObject, target);
         if (_isSkillVe && !_visualEffect.fromRoot)
         {
-            int rangeX = UnityEngine.Random.Range(-3, 3);
-            int rangeY = UnityEngine.Random.Range(-3, 3);
+            float rangeX = UnityEngine.Random.Range(-0.1f, 0.1f);
+            float rangeY = UnityEngine.Random.Range(-0.1f, 0.1f);
             effectObj.transform.position += new Vector3(rangeX, rangeY);
         }
         if (_visualEffect.sound != string.Empty)
@@ -550,10 +555,10 @@ public class BattleScenario : MonoBehaviour
             GridObject grid = EnemyGrids[pieceForm.index];
             GameObject enemyObject;
             EnemyClass enemyClass = enemyDict[id];
-            enemyObject = GameManager.gameManager.GetEnemyPrefab(id, enemyClass.isMonster);
+            enemyObject = GameManager.gameManager.GetEnemyPrefab(id);
 
             EnemyInBattle enemyScript = enemyObject.AddComponent<EnemyInBattle>();
-            enemyScript.InitEnemy(enemyClass, grid, enemyClass.isMonster);
+            enemyScript.InitEnemy(enemyClass, grid);
             enemies.Add(enemyScript);
             enemyPieces.Add(new(id, pieceForm.index));
         }
@@ -573,10 +578,10 @@ public class BattleScenario : MonoBehaviour
             GridObject grid = EnemyGrids[gridIndex];
             GameObject enemyObject;
             EnemyClass enemyClass = enemyDict[id];
-            enemyObject = GameManager.gameManager.GetEnemyPrefab(id, enemyClass.isMonster);
+            enemyObject = GameManager.gameManager.GetEnemyPrefab(id);
 
             EnemyInBattle enemyScript = enemyObject.AddComponent<EnemyInBattle>();
-            enemyScript.InitEnemy(enemyClass, grid, enemyClass.isMonster);
+            enemyScript.InitEnemy(enemyClass, grid);
             enemies.Add(enemyScript);
         }
     }
@@ -591,5 +596,11 @@ public class BattleScenario : MonoBehaviour
     {
         float damagePercentage = 100f / (100f + _resist);
         return damagePercentage;
+    }
+
+    internal void PassiveReconnect()
+    {
+        foreach (var character in characters)
+            character.PassiveReconnect();
     }
 }

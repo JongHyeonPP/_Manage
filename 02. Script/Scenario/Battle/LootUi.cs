@@ -32,7 +32,7 @@ public class LootUi : MonoBehaviour
         for (int i = 0; i < mainLootSlots.Count; i++)
         {
             MainLootSlot slot = mainLootSlots[i];
-            if (i < _main.Count)//셋 해야함
+            if (i < _main.Count)
             {
                 slot.gameObject.SetActive(true);
                 Item main = _main[i].item;

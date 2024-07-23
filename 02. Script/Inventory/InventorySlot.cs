@@ -271,13 +271,13 @@ public class InventorySlot : SlotBase
                 targetCharacter.ChangeWeapon(curCi.item as WeaponClass);
                 break;
             case ItemType.Skill:
-                targetCharacter.skills[targetSlot.index] = curCi.item as Skill;
+                targetCharacter.skillAsIItems[targetSlot.index] = curCi.item as SkillAsItem;
                 break;
         }
 
         targetSlot.HightlightOff();
 
-        if (!targetCharacter.skills.Contains(null))
+        if (!targetCharacter.skillAsIItems.Contains(null))
         {
             ItemManager.itemManager.inventoryUi.jobSlot.buttonExclaim.SetActive(true);
         }

@@ -37,7 +37,7 @@ public class InventoryUi : MonoBehaviour
     public EquipSlot targetEquipSlot;
     public InventorySlot draggingSlot;
     public InventorySlot throwSlot;
-    private SelectButton currentSelectButton;
+    public SelectButton currentSelectButton;
 
     private void Awake()
     {
@@ -99,14 +99,14 @@ public class InventoryUi : MonoBehaviour
         {
             characterSelectFocus[i].SetActive(i == _index);
         }
-        equipSlots[0].SetSlot(character.skills[0]);
-        equipSlots[1].SetSlot(character.skills[1]);
+        equipSlots[0].SetSlot(character.skillAsIItems[0]);
+        equipSlots[1].SetSlot(character.skillAsIItems[1]);
         equipSlots[2].SetSlot(character.weapon);
         if (character.jobClass.jobId !="000")
             for (int i = 0; i < 2; i++)
             {
                 equipSlots[i].expBar.SetActive(true);
-                //equipSlots[i].imageFill.fillAmount = character.exp[i]/Skill.needExp[character.skills[i].];경험치 적용 중이었음
+                equipSlots[i].imageFill.fillAmount = character.exp[i] / ItemManager.needExp[i];
             }
         else
         {
@@ -114,7 +114,6 @@ public class InventoryUi : MonoBehaviour
                 equipSlots[i].expBar.SetActive(false);
         }
 
-        equipSlots[1].imageFill.fillAmount = character.exp[1];
         switch (character.jobClass.jobId)
         {
             case "000":
@@ -135,6 +134,7 @@ public class InventoryUi : MonoBehaviour
     }
     public void SelectButtonSelect(SelectButton _selectButton)
     {
+        currentSelectButton = _selectButton;
         foreach (SelectButton sb in selectButtons)
         {
             sb.ActiveHighlight(sb == _selectButton);
@@ -157,14 +157,10 @@ public class InventoryUi : MonoBehaviour
     }
     public void UpgradeCase(SkillCategori _skillCategori)
     {
-        foreach (SelectButton sb in selectButtons)
-        {
-            sb.ActiveHighlight(false);
-        }
         foreach (InventorySlot slot in inventorySlots)
         {
             bool isActive = false;
-            if (slot.ci != null && slot.ci.item.itemType == ItemType.Skill && ((Skill)slot.ci.item).categori == _skillCategori)
+            if (slot.ci != null && slot.ci.item.itemType == ItemType.Skill && ((SkillAsItem)slot.ci.item).categori == _skillCategori)
             {
                 isActive = true;
             }
@@ -210,7 +206,7 @@ public class InventoryUi : MonoBehaviour
 
         List<CountableItem> sortedSkillList = ciList
     .Where(data => data.item.itemType == ItemType.Skill)
-    .Select(data => new { CountableItem = data, Skill = (Skill)data.item })
+    .Select(data => new { CountableItem = data, Skill = (SkillAsItem)data.item })
     .OrderBy(data => data.Skill.categori)
     .ThenByDescending(data => data.CountableItem.amount)
     .Select(data => data.CountableItem)

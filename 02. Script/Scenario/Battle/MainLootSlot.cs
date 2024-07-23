@@ -74,7 +74,7 @@ public class MainLootSlot : MonoBehaviour
     private void SetSkillAtSlot(Item _item)
     {
         imageSkill.sprite = _item.sprite;
-        ItemManager.itemManager.SetCategoriCharAtText(((Skill)_item).categori, textCategori);
+        ItemManager.itemManager.SetCategoriCharAtText(((SkillAsItem)_item).categori, textCategori);
         if (nameDict != null)
             textName.text = $"{((GameManager.language == Language.En) ? "Skill" : "½ºÅ³")} : {nameDict[GameManager.language]}";
     }

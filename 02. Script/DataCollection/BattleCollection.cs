@@ -1,73 +1,208 @@
 using DefaultCollection;
 using EnumCollection;
+using HardLight2DUtil;
 using ItemCollection;
-using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace BattleCollection
 {
 
-    [Serializable]
-    public class SkillEffect
+    public class SkillInBattle
     {
-        public float value = 1f;
-        public int count = 1;
-        public EffectType type;
-        public float delay = 0f;
-        public EffectRange range = EffectRange.Dot;
-        public bool isPassive = false;
-        public float vamp = 0f;
-        public bool byAtt = false;
-        public ValueBase valueBase;
-        public SkillEffect SetValue(float _value)
+        public static float defaultAttackCooltime = 3f;
+        public float cooltime;
+        public List<SkillEffect> effects = new();
+        public bool isAnim;
+        public VisualEffect visualEffect { get; set; }
+        public bool isPre;
+        public SkillCategori categori;
+        public SkillInBattle(float _coolTime, List<SkillEffect> _effects, bool _isAnim, VisualEffect _visualEffect, bool _isPre)
         {
-            value = _value;
-            return this;
+            cooltime = _coolTime;
+            effects = _effects;
+            isAnim = _isAnim;
+            visualEffect = _visualEffect;
+            isPre = _isPre;
         }
-        public SkillEffect SetCount(int _count)
+
+
+        public List<PassiveEffect> GetPassiveEffects(BaseInBattle _caster)
         {
-            count = _count;
-            return this;
-        }
-        public SkillEffect SetType(EffectType _type)
-        {
-            type = _type;
-            return this;
-        }
-        public SkillEffect SetDelay(float _delay)
-        {
-            delay = _delay;
-            return this;
-        }
-        public SkillEffect SetRange(EffectRange _range)
-        {
-            range = _range;
-            return this;
-        }
-        public SkillEffect SetIsPassive(bool _isPassive)
-        {
-            isPassive = _isPassive;
-            return this;
-        }
-        public SkillEffect SetVamp(float _vamp)
-        {
-            vamp = _vamp;
-            return this;
-        }
-        public SkillEffect SetByAtt(bool _byAtt)
-        {
-            byAtt = _byAtt;
-            return this;
-        }
-        public SkillEffect SetValueBase(ValueBase _valueBase)
-        { 
-            valueBase  = _valueBase;
-            return this;
+            List<PassiveEffect> passiveEffects = new();
+            foreach (var effect in effects)
+            {
+                if (!effect.isPassive)
+                    continue;
+                PassiveEffect passiveEffect = (PassiveEffect)effect;
+                passiveEffect.value = _caster.CalcEffectValueByType(passiveEffect.value, effect.effectType);
+                passiveEffect.SetTargets(_caster);
+                passiveEffect.ApplyToTarget();
+            }
+            return passiveEffects;
         }
     }
-    [Serializable]
+    public abstract class SkillEffect
+    {
+        public int count;
+        public bool isPassive;
+        public float value;
+        public EffectType effectType;
+        public EffectRange range = EffectRange.Dot;
+        public ValueBase valueBase;
+        public bool isTargetEnemy;
+        public float vamp;//설명에 띄워야해서 여기 있어야함.
+        public SkillEffect(int _count ,bool _isPassive, float _value, EffectType _type, EffectRange _range, ValueBase _valueBase, bool _isTargetEnemy, float _vamp)
+        {
+            count = _count;
+            isPassive = _isPassive;
+            value = _value;
+            effectType = _type;
+            range = _range;
+            valueBase = _valueBase;
+            isTargetEnemy = _isTargetEnemy;
+            vamp = _vamp;
+        }
+
+    }
+    public class PassiveEffect:SkillEffect
+    {
+        public bool byAtt = false;
+
+        public List<BaseInBattle> targets = new();
+
+        public PassiveEffect(int _count, bool _isPassive, float _value, EffectType _type, EffectRange _range, ValueBase _valueBase, bool _isTargetEnemy, float _vamp, bool _byAtt) : base(_count, _isPassive, _value, _type, _range, _valueBase, _isTargetEnemy, _vamp)
+        {
+            byAtt = _byAtt;
+        }
+
+        public void SetTargets(BaseInBattle _caster)
+        {
+            BaseInBattle target;
+            if (isTargetEnemy)//가장 가까운 적
+            {
+                target = _caster.targetOpponent;
+            }
+            else
+            {
+                target = _caster;
+            }
+
+            targets = BattleScenario.GetTargetsByRange(range, target);
+        }
+        internal void ApplyToTarget()
+        {
+            foreach (var x in targets)
+            {
+                x.ApplyValue(value, effectType);
+            }
+        }
+
+        internal void RemoveToTarget()
+        {
+            foreach (var x in targets)
+            {
+                x.ApplyValue(-value, effectType);
+            }
+        }
+    }
+    public class ActiveEffect : SkillEffect
+    {
+        public float delay;
+
+        public BaseInBattle caster;
+
+        public ActiveEffect(int _count, bool _isPassive, float _value, EffectType _type, EffectRange _range, ValueBase _valueBase, bool _isTargetEnemy, float _vamp, float _delay) : base(_count, _isPassive, _value, _type, _range, _valueBase, _isTargetEnemy, _vamp)
+        {
+            delay = _delay;
+        }
+
+        public ActiveEffect SetCaster(BaseInBattle _caster)
+        {
+            caster = _caster;
+            return this;
+        }
+        public void ActiveEffect0nTarget(BaseInBattle target)
+        {
+            float calcValue = value;
+            switch (valueBase)
+            {
+                case ValueBase.Ability:
+                    calcValue *= caster.abilityInBattle;
+                    break;
+                case ValueBase.Armor:
+                    calcValue *= caster.armor;
+                    break;
+                case ValueBase.HpMax_Enemy:
+                    calcValue *= target.maxHp;
+                    break;
+                case ValueBase.HpMax_Caster:
+                    calcValue *= caster.maxHp;
+                    break;
+            }
+            calcValue = caster.CalcEffectValueByType(calcValue, effectType);
+            float calcTemp = calcValue;
+
+            calcValue = calcTemp;
+            switch (effectType)
+            {
+                case EffectType.Damage://타겟에 대한 보정값
+                    calcValue *= BattleScenario.CalcResist(target.resistInBattle);
+                    calcValue -= target.GetRegularValue(EffectType.Reduce);
+                    calcValue = Mathf.Max(calcValue, 0);
+                    foreach (KeyValuePair<EffectType, float> kvp in caster.EffectsByAtt)
+                    {
+                        target.ApplyValue(kvp.Value, kvp.Key);
+                    }
+                    break;
+                case EffectType.Curse:
+                    calcValue *= target.Hp;
+                    break;
+            }
+            caster.StartCoroutine(RoopEffect(calcValue, target));
+        }
+
+        private IEnumerator RoopEffect(float calcValue, BaseInBattle _target)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                //능력치 흡수
+                if (effectType == EffectType.AbilityVamp)
+                {
+                    caster.abilityInBattle += _target.abilityInBattle * calcValue;
+                }
+                _target.ApplyValue(calcValue, effectType);//////핵심
+
+                //대미지 후속작업
+                if (effectType == EffectType.Damage)
+                {
+                    float vampValue = vamp + caster.GetRegularValue(EffectType.Vamp);
+                    vampValue *= 1 + caster.GetRegularValue(EffectType.ResilienceAscend);
+                    //흡수하는 채력
+                    if (vampValue > 0)
+                    {
+                        caster.Hp += vampValue * calcValue;
+                    }
+                    //흡수되는 능력치
+                    if (_target.GetRegularValue(EffectType.ResistByDamage) > 0)
+                    {
+                        float resistValue = caster.resistInBattle * _target.GetRegularValue(EffectType.ResistByDamage);
+                        caster.resistInBattle -= resistValue;
+                        _target.resistInBattle += resistValue;
+                    }
+                    if (_target.GetRegularValue(EffectType.Reflect) > 0)
+                    {
+                        caster.Hp -= calcValue * _target.GetRegularValue(EffectType.Reflect);
+                    }
+                }
+                yield return new WaitForSeconds(delay);
+            }
+        }
+
+
+    }
     public class JobClass
     {
         public Dictionary<Language, string> name = null;
@@ -90,55 +225,21 @@ namespace BattleCollection
         public float ability;
         public float hp;
         public float resist;
-        public List<Skill> skills;
+        public List<SkillInBattle> skills;
         public float speed;
-        public bool isMonster;
-        public string type;
+        public string type { get; set; }
         public int enemyLevel;
-        public EnemyClass SetName(Dictionary<Language, string> _name)
+
+        public EnemyClass(Dictionary<Language, string> _name, float _ability, float _hp, float _resist, List<SkillInBattle> _skills, float _speed, string _type, int _enemyLevel)
         {
             name = _name;
-            return this;
-        }
-        public EnemyClass SetAbility(float _ability)
-        {
             ability = _ability;
-            return this;
-        }
-        public EnemyClass SetHp(float _hp)
-        {
             hp = _hp;
-            return this;
-        }
-        public EnemyClass SetResist(float _resist)
-        {
             resist = _resist;
-            return this;
-        }
-        public EnemyClass SetSkills(List<Skill> _skills)
-        {
             skills = _skills;
-            return this;
-        }
-        public EnemyClass SetSpeed(float _speed)
-        {
             speed = _speed;
-            return this;
-        }
-        public EnemyClass SetIsMonster(bool _isMonster)
-        {
-            isMonster = _isMonster;
-            return this;
-        }
-        public EnemyClass SetType(string _type)
-        {
             type = _type;
-            return this;
-        }
-        public EnemyClass SetEnemyLevel(int _enemyLevel)
-        {
             enemyLevel = _enemyLevel;
-            return this;
         }
     }
     public class EnemyCase
@@ -163,7 +264,7 @@ namespace BattleCollection
             id = _id;
             return this;
         }
-        public  EnemyPieceForm SetLevel(int _enemyLevel)
+        public EnemyPieceForm SetLevel(int _enemyLevel)
         {
             enemyLevel = _enemyLevel;
             return this;
@@ -204,4 +305,186 @@ namespace BattleCollection
         }
     }
 
+    public class SkillActiveForm
+    {
+        public BaseInBattle caster;
+        public List<ActiveEffect> effectActiveForms = new();
+        readonly float skillCastTime = 1f;
+        public SkillInBattle skillInBattle;
+        public SkillActiveForm(BaseInBattle _caster, SkillInBattle _skillInBattle)
+        {
+            skillInBattle = _skillInBattle;
+            caster = _caster;
+            foreach (SkillEffect effect in skillInBattle.effects)
+            {
+                if (!effect.isPassive)
+                {
+                    ActiveEffect activeEffect = ((ActiveEffect)effect).SetCaster(_caster);
+                    effectActiveForms.Add(activeEffect);
+                }
+            }
+        }
+        //Default Attack
+        public SkillActiveForm(BaseInBattle _caster)
+        {
+            caster = _caster;
+
+            skillInBattle = new SkillInBattle(3f, new() { new ActiveEffect(1, false, 1f, EffectType.Damage, EffectRange.Dot, ValueBase.Ability, true, 0f, 0f) }, true, null, false);
+            effectActiveForms.Add(((ActiveEffect)skillInBattle.effects[0]).SetCaster(caster));
+        }
+
+        public IEnumerator ActiveSkill()
+        {
+            BaseInBattle confusedTarget = null;
+            bool isParalyze = false;
+            float confuseProb = caster.GetRegularValue(EffectType.Confuse);
+            //if (GameManager.CalculateProbability(confuseProb))
+            //{
+            //    List<BaseInBattle> confusedTargetsBase = (caster.IsEnemy ^ skill.isTargetEnemy ? BattleScenario.characters : BattleScenario.enemies).Where(item => !item.isDead).ToList();
+            //    confusedTarget = confusedTargetsBase[Random.Range(0, confusedTargetsBase.Count)];
+            //}
+            //else
+            //{
+            float paralyzeProb = caster.GetRegularValue(EffectType.Paralyze);
+            isParalyze = GameManager.CalculateProbability(paralyzeProb);
+            //}
+
+            if (!caster.isDead)
+            {
+                if (isParalyze)
+                {
+                    //마비마비맨
+                }
+                else
+                {
+                    List<GridObject> targetGrids = new();
+                    foreach (ActiveEffect effectForm in effectActiveForms)
+                    {
+                        BaseInBattle effectTarget;
+                        effectTarget = GetTarget(effectForm);
+                        List<GridObject> tempGrids = BattleScenario.GetTargetGridsByRange(effectForm.range, effectTarget.grid);
+                        foreach (GridObject grid in tempGrids)
+                        {
+                            if (!targetGrids.Contains(grid))
+                            {
+                                targetGrids.Add(grid);
+                            }
+                        }
+                    }
+                    if (skillInBattle.isPre)
+                    {
+                        caster.fireObj.SetActive(true);
+                        foreach (var x in targetGrids)
+                        {
+                            x.PreActive();
+                        }
+                    }
+                    float repeatValue = caster.GetRegularValue(EffectType.Repeat);
+                    for (int i = 0; i < ((repeatValue > 0) ? 2 : 1); i++)
+                    {
+
+                        foreach (ActiveEffect effectForm in effectActiveForms)
+                        {
+                            BaseInBattle effectTarget;
+                            effectTarget = GetTarget(effectForm);
+                            List<BaseInBattle> targets = BattleScenario.GetTargetsByRange(effectForm.range, effectTarget);
+                            if (skillInBattle.isPre)
+                                yield return new WaitForSeconds(3f);
+                            foreach (BaseInBattle x in targets)
+                            {
+                                if (x.gameObject.activeSelf)
+                                    effectForm.ActiveEffect0nTarget(x);/////핵심
+                            }
+                        }
+                    }
+                    for (int i = 0; i < ((repeatValue > 0) ? 2 : 1); i++)
+                    {
+                        //Skill
+                        if (skillInBattle.visualEffect != null)
+                        {
+                            foreach (GridObject grid in targetGrids)
+                                if (grid.owner)
+                                    GameManager.battleScenario.CreateVisualEffect(skillInBattle.visualEffect, grid.owner, true);
+                        }
+                        //Weapon
+                        if (caster.weapon != null)
+                            caster.StartCoroutine(WeaponVisualEffect());
+                        if (skillInBattle.isAnim)
+                        {
+                            SkillAnim();
+                            yield return new WaitForSeconds(skillCastTime);
+                        }
+                    }
+                    if (skillInBattle.isPre)
+                        foreach (GridObject x in targetGrids)
+                        {
+                            if (caster.fireObj)
+                                caster.fireObj.SetActive(false);
+                            x.PreInactive();
+                        }
+                }
+            }
+
+
+            void SkillAnim()
+            {
+                float minValue = SkillInBattle.defaultAttackCooltime;
+                float maxValue = 8;
+                if (!caster.isMonster)
+                    caster.animator.SetFloat("AttackState", (skillInBattle.cooltime - minValue) / (maxValue - minValue));
+                //caster.animator.SetFloat("NormalState", 0.5f);
+                //caster.animator.SetFloat("SkillState", 0.5f);
+                bool isTagetEnemy = skillInBattle.effects.Where(item => item.isPassive == false).FirstOrDefault().isTargetEnemy;
+                if (isTagetEnemy)
+                    caster.animator.SetTrigger("Attack");
+                else
+                    caster.animator.SetTrigger("Buff");
+            }
+
+            IEnumerator WeaponVisualEffect()
+            {
+                switch (caster.weapon.weaponType)
+                {
+                    case WeaponType.Bow:
+                        yield return new WaitForSeconds(0.3f);
+                        break;
+                }
+                if (skillInBattle.categori == SkillCategori.Default)
+                    GameManager.battleScenario.CreateVisualEffect(caster.weapon.defaultVisualEffect, caster, false);
+                else
+                    GameManager.battleScenario.CreateVisualEffect(caster.weapon.skillVisualEffect, caster, false);
+            }
+
+
+    }
+        BaseInBattle GetTarget(ActiveEffect effectForm)
+        {
+            BaseInBattle effectTarget;
+            switch (effectForm.isTargetEnemy)
+            {
+                case true:
+                    switch (effectForm.range)
+                    {
+                        default:
+                            effectTarget = caster.targetOpponent;
+                            break;
+                    }
+                    break;
+                case false:
+                    switch (effectForm.range)
+                    {
+                        default:
+                            effectTarget = caster;
+                            break;
+                        case EffectRange.Dot:
+                            effectTarget = caster.targetAlly;
+                            break;
+                    }
+                    break;
+            }
+
+            return effectTarget;
+        }
+    }
+    
 }

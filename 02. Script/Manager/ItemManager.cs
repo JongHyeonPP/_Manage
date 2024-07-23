@@ -40,6 +40,8 @@ public class ItemManager : MonoBehaviour
     public CharacterData selectedCharacter;
 
     public bool isUpgradeCase;
+    public static readonly int[] needExp = new int[2] { 5, 10 };
+
     private void Awake()
     {
         if (!itemManager)
@@ -92,7 +94,6 @@ public class ItemManager : MonoBehaviour
     {
         List<CountableItem> main = new();
         List<CountableItem> sub = new();
-        Dictionary<string, object> documentDict = new();
         //傈府前 积己
         if (true)
         {
@@ -237,10 +238,21 @@ public class ItemManager : MonoBehaviour
                     typeStr = "Ingredient";
                     break;
             }
+            string itemId;
+            switch (ci.item.itemType)
+            {
+                default:
+                    itemId = ci.item.itemId;
+                    break;
+                case ItemType.Skill:
+                    itemId = ci.item.itemId +":::"+ ci.item.itemGrade.ToString();
+                    typeStr = "Skill";
+                    break;
+            }
             Dictionary<string, object> itemDict = new()
             {
                 { "ItemType", typeStr },
-                { "ItemId", ci.item.itemId },
+                { "ItemId", itemId },
                 { "Amount", ci.amount}
             };
             setArr[i] = itemDict;
@@ -353,24 +365,23 @@ public class ItemManager : MonoBehaviour
                 returnValue = weapon;
                 break;
             case ItemType.Skill:
-                string[] spllitedId1 = _id.Split(":::");
-                ItemGrade grade;
-                switch (spllitedId1[1])
+                string[] splittedSkillId = _id.Split(":::");
+                Skill skill = LoadManager.loadManager.skillsDict[splittedSkillId[0]];
+                int index;
+                switch (splittedSkillId[1])
                 {
                     default:
-                        grade = ItemGrade.Normal;
+                        index = 0;
                         break;
                     case "Rare":
-                        grade = ItemGrade.Rare;
+                        index = 1;
                         break;
                     case "Unique":
-                        grade = ItemGrade.Unique;
+                        index = 2;
                         break;
                 }
-                returnValue = LoadManager.loadManager.skillsDict[spllitedId1[0]].LocalizeSkill(grade);
-                break;
-            case ItemType.Food:
-                returnValue = LoadManager.loadManager.foodDict[_id];
+                SkillAsItem skillAsItem = skill.GetAsItem(index);
+                returnValue = skillAsItem;
                 break;
             case ItemType.Ingredient:
                 returnValue = LoadManager.loadManager.ingredientDict[_id];
@@ -397,7 +408,7 @@ public class ItemManager : MonoBehaviour
     {
         CharacterData character = GameManager.gameManager.characterList[0];
 
-        Skill[] skills = character.skills;
+        SkillAsItem[] skills = character.skillAsIItems;
         WeaponClass weapon = character.weapon;
         inventoryUi.SetEquipSlot(skills[0], 0);
         inventoryUi.SetEquipSlot(skills[1], 1);
@@ -426,8 +437,7 @@ public class ItemManager : MonoBehaviour
     }
     public void SetJobAtSelectedCharacter()
     {
-        string jobId = GameManager.gameManager.GetJobId(selectedCharacter.skills);
-        JobClass job = LoadManager.loadManager.jobsDict[jobId];
+        JobClass job = GameManager.gameManager.GetJob(selectedCharacter.skillAsIItems[0].itemId, selectedCharacter.skillAsIItems[1].itemId);
         selectedCharacter.jobClass = job;
         selectedCharacter.characterHierarchy.SetJobSprite(job);
         inventoryUi.ch.SetJobSprite(job);

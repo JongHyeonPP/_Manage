@@ -9,11 +9,10 @@ public class EnemyInBattle : BaseInBattle
     public static readonly float DEFAULT_PROB = 0.6f;
     public static readonly float INCREASE_PROB = 0.1f;
 
-    public void InitEnemy(EnemyClass _enemyClass, GridObject _grid, bool _isMonster)
+    public void InitEnemy(EnemyClass _enemyClass, GridObject _grid)
     {
         IsEnemy = true;
         InitBase(_grid);
-        isMonster = _isMonster;
         
         transform.localPosition = Vector3.zero;
         transform.localScale = Vector3.one;
@@ -25,7 +24,7 @@ public class EnemyInBattle : BaseInBattle
         ability = abilityInBattle = _enemyClass.ability;
         resist = resistInBattle = _enemyClass.resist;
         speed = speedInBattle = _enemyClass.speed;
-        skills = _enemyClass.skills;
+        skillInBattles = _enemyClass.skills;
         grid = _grid;
         grid.owner = this;
         fireObj = Instantiate(GameManager.gameManager.prefabFire0, transform);
@@ -41,7 +40,7 @@ public class EnemyInBattle : BaseInBattle
                 gameOverFlag = true;
         }
         if (!gameOverFlag)
-            GameManager.battleScenario.StageClearAsync();
+            StartCoroutine(GameManager.battleScenario.StageClearCoroutine());
     }
 
     public override void SetAnimParam()

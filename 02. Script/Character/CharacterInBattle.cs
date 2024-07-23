@@ -13,18 +13,28 @@ public class CharacterInBattle : BaseInBattle
     public static readonly Color TARGET_COLOR = new(0f, 0f, 1f, 0.5f);
     public bool isAct = false;
     public new string name;
-    public List<TalentStruct> talents;
+    public List<TalentClass> talents;
+
     public void SynchronizeCharacterData(CharacterData _data)
     {
+        skillInBattles.Clear();
         maxHp = maxHpInBattle = _data.maxHp;
         ability = _data.ability;
         speed = _data.speed;
         resist = _data.resist;
         Hp = _data.hp;
-        skills = new(_data.skills);
+        for (int i = 0; i < _data.skillAsIItems.Length; i++)
+        {
+            SkillAsItem asItem = _data.skillAsIItems[i];
+            if (asItem != null)
+            {
+                Skill skill = LoadManager.loadManager.skillsDict[asItem.itemId];
+                skillInBattles.Add(skill.GetInBattle((int)(asItem.itemGrade)));
+            }
+        }
         job = _data.jobClass;
         if (job.jobSkill != null)
-            skills.Add(job.jobSkill);
+            skillInBattles.Add(job.jobSkill.GetInBattle(0));
 
         weapon = _data.weapon;
 

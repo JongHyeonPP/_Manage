@@ -45,11 +45,10 @@ public class GetJobUi : MonoBehaviour
     {
         from.CopyHierarchySprite(_character.characterHierarchy);
         to.CopyHierarchySprite(_character.characterHierarchy);
-        string jobId = GameManager.gameManager.GetJobId(_character.skills);
-        JobClass job = LoadManager.loadManager.jobsDict[jobId];
+        JobClass job = GameManager.gameManager.GetJob(_character.skillAsIItems[0].itemId, _character.skillAsIItems[1].itemId);
         to.SetJobSprite(job);
         imageJobIcon.sprite = job.jobIcon;
-        jobName = LoadManager.loadManager.jobsDict[jobId].name[GameManager.language];
+        jobName = job.name[GameManager.language];
         toText.text = jobName;
     }
     public void SetJob()

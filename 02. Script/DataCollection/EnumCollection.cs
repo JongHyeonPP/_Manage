@@ -109,7 +109,7 @@ namespace EnumCollection
     }
     public enum ValueBase
     {
-        Const, Ability, Armor, HpMax_Enemy, HpMax_Caster
+        Const, Ability, Armor, HpMax_Enemy, HpMax_Caster,Resist
     }
     public enum StatusType
     {

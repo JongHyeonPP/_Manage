@@ -8,6 +8,7 @@ using MapCollection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Jobs;
@@ -16,11 +17,11 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
 {
     public static LoadManager loadManager;
     bool isInit = false;
-    public Dictionary<string, SkillForm> skillsDict = new();//Key는 Document의 ID
+    public Dictionary<string, Skill> skillsDict = new();//Key는 Document의 ID
     public Dictionary<string, JobClass> jobsDict = new();//Key는 스킬의 Index. Ex)200, 101
     public Dictionary<string, EnemyClass> enemyiesDict = new();//Key는 Document의 ID를 int로 parse
     public Dictionary<string, UpgradeClass> upgradeDict = new();
-    public Dictionary<string, TalentFormStruct> talentDict = new();
+    public Dictionary<string, TalentClass> talentDict = new();
     public Dictionary<string, EnemyCase> enemyCaseDict = new();
     public Dictionary<string, NodeType> nodeTypesDict = new();
     public Dictionary<WeaponType, Dictionary<string, WeaponClass>> weaponDict = new();
@@ -60,10 +61,9 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
     }
     async Task LoadVisualEffect()
     {
-        
-        LoadVisualEffectType("Weapon", weaponVisualEffectDict);
-        LoadVisualEffectType("Skill", skillVisualEffectDict);
-        async void LoadVisualEffectType(string _type, Dictionary<string, VisualEffect> _dict)
+        await LoadVisualEffectType("Weapon", weaponVisualEffectDict);
+        await LoadVisualEffectType("Skill", skillVisualEffectDict);
+        async Task LoadVisualEffectType(string _type, Dictionary<string, VisualEffect> _dict)
         {
             Dictionary<string, object> durationData = await DataManager.dataManager.GetField("VisualEffect", _type);
             GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/" + _type);
@@ -93,7 +93,6 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                 _dict.Add(visualEffect.name, new VisualEffect(visualEffect, duration, sound, fromRoot));
             }
         }
-
     }
     private async Task InitSkill()
     {
@@ -109,11 +108,10 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             List<Dictionary<Language, string>> explains;
 
             SkillCategori categori;
-            List<List<SkillEffect>> effects;
+            List<List<SkillEffect>> effectsList;
             Dictionary<Language, string> name = new();
             explains = new();
             float cooltime;
-            bool isTargetEnemy;
             switch ((string)skillDict["Categori"])
             {
                 default:
@@ -130,14 +128,11 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                     break;
             }
 
-
-
-
             if (categori == SkillCategori.Enemy)//적의 스킬
             {
-                List<SkillEffect> effect = InitEffect("Effect", skillDict);
-                effects = new() { effect };
-                explains = new() { new(),new(),new()};
+                List<SkillEffect> effect = GetSkillEffect(skillDict["Effect"]);
+                effectsList = new() { effect };
+                explains = null;
             }
             else//아군 캐릭터가 사용하는 스킬
             {
@@ -157,10 +152,10 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                         }
                     }
                 }
-                List<SkillEffect> effect0 = InitEffect("Effect_0", skillDict);
-                List<SkillEffect> effect1 = InitEffect("Effect_1", skillDict);
-                List<SkillEffect> effect2 = InitEffect("Effect_2", skillDict);
-                effects = new() { effect0, effect1, effect2 };
+                List<SkillEffect> effect0 = GetSkillEffect(skillDict["Effect_0"]);
+                List<SkillEffect> effect1 = GetSkillEffect(skillDict["Effect_1"]);
+                List<SkillEffect> effect2 = GetSkillEffect(skillDict["Effect_2"]);
+                effectsList = new() { effect0, effect1, effect2 };
 
                 foreach (var x0 in skillDict["Explain"] as List<object>)
                 {
@@ -187,12 +182,6 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                 cooltime = GetFloatValue(obj);
             else
                 cooltime = 8f;
-            //IsTargetEnemy
-
-            if (skillDict.TryGetValue("IsTargetEnemy", out obj))
-                isTargetEnemy = (bool)obj;
-            else
-                isTargetEnemy = true;
 
             //IsAnim
             bool isAnim;
@@ -202,16 +191,16 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                 isAnim = true;
 
             //SkillEffect
-            List<string> skillEffect = new();
+            List<VisualEffect> visualEffect = new();
             if (skillDict.TryGetValue("VisualEffect", out obj))
             {
                 foreach (object x in (List<object>)obj)
                 {
-                    skillEffect.Add((string)x);
+                    string visualEffectStr = (string)x;
+
+                    visualEffect.Add(skillVisualEffectDict[visualEffectStr]);
                 }
             }
-            else
-                skillEffect = null;
 
             //IsPre
             bool isPre;
@@ -224,250 +213,118 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             Sprite sprite;
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
 
-            //Scale
-            Vector2 scale;
-            if (skillDict.ContainsKey("Scale"))
-            {
-                Dictionary<string, object> scaleDict = skillDict["Scale"] as Dictionary<string, object>;
-                scale = new(GetFloatValue(scaleDict["X"]), GetFloatValue(scaleDict["Y"]));
-            }
-            else
-            {
-                scale = Vector2.one;
-            }
-            //Position
-            Vector2 position;
-            if (skillDict.ContainsKey("Position"))
-            {
-                Dictionary<string, object> positionDict = skillDict["Position"] as Dictionary<string, object>;
-                position = new(GetFloatValue(positionDict["X"]), GetFloatValue(positionDict["Y"]));
-            }
-            else
-            {
-                position = Vector2.zero;
-            }
-            //Set
-            SkillForm skillForm = new SkillForm().
-                SetCooltime(cooltime).
-            SetExplain(explains).
-            SetCategori(categori).
-            SetIsTargetEnemy(isTargetEnemy).
-            SetIsAnim(isAnim).
-            SetVisualEffect(skillEffect).
-            SetIsPre(isPre).
-            SetEffects(effects).
-            SetCooltime(cooltime).
-            SetScale(scale).
-            SetPosition(position).
-            SetName(name).
-            SetSprite(sprite).
-            SetId(doc.Id);
-            skillsDict.Add(doc.Id, skillForm);
+
+            Skill skill = new Skill(doc.Id,categori, cooltime, effectsList, isAnim, visualEffect, isPre, name, explains, sprite);
+
+            skillsDict.Add(doc.Id, skill);
         }
     }
-    List<SkillEffect> InitEffect(string _effectStr, Dictionary<string, object> _skillDict)
+    List<SkillEffect> GetSkillEffect(object _effectListObj)
     {
+        List<object> objList = (List<object>)_effectListObj;
         List<SkillEffect> effects = new();
-        if (!(_skillDict.TryGetValue(_effectStr, out object listObj)))
-            return null;
-        foreach (object docDict in listObj as List<object>)
+
+        foreach (object docDict in objList)
         {
-            SkillEffect effect = new();
+            bool success;
+            //Field
+            float value;
+            int count;
+            EffectRange effectRange;
+            ValueBase valueBase;
             Dictionary<string, object> effectDict = docDict as Dictionary<string, object>;
+            EffectType effectType;
+            bool isPassive;
+            bool isTargetEnemy;
+            float vamp;
             //Value
             object obj;
             if (effectDict.TryGetValue("Value", out obj))
-                effect.SetValue(GetFloatValue(obj));
-            //Count
-            if (effectDict.TryGetValue("Count", out obj))
-                effect.SetCount((int)(long)obj);
-            //Range
-            EffectRange range;
-            if (effectDict.TryGetValue("Range", out obj))
-            {
-                switch (obj)
-                {
-                    default:
-                        range = EffectRange.Dot;
-                        break;
-                    case "Self":
-                        range = EffectRange.Self;
-                        break;
-                    case "Row":
-                        range = EffectRange.Row;
-                        break;
-                    case "Column":
-                        range = EffectRange.Column;
-                        break;
-                    case "Behind":
-                        range = EffectRange.Behind;
-                        break;
-                    case "Front":
-                        range = EffectRange.Front;
-                        break;
-                }
-                effect.SetRange(range);
-            }
-            //ValueBase
-            ValueBase valueBase;
-            if (effectDict.TryGetValue("ValueBase", out obj))
-            {
-                switch ((string)obj)
-                {
-                    default:
-                        valueBase = ValueBase.Const;
-                        break;
-                    case "Ability":
-                        valueBase = ValueBase.Ability;
-                        break;
-                    case "Armor":
-                        valueBase = ValueBase.Armor;
-                        break;
-                }
-            }
+                value = GetFloatValue(obj);
             else
             {
-                valueBase = ValueBase.Ability;
+                value = 0f;
+                Debug.LogError("No Value");
             }
-            effect.SetValueBase(valueBase);
-            //Type
-            EffectType type;
-            type = ParseEffectType((string)effectDict["Type"]);
-            effect.SetType(type);
-            //Delay
-            if (effectDict.TryGetValue("Delay", out obj))
-                effect.SetDelay(GetFloatValue(obj));
-            //IsPassive
+            //Count
+            if (effectDict.TryGetValue("Count", out obj))
+                count = (int)(long)obj;
+            else
+                count = 1;
+            //Range
+            effectRange = EffectRange.Dot;
+            if (effectDict.TryGetValue("Range", out obj))
+            {
+                success = Enum.TryParse((string)obj, out effectRange);
+                if (!success)
+                {
+                    Debug.LogError("Invalid Parse");
+                }
+            }
+            //ValueBase
+            valueBase = ValueBase.Ability;
+            if (effectDict.TryGetValue("ValueBase", out obj))
+            {
+                success = Enum.TryParse((string)obj, out valueBase);
+                if (!success)
+                {
+                    Debug.LogError("Invalid Parse");
+                }
+            }
+            //EffectType
+            effectType = EffectType.Damage;
+            if (effectDict.TryGetValue("Type", out obj))
+            {
+                success = Enum.TryParse((string)obj, out effectType);
+                if (!success)
+                {
+                    Debug.LogError("Invalid Parse");
+                }
+            }
+
+            if (effectDict.TryGetValue("IsTargetEnemy", out obj))
+                 isTargetEnemy = (bool)obj;
+            else
+            {
+                isTargetEnemy = true;
+            }
             if (effectDict.TryGetValue("IsPassive", out obj))
-                effect.SetIsPassive((bool)obj);
+                isPassive = (bool)obj;
+            else
+                isPassive = false;
             //Vamp
             if (effectDict.TryGetValue("Vamp", out obj))
-                effect.SetVamp(GetFloatValue(obj));
-            //ByAtt
-            if (effectDict.TryGetValue("ByAtt", out obj))
-                effect.SetByAtt(((bool)obj));
-            //적용
+                vamp = GetFloatValue(obj);
+            else
+                vamp = 0f;
+            SkillEffect effect;
+            switch (isPassive)
+            {
+                case true:
+                    //ByAtt
+                    bool byAtt;
+                    if (effectDict.TryGetValue("ByAtt", out obj))
+                        byAtt = (bool)obj;
+                    else
+                        byAtt = false;
+                    effect = new PassiveEffect(count, true, value, effectType, effectRange, valueBase, isTargetEnemy,vamp, byAtt);
+                    break;
+                case false:
+                    float delay;
+                    //Delay
+                    if (effectDict.TryGetValue("Delay", out obj))
+                        delay = GetFloatValue(obj);
+                    else
+                        delay = 0f;
+                    effect = new ActiveEffect(count, false, value, effectType, effectRange, valueBase, isTargetEnemy, vamp, delay);
+                    break;
+
+            }
+
+            //Set
             effects.Add(effect);
         }
         return effects;
-    }
-    private static EffectType ParseEffectType(string _typeName)
-    {
-        EffectType type;
-        switch (_typeName)
-        {
-            case "AttAscend":
-                type = EffectType.AttAscend;
-                break;
-            case "ResistAscend":
-                type = EffectType.ResistAscend;
-                break;
-            case "AttDescend":
-                type = EffectType.AttDescend;
-                break;
-            case "ResistDescend":
-                type = EffectType.ResistDescend;
-                break;
-            case "SpeedDescend":
-                type = EffectType.SpeedDescend;
-                break;
-            case "Bleed":
-                type = EffectType.Bleed;
-                break;
-            case "Reflect":
-                type = EffectType.Reflect;
-                break;
-            case "Paralyze":
-                type = EffectType.Paralyze;
-                break;
-            case "Enchant":
-                type = EffectType.Enchant;
-                break;
-            case "Repeat":
-                type = EffectType.Repeat;
-                break;
-            case "Heal":
-                type = EffectType.Heal;
-                break;
-            case "Restoration":
-                type = EffectType.Restoration;
-                break;
-            case "Armor":
-                type = EffectType.Armor;
-                break;
-            case "AbilityAscend":
-                type = EffectType.AbilityAscend;
-                break;
-            case "BleedTransfer":
-                type = EffectType.BleedTransfer;
-                break;
-            case "AbilityVamp":
-                type = EffectType.AbilityVamp;
-                break;
-            case "AbilityByDamage":
-                type = EffectType.ResistByDamage;
-                break;
-            case "Vamp":
-                type = EffectType.Vamp;
-                break;
-            case "Confuse":
-                type = EffectType.Confuse;
-                break;
-            case "Damage":
-                type = EffectType.Damage;
-                break;
-            case "Reduce":
-                type = EffectType.Reduce;
-                break;
-            case "Curse":
-                type = EffectType.Curse;
-                break;
-            case "Revive":
-                type = EffectType.Revive;
-                break;
-            case "ResistByDamage":
-                type = EffectType.ResistByDamage;
-                break;
-            case "Necro":
-                type = EffectType.Necro;
-                break;
-            case "GoldAscend":
-                type = EffectType.GoldAscend;
-                break;
-            case "FameAscend":
-                type = EffectType.FameAscend;
-                break;
-            case "Critical":
-                type = EffectType.Critical;
-                break;
-            case "DebuffAscend":
-                type = EffectType.DebuffAscend;
-                break;
-            case "HealAscend":
-                type = EffectType.HealAscend;
-                break;
-            case "CorpseExplo":
-                type = EffectType.CorpseExplo;
-                break;
-            case "BuffAscend":
-                type = EffectType.BuffAscend;
-                break;
-            case "RewardAscend":
-                type = EffectType.RewardAscend;
-                break;
-            case "AttAscend_Torment":
-                type = EffectType.AttAscend_Torment;
-                break;
-            case "ResilienceAscend":
-                type = EffectType.ResilienceAscend;
-                break;
-            default:
-                Debug.LogError("Init Effect By Default..." + _typeName);
-                type = EffectType.Damage;
-                break;
-        }
-
-        return type;
     }
 
     private async Task InitJob()
@@ -485,9 +342,9 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             Dictionary<ClothesPart, Sprite> spriteDict = new();
             Skill jobSkill = null;
             //Name
-            Dictionary<string, object> nameDIct = dict["Name"] as Dictionary<string, object>;
-            name.Add(Language.Ko, (string)nameDIct["Ko"]);
-            name.Add(Language.En, (string)nameDIct["En"]);
+            Dictionary<string, object> nameObj = dict["Name"] as Dictionary<string, object>;
+            name.Add(Language.Ko, (string)nameObj["Ko"]);
+            name.Add(Language.En, (string)nameObj["En"]);
             //EffectExplain
             if (dict.TryGetValue("EffectExplain", out obj))
             {
@@ -502,35 +359,78 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
 
                 foreach (object x in objList)
                 {
+                    bool success;
                     Dictionary<string, object> effectDict = x as Dictionary<string, object>;
                     string typeStr = (string)effectDict["Type"];
                     bool byAtt;
-                    bool isPassive;
+                    EffectType effectType;
+                    EffectRange effectRange;
+                    ValueBase valueBase;
+                    float value;
+                    bool isTargetEnemy;
+                    //ByAtt
                     if (effectDict.TryGetValue("ByAtt", out obj))
                     {
                         byAtt = (bool)obj;
                     }
                     else
                         byAtt = false;
-                    EffectType effectType = ParseEffectType(typeStr);
-                    float value;
+                    //EffectType
+                    effectType = EffectType.Damage; // 기본값 설정
+                    if (effectDict.TryGetValue("Type", out obj))
+                    {
+                        success = Enum.TryParse((string)obj, out effectType);
+                        if (!success)
+                        {
+                            Debug.LogError("Invalid Parse");
+                        }
+                    }
+                    //Value
                     if (effectDict.TryGetValue("Value", out obj))
                     {
                         value = GetFloatValue(obj);
                     }
                     else
                         value = 0f;
-                    if (effectDict.TryGetValue("IsPassive", out obj))
+                    //Range
+                    effectRange = EffectRange.Dot; // 기본값 설정
+                    if (effectDict.TryGetValue("Range", out obj))
                     {
-                        isPassive = (bool)obj;
+                        success = Enum.TryParse((string)obj, out effectRange);
+                        if (!success)
+                        {
+                            Debug.LogError("Invalid Parse");
+                        }
+                    }
+                    //ValueBase
+                    valueBase = ValueBase.Const;
+                    if (effectDict.TryGetValue("ValueBase", out obj))
+                    {
+                        success = Enum.TryParse((string)obj, out valueBase);
+                        if (!success)
+                        {
+                            Debug.LogError("Invalid Parse..." + doc.Id);
+                        }
+                    }
+                    //ByAtt
+                    if (effectDict.TryGetValue("ByAtt", out obj))
+                    {
+                        byAtt = (bool)obj;
                     }
                     else
-                        isPassive = true;
-                    SkillEffect skillEffect = new SkillEffect().SetType(effectType).SetValue(value).SetByAtt(byAtt).SetIsPassive(isPassive);
+                        byAtt = false;
+                    //IsTargetEnemy
+                    if (effectDict.TryGetValue("IsTargetEnemy", out obj))
+                    {
+                        isTargetEnemy = (bool)obj;
+                    }
+                    else
+                        isTargetEnemy = false;
+                    //Set
+                    SkillEffect skillEffect = new PassiveEffect(1, true, value, effectType, effectRange, valueBase,false,0f, byAtt);
                     effects.Add(skillEffect);
                 }
-                SkillForm skillForm = new SkillForm().SetEffects(new() { effects }).SetExplain(new() { effectExplain });
-                jobSkill = new(skillForm, 0);
+                jobSkill = new Skill("Default",SkillCategori.Default, 0f, new() { effects }, false, null, false, name, new() { effectExplain},null);
             }
             //Sprite
             Sprite[] clothesSprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{doc.Id}");
@@ -584,61 +484,62 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Enemy");
         foreach (DocumentSnapshot doc in documents)
         {
-                EnemyClass enemyClass = new EnemyClass();
-                Dictionary<string, object> dict = doc.ToDictionary();
-                object obj;
-                //Name
-                Dictionary<Language, string> name = new();
-                Dictionary<string, object> nameTemp = dict["Name"] as Dictionary<string, object>;
-                name.Add(Language.Ko, (string)nameTemp["Ko"]);
-                name.Add(Language.En, (string)nameTemp["En"]);
-                enemyClass.SetName(name);
+            Dictionary<string, object> dict = doc.ToDictionary();
+            object obj;
 
-                //Skill
-                List<Skill> skills = new();
-                foreach (object skillObj in dict["Skills"] as List<object>)
-                {
-                    SkillForm skillForm = skillsDict[(string)skillObj];
-                    skills.Add(skillForm.LocalizeSkill(0));
-                }
-                enemyClass.SetSkills(skills);
-                //Ability
-                if (dict.TryGetValue("Ability", out obj))
-                {
-                    enemyClass.SetAbility(GetFloatValue(obj));
-                }
-                //Hp
-                if (dict.TryGetValue("Hp", out obj))
-                {
-                    enemyClass.SetHp(GetFloatValue(obj));
-                }
-                //Resist
-                if (dict.TryGetValue("Resist", out obj))
-                {
-                    enemyClass.SetResist(GetFloatValue(obj));
-                }
-                //Speed
-                if (dict.TryGetValue("Speed", out obj))
-                {
-                    enemyClass.SetSpeed(GetFloatValue(obj));
-                }
-                //IsMonster
-                if (dict.TryGetValue("IsMonster", out obj))
-                {
-                    enemyClass.SetIsMonster((bool)obj);
-                }
-                //Type
-                if (dict.TryGetValue("Type", out obj))
-                {
-                    enemyClass.SetType((string)obj);
-                }
-                //EnemyLevel
-                if (dict.TryGetValue("EnemyLevel", out obj))
-                {
-                    enemyClass.SetEnemyLevel((int)(long)(obj));
-                }
-                enemyiesDict.Add(doc.Id, enemyClass);
+            Dictionary<Language, string> name = new();
+            List<SkillInBattle> skills = new();
+            float ability;
+            float hp;
+            float resist;
+            float speed;
+            string type;
+            int enemyLevel;
+
+            //Name
+            Dictionary<string, object> nameTemp = dict["Name"] as Dictionary<string, object>;
+            name.Add(Language.Ko, (string)nameTemp["Ko"]);
+            name.Add(Language.En, (string)nameTemp["En"]);
+
+            //Skill
+            foreach (object skillObj in dict["Skills"] as List<object>)
+            {
+                Skill skill = skillsDict[(string)skillObj];
+                skills.Add(skill.GetInBattle(0));
             }
+            //Ability
+            if (dict.TryGetValue("Ability", out obj))
+                ability = GetFloatValue(obj);
+            else
+                ability = 0f;
+            //Hp
+            if (dict.TryGetValue("Hp", out obj))
+                hp = GetFloatValue(obj);
+            else
+                hp = 1f;
+            //Resist
+            if (dict.TryGetValue("Resist", out obj))
+                resist = GetFloatValue(obj);
+            else
+                resist = 0f;
+            //Speed
+            if (dict.TryGetValue("Speed", out obj))
+                speed = GetFloatValue(obj);
+            else
+                speed = 1f;
+            //Type
+            if (dict.TryGetValue("Type", out obj))
+                type = (string)obj;
+            else
+                type = null;
+            //EnemyLevel
+            if (dict.TryGetValue("EnemyLevel", out obj))
+                enemyLevel = (int)(long)(obj);
+            else
+                enemyLevel = -1;
+                EnemyClass enemyClass = new(name, ability, hp, resist, skills, speed, type, enemyLevel);
+            enemyiesDict.Add(doc.Id, enemyClass);
+        }
     }
     private async Task InitUpgrade()
     {
@@ -759,17 +660,30 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                         break;
                 }
             }
-            List<TalentEffectForm> effects = new();
+            List<TalentEffect> effects = new();
             {
                 List<object> effectList = dict["Effect"] as List<object>;
-                foreach (object x in effectList)
+                foreach (object effectobj in effectList)
                 {
-                    Dictionary<string, object> effectDict = x as Dictionary<string, object>;
-                    EffectType effectType = ParseEffectType((string)effectDict["Type"]);
-                    effects.Add(new((string)effectDict["Value"], effectType));
+                    List<float> valueList = new();
+                    Dictionary<string, object> effectDict = effectobj as Dictionary<string, object>;
+                    EffectType effectType = EffectType.AttAscend;
+                    if (effectDict.TryGetValue("EffectType", out object obj))
+                    {
+                        bool success = Enum.TryParse((string)obj, out effectType);
+                        if (!success)
+                        {
+                            Debug.LogError("Invalid Parse");
+                        }
+                    }
+                    foreach (object x in (List<object>)effectDict["Value"])
+                    {
+                        valueList.Add(GetFloatValue(x));
+                    }
+                    effects.Add(new(valueList, effectType));
                 }
             }
-            talentDict.Add(doc.Id, new TalentFormStruct(name, (int)(long)dict["Level"], explain, effects, (int)(long)dict["Order"]));
+            talentDict.Add(doc.Id, new TalentClass(name, (int)(long)dict["Level"], explain, effects, (int)(long)dict["Order"]));
         }
     }
 
@@ -956,14 +870,16 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                 string itemId = $"{_weaponTypeStr}:::{doc.Id}";
                 WeaponClass weaponClass = new(ItemType.Weapon, itemId, grade, name,explain, sprite,scale, position);
                 //Effects
-                List<SkillEffect> effects = InitEffect("Effects", dict);
-                if (effects != null)
-                    foreach (SkillEffect x in effects)
-                    {
-                        x.SetIsPassive(true);
-                    }
-                weaponClass.SetEffects(effects);
-
+                if (dict.ContainsKey("Effects"))
+                {
+                    List<SkillEffect> effects = GetSkillEffect(dict["Effects"]);
+                    if (effects != null)
+                        foreach (SkillEffect x in effects)
+                        {
+                            x.isPassive = true;
+                        }
+                    weaponClass.SetEffects(effects);
+                }
                 weaponClass.SetGrade(grade);
                 //Stat
                 if (dict.TryGetValue("Status", out obj))

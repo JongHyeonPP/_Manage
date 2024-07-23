@@ -18,7 +18,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     public GameObject objectCategori;
     public TMP_Text textLevel;
     public GameObject expBar;
-    public Image imageFill { get; set; }
+    public Image imageFill;
     private void Awake()
     {
         expBar.SetActive(false);
@@ -27,6 +27,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     {
         if (expBar.activeSelf)
         {
+            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 100f, 0f), item);
             HightlightOn();
         }
         else
@@ -34,7 +35,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
             InventorySlot draggingSlot = ItemManager.itemManager.inventoryUi.draggingSlot;
             if (item != null)
             {
-                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 60f, 0f), item);
+                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 100f, 0f), item);
             }
             if (!draggingSlot || draggingSlot.ci.item.itemType != itemType)
                 return;
@@ -90,7 +91,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     {
         if (expBar.activeSelf)
         {
-            ItemManager.itemManager.upgradeSkillUi.SetUpgradeSkillUi((Skill)item, index);
+            ItemManager.itemManager.upgradeSkillUi.SetUpgradeSkillUi((SkillAsItem)item, index);
             ItemManager.itemManager.upgradeSkillUi.gameObject.SetActive(true);
         }
     }
