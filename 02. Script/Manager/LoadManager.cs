@@ -51,8 +51,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         {
             await LoadVisualEffect();
             await InitSkill();
-            await Task.WhenAll(InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
-                InitUserDoc(), InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
+            await Task.WhenAll(InitUserDoc(),InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
+                InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
                 InitNodeType());
             InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
             Debug.Log("LoadComplete");
@@ -330,7 +330,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     private async Task InitJob()
     {
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Job");
-        Sprite[] jobIconSpirtes = Resources.LoadAll<Sprite>($"Texture/JobIcon");
+        Sprite[] jobIconSpirtes = Resources.LoadAll<Sprite>($"Texture/Job");
         foreach (DocumentSnapshot doc in documents)
         {
             object obj;
@@ -631,6 +631,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     private async Task InitTalent()
     {
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Talent");
+        Sprite[] talentSprites = Resources.LoadAll<Sprite>($"Texture/Talent");
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
@@ -683,7 +684,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     effects.Add(new(valueList, effectType));
                 }
             }
-            talentDict.Add(doc.Id, new TalentClass(name, (int)(long)dict["Level"], explain, effects, (int)(long)dict["Order"]));
+            Sprite sprite = talentSprites.Where(item => item.name == doc.Id).FirstOrDefault();
+            talentDict.Add(doc.Id, new TalentClass(name, (int)(long)dict["Level"], explain, effects, sprite));
         }
     }
 

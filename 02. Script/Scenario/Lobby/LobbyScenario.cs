@@ -30,13 +30,10 @@ public class LobbyScenario : MonoBehaviour
     public TMP_Text text_Fame;
     private Dictionary<string, UpgradeClass> upgrade_Pub;
     private Dictionary<string, UpgradeClass> upgrade_Guild;
-    public ExplainPanel explainPanel;
-    
+    public ExplainPanel explainUi;
     #endregion
     #region Phase_1
-    public Transform parentApplicant;
-    public List<ApplicantSlot> applicantSlots;
-    private List<ApplicantSlot> selectedSlots = new();
+
 
 
     public static readonly float defaultHp = 100f;
@@ -71,7 +68,7 @@ public class LobbyScenario : MonoBehaviour
         upgrade_Guild = LoadManager.loadManager.upgradeDict.Where(item => item.Value.lobbyCase == "Guild").ToDictionary(item => item.Key, item => item.Value);
 
         SettingManager.LanguageChangeEvent += OnLanguageChange;
-        explainPanel.gameObject.SetActive(false);
+        explainUi.gameObject.SetActive(false);
         InitUpgradeUi(LobbyCase.Pub);
         InitUpgradeUi(LobbyCase.Guild);
 
@@ -114,7 +111,7 @@ public class LobbyScenario : MonoBehaviour
                 KeyValuePair<string, UpgradeClass> upgradeKvp = curUpgrade.Where(item => item.Value.index == i).FirstOrDefault();//index가 i인 클래스
                 curUi.slots[i].textName.text = upgradeKvp.Value.name[GameManager.language];
                 int level = GameManager.gameManager.upgradeLevelDict[upgradeKvp.Key];
-                curUi.slots[i].textLv.text = "Lv. " + level;
+                curUi.slots[i].textLv.text = "Lv. " + (level+1);
                 curUi.slots[i].curId = upgradeKvp.Key;
                 if (level == upgradeKvp.Value.content.Count)
                 {
@@ -166,13 +163,13 @@ public class LobbyScenario : MonoBehaviour
     private void PubCase()
     {
         pubUi.gameObject.SetActive(true);
-        explainPanel.gameObject.SetActive(false);
+        explainUi.gameObject.SetActive(false);
     }
 
     private void GuildCase()
     {
         guildUi.gameObject.SetActive(true);
-        explainPanel.gameObject.SetActive(false);
+        explainUi.gameObject.SetActive(false);
     }
     private void RecruitCase()
     {
@@ -188,7 +185,10 @@ public class LobbyScenario : MonoBehaviour
         phaseList[0].SetActive(false);
         phaseList[1].SetActive(true);
         buttonNext.SetActive(false);
-        AllocateApplicant();
+        recruitUi.AllocateApplicant();
+        explainUi.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0);
+        explainUi.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+        explainUi.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
     }
     public void SetMediumImage(bool _isActive)
     {
@@ -221,28 +221,18 @@ public class LobbyScenario : MonoBehaviour
             Debug.Log("최고 레벨");
             return;
         }
-        int fameResult = GameManager.gameManager.fame - upgradeClass.content[level].price;
+        int fameResult = GameManager.gameManager.fame - upgradeClass.content[level+1].price;
         if (fameResult >= 0)//구매 가능하다면
         {
             //클라이언트 Fame 계산
             GameManager.gameManager.fame = fameResult;
             //클라이언트 능력 적용
-            float valueBefore;
-            if (level == 0)
-                valueBefore = 0f;
-            else
-                valueBefore = upgradeClass.content[level - 1].value;
-            float valueAfter = upgradeClass.content[level].value;
-            float valueResult = valueAfter - valueBefore;
-            if (!GameManager.gameManager.upgradeValueDict.ContainsKey(upgradeClass.type))
-                GameManager.gameManager.upgradeValueDict.Add(upgradeClass.type, 0f);
-            GameManager.gameManager.upgradeValueDict[upgradeClass.type] += valueResult;
+            GameManager.gameManager.upgradeValueDict[upgradeClass.type] += upgradeClass.content[level + 1].value;
             GameManager.gameManager.upgradeLevelDict[_upgradeSlot.curId]++;
             text_Fame.text = GameManager.gameManager.fame.ToString();
             //Firestore
             DataManager.dataManager.SetDocumentData("Fame", fameResult, "User", GameManager.gameManager.Uid);
-            Dictionary<string, object> objDict = DataManager.dataManager.ConvertToObjDictionary(GameManager.gameManager.upgradeLevelDict);
-            DataManager.dataManager.SetDocumentData("Upgrade", objDict, "User", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData("Upgrade", GameManager.gameManager.upgradeLevelDict, "User", GameManager.gameManager.Uid);
         }
         else
         {
@@ -254,21 +244,21 @@ public class LobbyScenario : MonoBehaviour
         {
             _upgradeSlot.button_Up.SetActive(false);
         }
-        _upgradeSlot.textLv.text = "Lv. " + level;
+        _upgradeSlot.textLv.text = "Lv. " + (level+1);
     }
     public void OnPointerEnter_Slot(UpgradeSlot _upgradeSlot)
     {
-        explainPanel.gameObject.SetActive(true);
-        explainPanel.gameObject.transform.position = _upgradeSlot.transform.position + new Vector3(-0.2f, 0f, 0f);
+        explainUi.gameObject.SetActive(true);
+        explainUi.gameObject.transform.position = _upgradeSlot.transform.position + new Vector3(-0.2f, 0f, 0f);
 
         UpgradeClass upgradeClass = LoadManager.loadManager.upgradeDict[_upgradeSlot.curId];
         int level = GameManager.gameManager.upgradeLevelDict[_upgradeSlot.curId];
-        explainPanel.SetExplain(upgradeClass.explain[GameManager.language]);
+        explainUi.SetExplain(upgradeClass.explain[GameManager.language]);
 
         string cur;
-        if (level != 0)
+        if (level != -1)
         {
-            cur = upgradeClass.info[GameManager.language].Replace("{Value}", upgradeClass.content[level - 1].value.ToString());
+            cur = upgradeClass.info[GameManager.language].Replace("{Value}", upgradeClass.content[level].value.ToString());
         }
         else
         {
@@ -277,19 +267,19 @@ public class LobbyScenario : MonoBehaviour
         string next;
         if (level != upgradeClass.content.Count)
         {
-            next = upgradeClass.info[GameManager.language].Replace("{Value}", upgradeClass.content[level].value.ToString());
+            next = upgradeClass.info[GameManager.language].Replace("{Value}", upgradeClass.content[level+1].value.ToString());
         }
         else
         {
             next = string.Empty;
         }
-        explainPanel.SetInfo(cur, next);
+        explainUi.SetInfo(cur, next);
 
-        explainPanel.SetSize();
+        explainUi.SetSize();
     }
     public void OnPointerExit_Slot()
     {
-        explainPanel.gameObject.SetActive(false);
+        explainUi.gameObject.SetActive(false);
     }
     public void LayBlockClicked()
     {
@@ -320,51 +310,15 @@ public class LobbyScenario : MonoBehaviour
             keyValue.Key.text = keyValue.Value[GameManager.language];
         }
     }
-    public void AllocateApplicant()
-    {
-        float upValue;
-        if (GameManager.gameManager.upgradeValueDict.ContainsKey(UpgradeEffectType.AllocateNumberUp))
-            upValue = GameManager.gameManager.upgradeValueDict[UpgradeEffectType.AllocateNumberUp];
-        else
-            upValue = 0f;
-        for (int i = 0; i < 6; i++)
-        {
-            if (i < 3 + upValue)
-            {
-                applicantSlots[i].gameObject.SetActive(true);
-                applicantSlots[i].InitApplicantSlot();
-            }
-            else
-            {
-                applicantSlots[i].gameObject.SetActive(false);
-            }
-        }
-    }
 
-    public void InactiveEnterBtns()
-    {
-        foreach (ApplicantSlot slot in applicantSlots)
-        {
-            if (slot.gameObject.activeSelf)
-                slot.IsActived = false;
-        }
-    }
-    public int AddSelectedSlot(ApplicantSlot _slot)
-    {
-        if (selectedSlots.Count < 3)
-        {
-            selectedSlots.Add(_slot);
-            return selectedSlots.Count;
-        }
-        else
-        {
-            return -1;                                                                                                    
-        }
-    }
-    public void RemoveSelectedSlot(ApplicantSlot _slot) => selectedSlots.Remove(_slot);
+
+
+
+
+
     public async void DepartAsync()
     {
-        if(selectedSlots.Count < 3)
+        if(recruitUi.selectedSlots.Count < 3)
         {
             return;
         }
@@ -378,12 +332,13 @@ public class LobbyScenario : MonoBehaviour
         SceneManager.LoadScene("Stage0");
         
     }
-    async Task FromSlotToCharacter()
+    async Task FromSlotToCharacter( )
     {
+        List<ApplicantSlot> selectedSlots = recruitUi.selectedSlots;
         List<CharacterData> characterDataList = new() { null, null, null};
         for (int i = 0; i < selectedSlots.Count; i++)
         {
-            ApplicantSlot _slot = applicantSlots[i];
+            ApplicantSlot _slot = selectedSlots[i];
             _slot.templateAnimator.speed = 1f;
             int gridIndex = i + 3;
 

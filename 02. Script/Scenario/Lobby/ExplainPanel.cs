@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System;
 public class ExplainPanel : MonoBehaviour
 {
     private TMP_Text textExplain;
     private TMP_Text textInfo;
     float rectCorrection = 100f;
+    public RectTransform rectTransform;
     void Awake()
     {
         textExplain = transform.GetChild(0).GetComponent<TMP_Text>();
@@ -29,6 +31,12 @@ public class ExplainPanel : MonoBehaviour
     }
     public void SetSize()
     {
-        GetComponent<RectTransform>().sizeDelta = new Vector3(GetComponent<RectTransform>().sizeDelta.x, textExplain.preferredHeight + textInfo.preferredHeight + rectCorrection);
+        GetComponent<RectTransform>().sizeDelta = new Vector3(rectTransform.sizeDelta.x, textExplain.preferredHeight + textInfo.preferredHeight + rectCorrection);
+    }
+
+    internal void SetTalentExplain(string _explain)
+    {
+        textInfo.gameObject.SetActive(false);
+        textExplain.text = _explain;
     }
 }

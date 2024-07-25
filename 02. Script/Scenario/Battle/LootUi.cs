@@ -4,6 +4,7 @@ using UnityEngine;
 using DefaultCollection;
 using ItemCollection;
 using UnityEngine.UI;
+using System.Linq;
 public class LootUi : MonoBehaviour
 {
     public Transform panelMain;
@@ -28,6 +29,9 @@ public class LootUi : MonoBehaviour
     }
     public void SetLootAtUi(List<CountableItem> _main, List<CountableItem> _sub, int _gold)
     {
+        _main = _main.OrderBy(data => data.item.itemType).ToList();
+        _sub = _sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
+
         //Main
         for (int i = 0; i < mainLootSlots.Count; i++)
         {

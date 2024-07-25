@@ -1,10 +1,12 @@
 using DefaultCollection;
 using EnumCollection;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 public class ApplicantSlot : MonoBehaviour
 {
+    public RecruitUi recruitUi;
     public float Hp { get; private set; }
     public float Ability { get; private set; }
     public float Speed { get; private set; }
@@ -25,12 +27,20 @@ public class ApplicantSlot : MonoBehaviour
     public GameObject templateObject;
     public List<Sprite> numberTexture;
     public Dictionary<string, object> bodyDict { get; private set; } = new();
+
+    public List<TalentClass> talents = new();
+
     private void Awake()
     {
         imageNum.gameObject.SetActive(false);
         IsActived = false;
         isSelected = false;
         textSelect = objectSelect.transform.GetChild(0).GetComponent<TMP_Text>();
+
+    }
+    private void Start()
+    {
+        recruitUi = GameManager.lobbyScenario.recruitUi;
     }
     public bool IsActived {
         get {
@@ -39,14 +49,32 @@ public class ApplicantSlot : MonoBehaviour
         set {
             isActived = value;
             objectSelect.SetActive(isActived);
-            templateAnimator.speed = isActived ? 1f : 0f;
+            if (templateAnimator)
+                templateAnimator.speed = isActived ? 1f : 0f;
         }
     }
     public void InitApplicantSlot()
     {
         InitStatusInRange();
+        InitTalent();
         InitCharacterTemplate();
     }
+
+    private void InitTalent()
+    {
+        float talentEffect =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentEffectUp];
+        float talentLevel =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentLevelUp];
+        int talentNum = GameManager.AllocateProbability(0.1f, 0.6f, 0.25f, 0.05f);//0, 1, 2, 3개
+        List<TalentClass> ableTalents = LoadManager.loadManager.talentDict.Where(item => item.Value.level <= talentLevel).Select(item =>item.Value).ToList();
+        for (int i = 0; i < talentNum; i++)
+        {
+            TalentClass selectedTalent = ableTalents[Random.Range(0, ableTalents.Count)];
+            talents.Add(selectedTalent);//
+            ableTalents.Remove(selectedTalent);//이거 두 개 순서 바뀌면?
+        }
+        ableTalents = ableTalents.OrderBy(item => item.level).ThenBy(item => item.level).ToList();
+    }
+
     private void InitStatusInRange()
     {
         isActived = false;
@@ -197,12 +225,14 @@ public class ApplicantSlot : MonoBehaviour
         switch (isActived)
         {
             case true://활성화 돼있었다면 비활성화
-                GameManager.lobbyScenario.recruitUi.InitStatusText();
+                recruitUi.InitStatusText();
+                recruitUi.InitTalent();
                 IsActived = false;
                 break;
             case false://비활성화 돼있었다면 활성화
-                GameManager.lobbyScenario.recruitUi.SetStatusText(Hp, Ability, Speed, Resist);
-                GameManager.lobbyScenario.InactiveEnterBtns();
+                recruitUi.SetStatusText(Hp, Ability, Speed, Resist);
+                recruitUi.InactiveEnterBtns();
+                recruitUi.SetTalents(talents);
                 IsActived = true;
                 break;
         }
@@ -210,22 +240,23 @@ public class ApplicantSlot : MonoBehaviour
     }
     public void SelectBtnClicked()
     {
-        GameManager.lobbyScenario.recruitUi.InitStatusText();
+        recruitUi.InitStatusText();
+        recruitUi.InitTalent();
         IsActived = false;
         if (!isSelected)
         {
-            int currentSelectedNum = GameManager.lobbyScenario.AddSelectedSlot(this);
+            int currentSelectedNum = recruitUi.AddSelectedSlot(this);
             if (currentSelectedNum != -1)//성공 여부
             {
                 isSelected = true;
                 textSelect.text = "해제";
                 imageNum.gameObject.SetActive(true);
-                imageNum.sprite = numberTexture[currentSelectedNum - 1];
+                imageNum.sprite = numberTexture[currentSelectedNum];
             }
         }
         else
         {
-            GameManager.lobbyScenario.RemoveSelectedSlot(this);
+            recruitUi.RemoveSelectedSlot(this);
             isSelected = false;
             textSelect.text = "선택";
             imageNum.gameObject.SetActive(false);

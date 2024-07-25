@@ -55,7 +55,6 @@ public class GameManager : MonoBehaviour
     public GameObject prefabFire0;
     public GameObject gridPre;
     #endregion
-    public static readonly Color[] talentColors = new Color[4] { Color.blue, Color.green, Color.yellow, Color.red };
     EventTrigger eventTrigger;
     public int stage;
     public string scene;
@@ -68,6 +67,7 @@ public class GameManager : MonoBehaviour
     //Menu
     public GameObject inventoryButton;
     public TMP_Text textGold;
+    public PopUpUi popupUi;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -82,6 +82,7 @@ public class GameManager : MonoBehaviour
             inventoryButton.SetActive(true);
             //Until Steam API
             uid = "KF5U1XMs5cy7n13dgKjF";
+            popupUi.gameObject.SetActive(false);
         }
     }
     async void Start()
@@ -105,34 +106,34 @@ public class GameManager : MonoBehaviour
         fame = (int)(long)userDoc["Fame"];
         bool needToSet = false;
 
+
+
         foreach (KeyValuePair<string, UpgradeClass> kvp in LoadManager.loadManager.upgradeDict)
         {
             if (upgradeDict.TryGetValue(kvp.Key, out object userObj))
             {
                 int level = (int)(long)userObj;
+                
                 upgradeLevelDict.Add(kvp.Key, level);
-                if (level != 0)
+                UpgradeEffectType type = kvp.Value.type;
+                if (level == -1)
                 {
-                    UpgradeEffectType type = kvp.Value.type;
-                    if (upgradeValueDict.ContainsKey(type))
-                        upgradeValueDict[type] += kvp.Value.content[level - 1].value;
-                    else
-                    {
-
-                        upgradeValueDict.Add(type, kvp.Value.content[level - 1].value);//1 Level이면 0번 째 Value를 챙겨야 함
-                    }
+                    upgradeValueDict[type] = 0f;
+                }
+                else
+                {
+                    upgradeValueDict[type] = kvp.Value.content[level].value;
                 }
             }
             else
             {
                 needToSet = true;
-                upgradeLevelDict.Add(kvp.Key, 0);
+                upgradeLevelDict.Add(kvp.Key, -1);
             }
         }
         if (needToSet)
         {
-            Dictionary<string, object> objDict = DataManager.dataManager.ConvertToObjDictionary(upgradeLevelDict);
-            DataManager.dataManager.SetDocumentData("Upgrade", objDict, "User", Uid);
+            DataManager.dataManager.SetDocumentData("Upgrade", upgradeLevelDict, "User", Uid);
         }
 
     }
@@ -145,7 +146,7 @@ public class GameManager : MonoBehaviour
             else
                 DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
         }
-        if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby")
+        if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby" && _arg0.name != "Battle")
         {
             inventoryButton.SetActive(true);
             textGold.transform.parent.gameObject.SetActive(true);
@@ -646,5 +647,9 @@ public class GameManager : MonoBehaviour
         randNormal = Mathf.Clamp(randNormal, _mean * 0.5f, _mean * 2f);
 
         return randNormal;
+    }
+    public void SetPopUp(string _content, string _emphasizeStr)
+    {
+        StartCoroutine(popupUi.SetContent(_content, _emphasizeStr));
     }
 }

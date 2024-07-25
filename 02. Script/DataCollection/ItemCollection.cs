@@ -215,7 +215,7 @@ namespace ItemCollection
                 List<SkillEffect> skillEffects = effectsList[_index];
                 Dictionary<Language, string> originDict = explain[_index];
                 Dictionary<Language, string> explainDict = new();
-                List<Language> allLangauge = new() {Language.Ko, Language.En };
+                List<Language> allLangauge = new() { Language.Ko, Language.En };
                 List<string> allField = new() { "Value", "Count", "Vamp" };
                 foreach (var language in allLangauge)
                 {
@@ -259,33 +259,32 @@ namespace ItemCollection
                         bool isPercent = match.Groups[2].Success; // % 기호 존재 여부 확인
                         if (index >= 0 && index < effectsList.Count)
                         {
-                            string replaceStr;
-                                switch (_field)
-                                {
-                                    default://Value
-                                        replaceStr = skillEffects[index].value.ToString();
-                                        if (skillEffects[index].valueBase == ValueBase.Ability)
-                                            replaceStr += "AB";
-                                        break;
-                                    case "Count":
-                                        replaceStr = skillEffects[index].count.ToString();
-                                        break;
-                                    case "Vamp":
-                                        replaceStr = skillEffects[index].vamp.ToString();
-                                        break;
-                                }
-                                if (isPercent)
-                                {
-                                    double value = double.Parse(replaceStr) * 100;
-                                    replaceStr = value.ToString("0.##") + "%"; // % 기호를 결과에 포함
-                                }
-
-                                string richF = $"<color={fontColor}><size={fontSize}><b>";
-                                string richB = "</b></size></color>";
-                                replaceStr = richF + replaceStr + richB;
-                                replacedStr = replacedStr.Replace(match.Value, replaceStr);
-
-
+                            float value;
+                            switch (_field)
+                            {
+                                default://Value
+                                    value = skillEffects[index].value;
+                                    break;
+                                case "Count":
+                                    value = skillEffects[index].count;
+                                    break;
+                                case "Vamp":
+                                    value = skillEffects[index].vamp;
+                                    break;
+                            }
+                            if (isPercent)
+                            {
+                                value *= 100;
+                            }
+                            string replaceStr = value.ToString("0.##");
+                            if (isPercent)
+                                replaceStr += "%"; // % 기호를 결과에 포함
+                            if (_field == "Value" && skillEffects[index].valueBase == ValueBase.Ability)
+                                replaceStr += "AB";
+                            string richF = $"<color={fontColor}><size={fontSize}><b>";
+                            string richB = "</b></size></color>";
+                            replaceStr = richF + replaceStr + richB;
+                            replacedStr = replacedStr.Replace(match.Value, replaceStr);
                         }
                     }
                     replacedStr = replacedStr.Replace("\\n", "\n");
