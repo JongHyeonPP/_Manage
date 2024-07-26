@@ -18,14 +18,14 @@ public class CharacterData:MonoBehaviour
     public float ability;
     public float resist;
     public float speed;
-    public int index;
+    public int gridIndex;
     public Dictionary<EffectType, float> PermEffects { get; private set; }//º¸·ù
     public SkillAsItem[] skillAsIItems;
     public float[] exp;
     public WeaponClass weapon;
     public CharacterHierarchy characterHierarchy;
     public CharacterInBattle characterAtBattle;
-    internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _index, SkillAsItem[] _skillasItems, float[] _exp, WeaponClass _weapon)
+    internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability, float _resist, float _speed, int _gridIndex, SkillAsItem[] _skillasItems, float[] _exp, WeaponClass _weapon)
     {
         docId = _docId;
         jobClass = LoadManager.loadManager.jobsDict[_jobId];
@@ -34,7 +34,7 @@ public class CharacterData:MonoBehaviour
         ability = _ability;
         resist = _resist;
         speed = _speed;
-        index = _index;
+        gridIndex = _gridIndex;
         skillAsIItems = _skillasItems;
         exp = _exp;
         characterHierarchy = transform.GetChild(0).GetComponent<CharacterHierarchy>();

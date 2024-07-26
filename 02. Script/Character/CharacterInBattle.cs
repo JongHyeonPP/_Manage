@@ -38,7 +38,7 @@ public class CharacterInBattle : BaseInBattle
 
         weapon = _data.weapon;
 
-        grid = BattleScenario.CharacterGrids[_data.index];
+        grid = BattleScenario.CharacterGrids[_data.gridIndex];
         MoveToTargetGrid(grid, true);
         grid.owner = this;
         if (Hp == 0)

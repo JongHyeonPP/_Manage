@@ -30,7 +30,7 @@ public class LobbyScenario : MonoBehaviour
     public TMP_Text text_Fame;
     private Dictionary<string, UpgradeClass> upgrade_Pub;
     private Dictionary<string, UpgradeClass> upgrade_Guild;
-    public ExplainPanel explainUi;
+    public UpgradeExplainUi upgradeExplainUi;
     #endregion
     #region Phase_1
 
@@ -68,7 +68,7 @@ public class LobbyScenario : MonoBehaviour
         upgrade_Guild = LoadManager.loadManager.upgradeDict.Where(item => item.Value.lobbyCase == "Guild").ToDictionary(item => item.Key, item => item.Value);
 
         SettingManager.LanguageChangeEvent += OnLanguageChange;
-        explainUi.gameObject.SetActive(false);
+        upgradeExplainUi.gameObject.SetActive(false);
         InitUpgradeUi(LobbyCase.Pub);
         InitUpgradeUi(LobbyCase.Guild);
 
@@ -105,28 +105,31 @@ public class LobbyScenario : MonoBehaviour
         texts.Add(titleText, langDict);
         for (int i = 0; i < 3; i++)
         {
+            UpgradeSlot slot = curUi.slots[i];
             if (i < curUpgrade.Count)
             {
-                curUi.slots[i].gameObject.SetActive(true);
+                slot.gameObject.SetActive(true);
                 KeyValuePair<string, UpgradeClass> upgradeKvp = curUpgrade.Where(item => item.Value.index == i).FirstOrDefault();//index가 i인 클래스
-                curUi.slots[i].textName.text = upgradeKvp.Value.name[GameManager.language];
+                slot.textName.text = upgradeKvp.Value.name[GameManager.language];
                 int level = GameManager.gameManager.upgradeLevelDict[upgradeKvp.Key];
-                curUi.slots[i].textLv.text = "Lv. " + (level+1);
-                curUi.slots[i].curId = upgradeKvp.Key;
+                slot.textLv.text = "Lv. " + (level+1);
+                slot.curId = upgradeKvp.Key;
                 if (level == upgradeKvp.Value.content.Count)
                 {
-                    curUi.slots[i].button_Up.SetActive(false);
+                    slot.button_Up.SetActive(false);
                 }
                 else
                 {
-                    curUi.slots[i].button_Up.SetActive(true);
+                    slot.button_Up.SetActive(true);
                 }
                 Dictionary<Language, string> str_name = new() { { Language.Ko, upgradeKvp.Value.name[Language.Ko] }, { Language.En, upgradeKvp.Value.name[Language.En] } };
-                texts.Add(curUi.slots[i].textName, str_name);
+                texts.Add(slot.textName, str_name);
+                //slot
+                slot.imageIcon.sprite = upgradeKvp.Value.iconSprite;
             }
             else
             {
-                curUi.slots[i].gameObject.SetActive(false);
+                slot.gameObject.SetActive(false);
             }
         }
     }
@@ -163,13 +166,13 @@ public class LobbyScenario : MonoBehaviour
     private void PubCase()
     {
         pubUi.gameObject.SetActive(true);
-        explainUi.gameObject.SetActive(false);
+        upgradeExplainUi.gameObject.SetActive(false);
     }
 
     private void GuildCase()
     {
         guildUi.gameObject.SetActive(true);
-        explainUi.gameObject.SetActive(false);
+        upgradeExplainUi.gameObject.SetActive(false);
     }
     private void RecruitCase()
     {
@@ -186,9 +189,6 @@ public class LobbyScenario : MonoBehaviour
         phaseList[1].SetActive(true);
         buttonNext.SetActive(false);
         recruitUi.AllocateApplicant();
-        explainUi.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0);
-        explainUi.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
-        explainUi.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
     }
     public void SetMediumImage(bool _isActive)
     {
@@ -248,12 +248,12 @@ public class LobbyScenario : MonoBehaviour
     }
     public void OnPointerEnter_Slot(UpgradeSlot _upgradeSlot)
     {
-        explainUi.gameObject.SetActive(true);
-        explainUi.gameObject.transform.position = _upgradeSlot.transform.position + new Vector3(-0.2f, 0f, 0f);
+        upgradeExplainUi.gameObject.SetActive(true);
+        upgradeExplainUi.gameObject.transform.position = _upgradeSlot.transform.position + new Vector3(-0.2f, 0f, 0f);
 
         UpgradeClass upgradeClass = LoadManager.loadManager.upgradeDict[_upgradeSlot.curId];
         int level = GameManager.gameManager.upgradeLevelDict[_upgradeSlot.curId];
-        explainUi.SetExplain(upgradeClass.explain[GameManager.language]);
+        upgradeExplainUi.SetExplain(upgradeClass.explain[GameManager.language]);
 
         string cur;
         if (level != -1)
@@ -273,13 +273,13 @@ public class LobbyScenario : MonoBehaviour
         {
             next = string.Empty;
         }
-        explainUi.SetInfo(cur, next);
+        upgradeExplainUi.SetInfo(cur, next);
 
-        explainUi.SetSize();
+        upgradeExplainUi.SetSize();
     }
     public void OnPointerExit_Slot()
     {
-        explainUi.gameObject.SetActive(false);
+        upgradeExplainUi.gameObject.SetActive(false);
     }
     public void LayBlockClicked()
     {
@@ -318,8 +318,10 @@ public class LobbyScenario : MonoBehaviour
 
     public async void DepartAsync()
     {
-        if(recruitUi.selectedSlots.Count < 3)
+        if(recruitUi.selectedSlots.Contains(null))
         {
+            string popUpMessage = (GameManager.language == Language.Ko) ? "3명을 고용해야합니다." : "Need to hire 3 people.";
+            GameManager.gameManager.SetPopUp(popUpMessage);
             return;
         }
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>

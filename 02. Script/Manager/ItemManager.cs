@@ -440,6 +440,8 @@ public class ItemManager : MonoBehaviour
         JobClass job = GameManager.gameManager.GetJob(selectedCharacter.skillAsIItems[0].itemId, selectedCharacter.skillAsIItems[1].itemId);
         selectedCharacter.jobClass = job;
         selectedCharacter.characterHierarchy.SetJobSprite(job);
+        if (GameManager.gameManager.characterList.IndexOf(selectedCharacter) == 0)
+            StageScenarioBase.stageBaseCanvas.characterInStage.characterHierarchy.SetJobSprite(job);
         inventoryUi.ch.SetJobSprite(job);
         inventoryUi.jobSlot.SetJobIcon(job);
         for (int i = 0; i < 2; i++)

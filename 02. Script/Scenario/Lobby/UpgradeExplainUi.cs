@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using System;
-public class ExplainPanel : MonoBehaviour
+public class UpgradeExplainUi : MonoBehaviour
 {
     private TMP_Text textExplain;
     private TMP_Text textInfo;
@@ -32,11 +32,5 @@ public class ExplainPanel : MonoBehaviour
     public void SetSize()
     {
         GetComponent<RectTransform>().sizeDelta = new Vector3(rectTransform.sizeDelta.x, textExplain.preferredHeight + textInfo.preferredHeight + rectCorrection);
-    }
-
-    internal void SetTalentExplain(string _explain)
-    {
-        textInfo.gameObject.SetActive(false);
-        textExplain.text = _explain;
     }
 }

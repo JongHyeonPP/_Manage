@@ -648,7 +648,7 @@ public class GameManager : MonoBehaviour
 
         return randNormal;
     }
-    public void SetPopUp(string _content, string _emphasizeStr)
+    public void SetPopUp(string _content, string _emphasizeStr = "")
     {
         StartCoroutine(popupUi.SetContent(_content, _emphasizeStr));
     }

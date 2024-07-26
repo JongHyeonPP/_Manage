@@ -61,7 +61,10 @@ public class StageBaseCanvas : MonoBehaviour
         }
 
     }
-
+    private void Start()
+    {
+        characterInStage.characterHierarchy.CopyHierarchySprite(GameManager.gameManager.characterList[0].characterHierarchy);
+    }
 
 
     public IEnumerator CharacterMove(DestinationNode _to)

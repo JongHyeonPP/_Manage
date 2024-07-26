@@ -544,10 +544,16 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     private async Task InitUpgrade()
     {
         List<DocumentSnapshot> documents = await DataManager.dataManager.GetDocumentSnapshots("Upgrade");
+        Sprite[] upgradeIconSpirtes = Resources.LoadAll<Sprite>($"Texture/Upgrade");
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
             List<UpgradeContent> guildContents = new();
+            Dictionary<Language, string> name = new();
+            Dictionary<Language, string> explain = new();
+            Dictionary<Language, string> info = new();
+            UpgradeEffectType type;
+
             foreach (object contentObj in dict["Contents"] as List<object>)
             {
                 Dictionary<string, object> contentDict = contentObj as Dictionary<string, object>;
@@ -555,7 +561,6 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 int price = (int)(long)contentDict["Price"];
                 guildContents.Add(new(value, price));
             }
-            Dictionary<Language, string> name = new();
             foreach (var x in dict["Name"] as Dictionary<string, object>)
             {
                 switch (x.Key)
@@ -568,7 +573,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         break;
                 }
             }
-            Dictionary<Language, string> explain = new();
+            //Explain
             foreach (var x in dict["Explain"] as Dictionary<string, object>)
             {
                 string value = (string)x.Value;
@@ -585,7 +590,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         break;
                 }
             }
-            Dictionary<Language, string> info = new();
+            ///Info
             foreach (var x in dict["Info"] as Dictionary<string, object>)
             {
                 string value = (string)x.Value;
@@ -599,7 +604,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         break;
                 }
             }
-            UpgradeEffectType type;
+            //Type
             switch (dict["Type"])
             {
                 default:
@@ -625,7 +630,9 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     type = UpgradeEffectType.GoldUp;
                     break;
             }
-            upgradeDict.Add(doc.Id, new UpgradeClass(name, (int)(long)dict["Index"], guildContents, explain, info, type, (string)dict["LobbyCase"]));
+            //Upgrade
+            Sprite iconSprite = upgradeIconSpirtes.Where(item => item.name == doc.Id).FirstOrDefault();
+            upgradeDict.Add(doc.Id, new UpgradeClass(name, (int)(long)dict["Index"], guildContents, explain, info, type, (string)dict["LobbyCase"], iconSprite));
         }
     }
     private async Task InitTalent()
@@ -685,7 +692,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
             }
             Sprite sprite = talentSprites.Where(item => item.name == doc.Id).FirstOrDefault();
-            talentDict.Add(doc.Id, new TalentClass(name, (int)(long)dict["Level"], explain, effects, sprite));
+            talentDict.Add(doc.Id, new TalentClass(name, (int)(long)dict["AbleLevel"], explain, effects, sprite));
         }
     }
 

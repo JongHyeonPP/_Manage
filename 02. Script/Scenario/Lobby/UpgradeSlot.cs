@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UpgradeSlot : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class UpgradeSlot : MonoBehaviour
     public TMP_Text textLv;
     public GameObject button_Up;
     public string curId;
-
+    public Image imageIcon;
     public void OnUpBtnClicked()
     {
         GameManager.lobbyScenario.OnUpBtnClicked(this);

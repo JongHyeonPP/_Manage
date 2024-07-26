@@ -10,20 +10,25 @@ namespace DefaultCollection
     {
         public Dictionary<Language, string> name;
         public Dictionary<Language, string> explain;
-        public int level;
+        public int ableLevel;
         public List<TalentEffect> effects;
         public Sprite sprite;
-        public TalentClass(Dictionary<Language, string> _name, int _level, Dictionary<Language, string> _explain, List<TalentEffect> _effects, Sprite _sprite)
+        public int effectLevel;
+        public TalentClass(Dictionary<Language, string> _name, int _ableLevel, Dictionary<Language, string> _explain, List<TalentEffect> _effects, Sprite _sprite)
         {
             effects = _effects;
             name = _name;
             explain = _explain;
-            level = _level;
+            ableLevel = _ableLevel;
             sprite = _sprite;
+        }
+        public TalentClass SetEffectLevel(int _effectLevel)
+        {
+            effectLevel = _effectLevel;
+            return this;
         }
         public string GetExplain()
         {
-            int effectIndex = (int)GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentEffectUp];
             string fontColor = "#0096FF";
             float fontSize = 120f;
             string replacedStr = explain[GameManager.language];
@@ -39,7 +44,7 @@ namespace DefaultCollection
                 bool isPercent = match.Groups[2].Success; // % 기호 존재 여부 확인
                 if (index >= 0 && index < effects.Count)
                 {
-                    float value = effects[effectIndex].value[index];
+                    float value = effects[effectLevel].value[index];
                     if (isPercent)
                     {
                         value *= 100;

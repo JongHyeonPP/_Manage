@@ -15,7 +15,8 @@ namespace LobbyCollection
         public Dictionary<Language, string> info;
         public UpgradeEffectType type;
         public string lobbyCase;
-        public UpgradeClass(Dictionary<Language, string> _name, int _index, List<UpgradeContent> _content, Dictionary<Language, string> _explain, Dictionary<Language, string> _info, UpgradeEffectType _type, string _lobbyCase)
+        public Sprite iconSprite;
+        public UpgradeClass(Dictionary<Language, string> _name, int _index, List<UpgradeContent> _content, Dictionary<Language, string> _explain, Dictionary<Language, string> _info, UpgradeEffectType _type, string _lobbyCase, Sprite _iconSprite)
         {
             name = _name;
             index = _index;
@@ -24,6 +25,7 @@ namespace LobbyCollection
             info = _info;
             type = _type;
             lobbyCase = _lobbyCase;
+            iconSprite = _iconSprite;
         }
     }
     public struct UpgradeContent

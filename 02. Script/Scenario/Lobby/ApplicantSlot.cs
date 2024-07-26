@@ -65,14 +65,15 @@ public class ApplicantSlot : MonoBehaviour
         float talentEffect =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentEffectUp];
         float talentLevel =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentLevelUp];
         int talentNum = GameManager.AllocateProbability(0.1f, 0.6f, 0.25f, 0.05f);//0, 1, 2, 3개
-        List<TalentClass> ableTalents = LoadManager.loadManager.talentDict.Where(item => item.Value.level <= talentLevel).Select(item =>item.Value).ToList();
+        List<TalentClass> ableTalents = LoadManager.loadManager.talentDict.Where(item => item.Value.ableLevel <= talentLevel).Select(item =>item.Value).ToList();
         for (int i = 0; i < talentNum; i++)
         {
             TalentClass selectedTalent = ableTalents[Random.Range(0, ableTalents.Count)];
-            talents.Add(selectedTalent);//
-            ableTalents.Remove(selectedTalent);//이거 두 개 순서 바뀌면?
+            selectedTalent.SetEffectLevel(Random.Range(0, selectedTalent.effects.Count));
+            talents.Add(selectedTalent);
+            ableTalents.Remove(selectedTalent);
         }
-        ableTalents = ableTalents.OrderBy(item => item.level).ThenBy(item => item.level).ToList();
+        ableTalents = ableTalents.OrderBy(item => item.ableLevel).ThenBy(item => item.ableLevel).ToList();
     }
 
     private void InitStatusInRange()

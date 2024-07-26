@@ -17,6 +17,8 @@ public class RecruitUi : LobbyUiBase
     public List<ApplicantSlot> applicantSlots;
     public List<ApplicantSlot> selectedSlots = new() { null, null, null };
     public List<TalentSlot> talentSlots;
+    public TalentExplainUi talentExplainUi;
+
     private void Awake()
     {
         InitTalent();
