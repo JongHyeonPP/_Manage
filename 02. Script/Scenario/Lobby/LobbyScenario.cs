@@ -27,7 +27,6 @@ public class LobbyScenario : MonoBehaviour
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts = new();
     public GameObject layBlock;
     #region Phase_0
-    public TMP_Text text_Fame;
     private Dictionary<string, UpgradeClass> upgrade_Pub;
     private Dictionary<string, UpgradeClass> upgrade_Guild;
     public UpgradeExplainUi upgradeExplainUi;
@@ -62,7 +61,7 @@ public class LobbyScenario : MonoBehaviour
         recruitUi.gameObject.SetActive(false);
         departUi.gameObject.SetActive(false);
         #endregion
-        text_Fame.text = GameManager.gameManager.fame.ToString();
+        GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
         curCase = LobbyCase.None;
         upgrade_Pub = LoadManager.loadManager.upgradeDict.Where(item => item.Value.lobbyCase == "Pub").ToDictionary(item => item.Key, item => item.Value);
         upgrade_Guild = LoadManager.loadManager.upgradeDict.Where(item => item.Value.lobbyCase == "Guild").ToDictionary(item => item.Key, item => item.Value);
@@ -229,7 +228,7 @@ public class LobbyScenario : MonoBehaviour
             //클라이언트 능력 적용
             GameManager.gameManager.upgradeValueDict[upgradeClass.type] += upgradeClass.content[level + 1].value;
             GameManager.gameManager.upgradeLevelDict[_upgradeSlot.curId]++;
-            text_Fame.text = GameManager.gameManager.fame.ToString();
+            GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
             //Firestore
             DataManager.dataManager.SetDocumentData("Fame", fameResult, "User", GameManager.gameManager.Uid);
             DataManager.dataManager.SetDocumentData("Upgrade", GameManager.gameManager.upgradeLevelDict, "User", GameManager.gameManager.Uid);
@@ -283,6 +282,8 @@ public class LobbyScenario : MonoBehaviour
     }
     public void LayBlockClicked()
     {
+        if (!GameManager.lobbyScenario)
+            return;
         layBlock.SetActive(false);
         LobbyUiBase curUi = null;
         switch (curCase)
@@ -320,7 +321,7 @@ public class LobbyScenario : MonoBehaviour
     {
         if(recruitUi.selectedSlots.Contains(null))
         {
-            string popUpMessage = (GameManager.language == Language.Ko) ? "3명을 고용해야합니다." : "Need to hire 3 people.";
+            string popUpMessage = (GameManager.language == Language.Ko) ? "<color=#0096FF>3명</color>을 고용해야합니다." : "Need to hire <color=#0096FF>3 people.</color>";
             GameManager.gameManager.SetPopUp(popUpMessage);
             return;
         }

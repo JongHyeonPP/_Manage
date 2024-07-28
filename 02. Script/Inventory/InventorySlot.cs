@@ -28,7 +28,6 @@ public class InventorySlot : SlotBase
     private bool isChecked;
     private void Awake()
     {
-        textPokerNum.transform.parent.gameObject.SetActive(false);
         isSelected = true;
         SetCheck(false);
     }

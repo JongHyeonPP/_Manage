@@ -414,7 +414,14 @@ public class StageBaseCanvas : MonoBehaviour
             {
                 choiseNode += ":::" + node.arrayIndex;
             }
-            List<KeyValuePair<string, NodeType>> kvps = LoadManager.loadManager.nodeTypesDict.Where(item =>item.Value.backgroundType == node.backGroundType).ToList();
+
+            //bool isStore = GameManager.CalculateProbability(1 / 8);
+            bool isStore = false;
+            List<KeyValuePair<string, NodeType>> kvps;
+            if (!isStore)
+                kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == node.backGroundType).ToList();
+            else
+                kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == BackgroundType.Store).ToList();
             KeyValuePair<string, NodeType> selected = kvps[Random.Range(0, kvps.Count)];
             node.SetNodeType(selected.Value);
             StageScenarioBase.nodeTypes[node.index] = selected.Key;

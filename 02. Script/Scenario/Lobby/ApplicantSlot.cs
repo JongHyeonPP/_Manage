@@ -40,6 +40,8 @@ public class ApplicantSlot : MonoBehaviour
     }
     private void Start()
     {
+        if (GameManager.lobbyScenario == null)
+            return;
         recruitUi = GameManager.lobbyScenario.recruitUi;
     }
     public bool IsActived {

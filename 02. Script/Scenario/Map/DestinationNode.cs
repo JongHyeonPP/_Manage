@@ -124,7 +124,10 @@ public class DestinationNode : MonoBehaviour
         StageScenarioBase.stageBaseCanvas.HideAndFadeOutDeselectedEdgeNodes();
         StageScenarioBase.stageBaseCanvas.gameObject.SetActive(false);
         buttonEnter.gameObject.SetActive(false);
-        SceneManager.LoadScene("Battle");
+        if (nodeType.backgroundType == BackgroundType.Store)
+            SceneManager.LoadScene("Store");
+        else
+            SceneManager.LoadScene("Battle");
     }
     public void ActiveWithObject(bool _isAcitve)
     {

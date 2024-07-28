@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
     public static LobbyScenario lobbyScenario;
     public static StartScenario startScenario;
     public static StageScenarioBase mapScenario;
+    public static StoreScenario storeScenario;
 
     public GameObject CharacterTemplate;
     #region CanvasGrid
@@ -67,6 +68,7 @@ public class GameManager : MonoBehaviour
     //Menu
     public GameObject inventoryButton;
     public TMP_Text textGold;
+    public TMP_Text textFame;
     public PopUpUi popupUi;
     void Awake()//매니저 세팅은 Awake
     {
@@ -156,6 +158,16 @@ public class GameManager : MonoBehaviour
             inventoryButton.SetActive(false);
             textGold.transform.parent.gameObject.SetActive(false);
         }
+        if (_arg0.name == "Lobby")
+        {
+            textFame.transform.parent.gameObject.SetActive(true);
+        }
+        else
+        {
+            textFame.transform.parent.gameObject.SetActive(false);
+        }
+        if (_arg0.name == "Battle" || _arg0.name == "Store")
+            StageScenarioBase.state = StateInMap.NeedPhase;
     }
     private void InitGrids()
     {

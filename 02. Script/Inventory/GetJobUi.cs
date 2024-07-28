@@ -55,13 +55,13 @@ public class GetJobUi : MonoBehaviour
     {
         ItemManager.itemManager.SetJobAtSelectedCharacter();
     }
-    public void NextPhase()
+    public void NextJobPhase()
     {
         jobCh.animator.enabled = false;
-        StartCoroutine(NextPhaseCor());
+        StartCoroutine(NextJobPhaseCor());
     }
 
-    private IEnumerator NextPhaseCor()
+    private IEnumerator NextJobPhaseCor()
     {
         SetJob();
         jobCh.CopyHierarchySprite(from);
@@ -81,7 +81,7 @@ public class GetJobUi : MonoBehaviour
     IEnumerator FadeOutParticleSystemAlpha()
     {
         ParticleSystem.MainModule mainModule = particle.main;
-        float startAlpha = mainModule.startColor.color.a; // 초기 알파값 저장
+        float startAlpha = 1f; // 초기 알파값 저장
         float elapsedTime = 0f;
         float fadeDuration = 3f;
 

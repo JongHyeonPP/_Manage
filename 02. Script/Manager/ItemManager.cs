@@ -153,6 +153,8 @@ public class ItemManager : MonoBehaviour
                 AddCiToArr(sub, ci);
             }
         }
+        main = main.OrderBy(data => data.item.itemType).ToList();
+        sub = sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
         int gold = Random.Range(10, 13);
         GameManager.gameManager.SetGold(gold);
         List<CountableItem> addMainSub = new(main);

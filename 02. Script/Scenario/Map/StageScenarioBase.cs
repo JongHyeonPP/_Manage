@@ -90,21 +90,14 @@ public abstract class StageScenarioBase : MonoBehaviour
         return stageBaseCanvas;
     }
 
-
     [ContextMenu("NextPhase")]
     public void NextPhase()
     {
         phase++;
-        stageBaseCanvas. EnterPhase();
+        stageBaseCanvas.EnterPhase();
     }
 
-
-
-
-
     public abstract void  ExtendVia(bool _isInstant);
-
-
 
     public abstract void MoveCameraXVia(DestinationNode _to, bool _isInstant);
 

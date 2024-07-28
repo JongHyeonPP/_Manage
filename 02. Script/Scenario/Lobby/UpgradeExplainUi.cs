@@ -7,7 +7,8 @@ public class UpgradeExplainUi : MonoBehaviour
 {
     private TMP_Text textExplain;
     private TMP_Text textInfo;
-    float rectCorrection = 100f;
+    float widthCorrection = 100f;
+    float heightCorrection = 100f;
     public RectTransform rectTransform;
     void Awake()
     {
@@ -31,6 +32,8 @@ public class UpgradeExplainUi : MonoBehaviour
     }
     public void SetSize()
     {
-        GetComponent<RectTransform>().sizeDelta = new Vector3(rectTransform.sizeDelta.x, textExplain.preferredHeight + textInfo.preferredHeight + rectCorrection);
+        float width = Mathf.Max(textInfo.preferredWidth + widthCorrection, 500f);
+        float height = textExplain.preferredHeight + textInfo.preferredHeight + heightCorrection;
+        GetComponent<RectTransform>().sizeDelta = new Vector3(width, height);
     }
 }

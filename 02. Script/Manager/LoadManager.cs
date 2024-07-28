@@ -676,7 +676,7 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                     List<float> valueList = new();
                     Dictionary<string, object> effectDict = effectobj as Dictionary<string, object>;
                     EffectType effectType = EffectType.AttAscend;
-                    if (effectDict.TryGetValue("EffectType", out object obj))
+                    if (effectDict.TryGetValue("Type", out object obj))
                     {
                         bool success = Enum.TryParse((string)obj, out effectType);
                         if (!success)
@@ -755,14 +755,24 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
-            BackgroundType backgroundType = (BackgroundType)Enum.Parse(typeof(BackgroundType), (string)dict["BackgroundType"]);
+            BackgroundType backgroundType;
+
             Dictionary<string, NodeType> targetDict = nodeTypesDict;
             List<string> casesStr = new();
+            if(dict.ContainsKey("EnemyCases"))
             foreach (object obj in (List<object>)dict["EnemyCases"])
             {
                 casesStr.Add((string)obj);
             }
             Dictionary<string, object> nameFromDoc = (Dictionary<string, object>)dict["Name"];
+            if (dict.ContainsKey("BackgroundType"))
+            {
+                backgroundType = (BackgroundType)Enum.Parse(typeof(BackgroundType), (string)dict["BackgroundType"]);
+            }
+            else
+            {
+                backgroundType = BackgroundType.Store;
+            }
             Dictionary<Language, string> name = new()
             {
                 { Language.Ko, (string)nameFromDoc["Ko"] },

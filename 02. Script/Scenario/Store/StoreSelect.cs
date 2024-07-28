@@ -3,19 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LobbySelect : MonoBehaviour
+public class StoreSelect : MonoBehaviour
 {
-    public LobbyCase lobbyCase;
+    public StoreCase storeCase;
     private GameObject selectLight;
+    public GameObject imageMedium;
     private void Start()
     {
-        if (!GameManager.lobbyScenario)
+        if (!GameManager.storeScenario)
             return;
-        selectLight = GameManager.lobbyScenario.selectLight;
+        selectLight = GameManager.storeScenario.selectLight;
     }
     public void OnPointerEnter()
     {
-        if (!GameManager.lobbyScenario)
+        if (!GameManager.storeScenario)
             return;
         selectLight.SetActive(true);
         selectLight.transform.SetParent(transform);
@@ -23,14 +24,14 @@ public class LobbySelect : MonoBehaviour
     }
     public void OnPointerExit()
     {
-        if (!GameManager.lobbyScenario)
+        if (!GameManager.storeScenario)
             return;
         selectLight.SetActive(false);
     }
     public void OnPointerClick()
     {
-        if (!GameManager.lobbyScenario)
+        if (!GameManager.storeScenario)
             return;
-        GameManager.lobbyScenario.OnPointerClick(lobbyCase);   
+        GameManager.storeScenario.OnPointerClick(storeCase);
     }
 }

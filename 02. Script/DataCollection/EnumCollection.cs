@@ -57,7 +57,9 @@ namespace EnumCollection
         //Stage1
         MysteriousForest, VineForest, Swamp, WinterForest, IceField,
         //Stage 2
-        DesertRuins, Cave, Desert, RedRock, Lava
+        DesertRuins, Cave, Desert, RedRock, Lava,
+        //Store
+        Store
     }
     public enum BattleDifficulty : byte
     {
@@ -82,6 +84,10 @@ namespace EnumCollection
     public enum LobbyCase : byte
     {
         None, Pub, Guild, Recruit, Depart
+    }
+    public enum StoreCase : byte
+    {
+        Cook, Store
     }
     public enum BodyPart : byte
     {

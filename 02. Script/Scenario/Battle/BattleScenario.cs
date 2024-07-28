@@ -342,27 +342,26 @@ public class BattleScenario : MonoBehaviour
         GameManager.battleScenario.StopAllCoroutines();
         battlePatern = BattlePatern.OnReady;
         StageScenarioBase.nodes.Add(null);
-        //List<CharacterData> dataList = GameManager.gameManager.characterList;
+        List<CharacterData> dataList = GameManager.gameManager.characterList;
 
-        //    await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
-        //    {
-        //        foreach (CharacterData data in dataList)
-        //        {
-        //            data.hp = data.characterAtBattle.Hp;
-        //            DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
-        //        }
-        //        DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", GameManager.gameManager.Uid);
-        //        DataManager.dataManager.SetDocumentData("Nodes", StageScenarioBase.nodes, "Progress", GameManager.gameManager.Uid);
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+        {
+            foreach (CharacterData data in dataList)
+            {
+                data.hp = data.characterAtBattle.Hp;
+                DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
+            }
+            DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData("Nodes", StageScenarioBase.nodes, "Progress", GameManager.gameManager.Uid);
 
-        //        return Task.CompletedTask;
-        //    });
+            return Task.CompletedTask;
+        });
 
 
         await ClearEnemyAsync();
         await ItemManager.itemManager.SetLootAsync();
         canvasClear.SetActive(true);
         buttonNext.gameObject.SetActive(true);
-        StageScenarioBase.state = StateInMap.NeedPhase;
     }
 
     public static void RefreshGrid()
@@ -396,7 +395,7 @@ public class BattleScenario : MonoBehaviour
     {
         foreach (var x in enemies)
         {
-            //x.StartBattle();
+            x.StartBattle();
         }
         foreach (var x in characters)
         {

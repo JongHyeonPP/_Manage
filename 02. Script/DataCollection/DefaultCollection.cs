@@ -29,7 +29,8 @@ namespace DefaultCollection
         }
         public string GetExplain()
         {
-            string fontColor = "#0096FF";
+            string increaseColor = "#0096FF";
+            string decreaseColor = "#CF262B";
             float fontSize = 120f;
             string replacedStr = explain[GameManager.language];
             // 정규식 패턴 문자열 생성, % 포함 여부도 확인
@@ -44,7 +45,8 @@ namespace DefaultCollection
                 bool isPercent = match.Groups[2].Success; // % 기호 존재 여부 확인
                 if (index >= 0 && index < effects.Count)
                 {
-                    float value = effects[effectLevel].value[index];
+                    float value = effects[index].value[effectLevel];
+                    EffectType type = effects[index].type;
                     if (isPercent)
                     {
                         value *= 100;
@@ -54,8 +56,19 @@ namespace DefaultCollection
                     {
                         replaceStr += "%"; // % 기호를 결과에 포함
                     }
-
-                    string richF = $"<color={fontColor}><size={fontSize}%><b>";
+                    string selectedColor;
+                    switch (type)
+                    {
+                        default:
+                            selectedColor = increaseColor;
+                            break;
+                        case EffectType.AttDescend:
+                        case EffectType.ResistDescend:
+                        case EffectType.SpeedDescend:
+                            selectedColor = decreaseColor;
+                            break;
+                    }
+                    string richF = $"<color={selectedColor}><size={fontSize}%><b>";
                     string richB = "</b></size></color>";
                     replaceStr = richF + replaceStr + richB;
                     replacedStr = replacedStr.Replace(match.Value, replaceStr);

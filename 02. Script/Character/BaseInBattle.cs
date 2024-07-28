@@ -359,7 +359,7 @@ abstract public class BaseInBattle : MonoBehaviour
         speedInBattle = speed;
         resistInBattle = resist;
         List<SkillActiveForm> SkillActiveForms = new();
-        //SkillActiveForms.Add(new SkillActiveForm(this));
+        SkillActiveForms.Add(new SkillActiveForm(this));
         for (int i = 0; i < skillInBattles.Count; i++)
         {
             SkillInBattle skillInBattle = skillInBattles[i];
