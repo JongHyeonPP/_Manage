@@ -80,10 +80,10 @@ namespace ItemCollection
             {
                 default:
                     return new(0.9716981f, 0.1979341f, 0.08708613f);
-                case IngredientType.Bread:
-                    return Color.yellow;
-                case IngredientType.Fruit:
+                case IngredientType.Fish:
                     return new Color(0.2971698f, 0.496f, 1f);
+                case IngredientType.Fruit:
+                    return Color.yellow;
                 case IngredientType.Vegetable:
                     return Color.green;
             }
@@ -91,7 +91,7 @@ namespace ItemCollection
     }
     public class FoodClass:Item
     {
-        public int degree;//1~5
+        public PokerCombination pokerCombination;
 
         public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
@@ -103,11 +103,11 @@ namespace ItemCollection
             position = _position;
             scale = _scale;
         }
-        public FoodClass SetDegree(int _degree)
+        public FoodClass SetPokerCombination(PokerCombination _pokerCombination)
         {
-            degree = _degree;
-            return this; }
-
+            pokerCombination = _pokerCombination;
+            return this;
+        }
     }
     public class WeaponClass:Item
     {

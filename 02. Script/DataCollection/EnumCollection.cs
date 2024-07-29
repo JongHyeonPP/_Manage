@@ -111,7 +111,7 @@ namespace EnumCollection
     }
     public enum IngredientType
     {
-        Meat, Bread, Fruit, Vegetable, Special
+        Meat, Fish, Fruit, Vegetable, Special
     }
     public enum ValueBase
     {
@@ -124,5 +124,10 @@ namespace EnumCollection
     public enum StateInMap
     {
         NeedPhase, NeedEnter,NeedMove, None
+    }
+    public enum PokerCombination
+    {
+        NoCard, HighCard, OnePair, TwoPair, ThreeOfAKind,
+        Straight, Flush, FullHouse, FourOfAKind, StraightFlush
     }
 }

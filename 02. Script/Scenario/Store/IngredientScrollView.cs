@@ -3,6 +3,7 @@ using ItemCollection;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class IngredientScrollView : MonoBehaviour
@@ -10,7 +11,7 @@ public class IngredientScrollView : MonoBehaviour
     public RectTransform content;
     public GameObject ingredientSlotObj;
     private GridLayoutGroup gridLayoutGroup;
-    private List<IngredientSlot> slots = new();
+    public List<IngredientSlot> slots = new();
     private void Start()
     {
         gridLayoutGroup = content.GetComponent<GridLayoutGroup>();
@@ -30,7 +31,15 @@ public class IngredientScrollView : MonoBehaviour
     {
         GameObject slotObj = Instantiate(ingredientSlotObj, content);
         IngredientSlot ingredientSlot = slotObj.GetComponent<IngredientSlot>();
+        ingredientSlot.parentScrollView = this;
         slots.Add(ingredientSlot);
         ingredientSlot.SetCountableItem(_ci);
+    }
+    public void ModifySizeDelta(bool _isIncrease)
+    {
+        if (_isIncrease)
+            content.sizeDelta += new Vector2(gridLayoutGroup.cellSize.x + gridLayoutGroup.spacing.x, 0);
+        else
+            content.sizeDelta -= new Vector2(gridLayoutGroup.cellSize.x + gridLayoutGroup.spacing.x, 0);
     }
 }

@@ -224,13 +224,14 @@ public class InventoryUi : MonoBehaviour
         List<CountableItem> sortedFoodList = ciList
     .Where(data => data.item.itemType == ItemType.Food)
     .Select(data => new { CountableItem = data, Food = (FoodClass)data.item })
-    .OrderBy(data => data.Food.degree)
+    .OrderBy(data => data.Food.pokerCombination)
     .Select(data => data.CountableItem)
     .ToList();
         sortedList.AddRange(sortedWeaponList);
         sortedList.AddRange(sortedSkillList);
-        sortedList.AddRange(sortedIngredientList);
         sortedList.AddRange(sortedFoodList);
+        sortedList.AddRange(sortedIngredientList);
+
         for (int i = 0; i < inventorySlots.Count; i++)
         {
             InventorySlot slot = inventorySlots[i];

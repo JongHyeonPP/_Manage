@@ -35,23 +35,48 @@ public class InventorySlot : SlotBase
     {
         imageItem.gameObject.SetActive(true);
         ci = _ci;
-        Sprite gradeMat;
-        switch (_ci.item.itemGrade)
+        Sprite gradeSprite;
+        if (_ci.item.itemType == ItemType.Food)
         {
-            default:
-                gradeMat = ItemManager.itemManager.item_None;
-                break;
-            case ItemGrade.Normal:
-                gradeMat = ItemManager.itemManager.item_Normal;
-                break;
-            case ItemGrade.Rare:
-                gradeMat = ItemManager.itemManager.item_Rare;
-                break;
-            case ItemGrade.Unique:
-                gradeMat = ItemManager.itemManager.item_Unique;
-                break;
+            PokerCombination pokerCombination = ((FoodClass)_ci.item).pokerCombination;
+            switch (pokerCombination)
+            {
+                default://High Level, OnePair, TwoPair
+                    gradeSprite = ItemManager.itemManager.item_None;
+                    break;
+                case PokerCombination.ThreeOfAKind:
+                case PokerCombination.Straight:
+                    gradeSprite = ItemManager.itemManager.item_Normal;
+                    break;
+                case PokerCombination.Flush:
+                case PokerCombination.FullHouse:
+                    gradeSprite = ItemManager.itemManager.item_Rare;
+                    break;
+                case PokerCombination.FourOfAKind:
+                case PokerCombination.StraightFlush:
+                    gradeSprite = ItemManager.itemManager.item_Unique;
+                    break;
+            }
         }
-        imageGrade.sprite = gradeMat;
+        else
+        {
+            switch (_ci.item.itemGrade)
+            {
+                default:
+                    gradeSprite = ItemManager.itemManager.item_None;
+                    break;
+                case ItemGrade.Normal:
+                    gradeSprite = ItemManager.itemManager.item_Normal;
+                    break;
+                case ItemGrade.Rare:
+                    gradeSprite = ItemManager.itemManager.item_Rare;
+                    break;
+                case ItemGrade.Unique:
+                    gradeSprite = ItemManager.itemManager.item_Unique;
+                    break;
+            }
+        }
+        imageGrade.sprite = gradeSprite;
         Sprite itemSprite;
         switch (ci.item.itemType)
         {
@@ -103,6 +128,8 @@ public class InventorySlot : SlotBase
         ci.amount += _value;
         if (ci.amount == 1)
             textNum.gameObject.SetActive(false);
+        else if(ci.amount == 0)
+            ClearSlot();
         else
         {
             textNum.gameObject.SetActive(true);
@@ -222,14 +249,7 @@ public class InventorySlot : SlotBase
             if (targetSlot.item != null)//교체하기
             {
                 InventorySlot existingSlot = ItemManager.itemManager.GetExistingSlot(targetSlot.item);
-                if (ci.amount > 1)
-                {
                     ChangeCiAmount(-1);
-                }
-                else
-                {
-                    ClearSlot();
-                }
                 if (existingSlot == null)
                 {
                     if (ci == null)
@@ -246,15 +266,7 @@ public class InventorySlot : SlotBase
             }
             else
             {
-                if (ci.amount > 1)
-                {
                     ChangeCiAmount(-1);
-
-                }
-                else if (ci.amount == 1)
-                {
-                    ClearSlot();
-                }
             }
         }
 

@@ -128,7 +128,7 @@ public class ItemManager : MonoBehaviour
                 case BackgroundType.Forest:
                 case BackgroundType.VineForest:
                 case BackgroundType.Cave:
-                    ingredientType = IngredientType.Bread;
+                    ingredientType = IngredientType.Fish;
                     break;
                 case BackgroundType.Beach:
                 case BackgroundType.Swamp:
@@ -159,6 +159,19 @@ public class ItemManager : MonoBehaviour
         GameManager.gameManager.SetGold(gold);
         List<CountableItem> addMainSub = new(main);
         addMainSub.AddRange(sub);
+        await AddCiesToInventory(addMainSub);
+        if (GameManager.battleScenario)
+        {
+            GameManager.battleScenario.lootUi.SetLootAtUi(main, sub, gold);
+        }
+
+
+
+
+    }
+
+    public async Task AddCiesToInventory(List<CountableItem> addMainSub)
+    {
         foreach (CountableItem ci in addMainSub)//
         {
             InventorySlot existingSlot = null;
@@ -179,14 +192,6 @@ public class ItemManager : MonoBehaviour
         }
         //Àü¸®Ç° Set
         await SetInventoryAtDb();
-        if (GameManager.battleScenario)
-        {
-            GameManager.battleScenario.lootUi.SetLootAtUi(main, sub, gold);
-        }
-
-
-
-
     }
 
     public InventorySlot GetExistingSlot(Item _item)
@@ -387,6 +392,9 @@ public class ItemManager : MonoBehaviour
                 break;
             case ItemType.Ingredient:
                 returnValue = LoadManager.loadManager.ingredientDict[_id];
+                break;
+            case ItemType.Food:
+                returnValue = LoadManager.loadManager.foodDict[_id];
                 break;
         }
         return returnValue;

@@ -359,7 +359,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: -8
   m_Viewport: {fileID: 7203973169038482590}
   m_HorizontalScrollbar: {fileID: 7006928463734636028}
   m_VerticalScrollbar: {fileID: 0}
@@ -396,6 +396,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   content: {fileID: 4743382327928148532}
   ingredientSlotObj: {fileID: 6761257125547350788, guid: 7936036b9cc540e42984995eca6e69e2, type: 3}
+  slots: []
 --- !u!1 &7456144449245114742
 GameObject:
   m_ObjectHideFlags: 0
@@ -517,7 +518,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 4794011055113425587}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0
+  m_Size: 0.35829002
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

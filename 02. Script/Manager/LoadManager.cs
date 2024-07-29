@@ -51,7 +51,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         {
             await LoadVisualEffect();
             await InitSkill();
-            await Task.WhenAll(InitUserDoc(),InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
+            await Task.WhenAll(InitUserDoc(), InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
                 InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
                 InitNodeType());
             InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
@@ -67,7 +67,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         {
             Dictionary<string, object> durationData = await DataManager.dataManager.GetField("VisualEffect", _type);
             GameObject[] visualEffects = Resources.LoadAll<GameObject>(visualEffectPath + "/" + _type);
-            
+
             foreach (GameObject visualEffect in visualEffects)
             {
                 float duration = 1f;
@@ -214,7 +214,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
 
 
-            Skill skill = new Skill(doc.Id,categori, cooltime, effectsList, isAnim, visualEffect, isPre, name, explains, sprite);
+            Skill skill = new Skill(doc.Id, categori, cooltime, effectsList, isAnim, visualEffect, isPre, name, explains, sprite);
 
             skillsDict.Add(doc.Id, skill);
         }
@@ -283,7 +283,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             }
 
             if (effectDict.TryGetValue("IsTargetEnemy", out obj))
-                 isTargetEnemy = (bool)obj;
+                isTargetEnemy = (bool)obj;
             else
             {
                 isTargetEnemy = true;
@@ -307,7 +307,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         byAtt = (bool)obj;
                     else
                         byAtt = false;
-                    effect = new PassiveEffect(count, true, value, effectType, effectRange, valueBase, isTargetEnemy,vamp, byAtt);
+                    effect = new PassiveEffect(count, true, value, effectType, effectRange, valueBase, isTargetEnemy, vamp, byAtt);
                     break;
                 case false:
                     float delay;
@@ -427,10 +427,10 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     else
                         isTargetEnemy = false;
                     //Set
-                    SkillEffect skillEffect = new PassiveEffect(1, true, value, effectType, effectRange, valueBase,false,0f, byAtt);
+                    SkillEffect skillEffect = new PassiveEffect(1, true, value, effectType, effectRange, valueBase, false, 0f, byAtt);
                     effects.Add(skillEffect);
                 }
-                jobSkill = new Skill("Default",SkillCategori.Default, 0f, new() { effects }, false, null, false, name, new() { effectExplain},null);
+                jobSkill = new Skill("Default", SkillCategori.Default, 0f, new() { effects }, false, null, false, name, new() { effectExplain }, null);
             }
             //Sprite
             Sprite[] clothesSprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{doc.Id}");
@@ -537,7 +537,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 enemyLevel = (int)(long)(obj);
             else
                 enemyLevel = -1;
-                EnemyClass enemyClass = new(name, ability, hp, resist, skills, speed, type, enemyLevel);
+            EnemyClass enemyClass = new(name, ability, hp, resist, skills, speed, type, enemyLevel);
             enemyiesDict.Add(doc.Id, enemyClass);
         }
     }
@@ -759,11 +759,11 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
 
             Dictionary<string, NodeType> targetDict = nodeTypesDict;
             List<string> casesStr = new();
-            if(dict.ContainsKey("EnemyCases"))
-            foreach (object obj in (List<object>)dict["EnemyCases"])
-            {
-                casesStr.Add((string)obj);
-            }
+            if (dict.ContainsKey("EnemyCases"))
+                foreach (object obj in (List<object>)dict["EnemyCases"])
+                {
+                    casesStr.Add((string)obj);
+                }
             Dictionary<string, object> nameFromDoc = (Dictionary<string, object>)dict["Name"];
             if (dict.ContainsKey("BackgroundType"))
             {
@@ -779,8 +779,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 { Language.En, (string)nameFromDoc["En"] }
             };
             Sprite objectSprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
-            NodeType nodeType = new(casesStr,name,objectSprite, backgroundType);
-            targetDict.Add(doc.Id ,nodeType);
+            NodeType nodeType = new(casesStr, name, objectSprite, backgroundType);
+            targetDict.Add(doc.Id, nodeType);
         }
     }
     private async Task InitWeapon()
@@ -814,7 +814,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
 
             foreach (DocumentSnapshot doc in documents)
             {
-                
+
                 Dictionary<string, object> dict = doc.ToDictionary();
                 object obj;
                 //Name
@@ -826,9 +826,9 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     name.Add(Language.Ko, (string)nameTemp["Ko"]);
                     name.Add(Language.En, (string)nameTemp["En"]);
                 }
-                else 
+                else
                 {
-                    name.Add(Language.Ko,string.Empty);
+                    name.Add(Language.Ko, string.Empty);
                     name.Add(Language.En, string.Empty);
                 }
                 //Explain
@@ -887,7 +887,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 }
 
                 string itemId = $"{_weaponTypeStr}:::{doc.Id}";
-                WeaponClass weaponClass = new(ItemType.Weapon, itemId, grade, name,explain, sprite,scale, position);
+                WeaponClass weaponClass = new(ItemType.Weapon, itemId, grade, name, explain, sprite, scale, position);
                 //Effects
                 if (dict.ContainsKey("Effects"))
                 {
@@ -965,8 +965,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 case "Vegetable":
                     ingredientType = IngredientType.Vegetable;
                     break;
-                case "Bread":
-                    ingredientType = IngredientType.Bread;
+                case "Fish":
+                    ingredientType = IngredientType.Fish;
                     break;
             }
             //Name
@@ -1026,9 +1026,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
         foreach (DocumentSnapshot doc in documents)
         {
             Dictionary<string, object> dict = doc.ToDictionary();
-            int degree;
+            PokerCombination pokerCombination;
             Sprite sprite;
-            degree = (int)(long)dict["Degree"];
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
             //Name
             Dictionary<string, object> nameObjDict = dict["Name"] as Dictionary<string, object>;
@@ -1050,30 +1049,40 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 explain.Add(Language.Ko, string.Empty);
                 explain.Add(Language.En, string.Empty);
             };
-            //Scale
-            Vector2 scale;
-            if (dict.ContainsKey("Scale"))
+            //PokerCombination
+            pokerCombination = PokerCombination.NoCard;
+            if (dict.TryGetValue("PokerCombination", out obj))
             {
-                Dictionary<string, object> scaleDict = dict["Scale"] as Dictionary<string, object>;
-                scale = new(GetFloatValue(scaleDict["X"]), GetFloatValue(scaleDict["Y"]));
+                bool success = Enum.TryParse((string)obj, out pokerCombination);
+                if (!success)
+                {
+                    Debug.LogError("Invalid Parse");
+                }
             }
-            else
-            {
-                scale = Vector2.one;
-            }
-            //Position
-            Vector2 position;
-            if (dict.ContainsKey("Position"))
-            {
-                Dictionary<string, object> positionDict = dict["Position"] as Dictionary<string, object>;
-                position = new(GetFloatValue(positionDict["X"]), GetFloatValue(positionDict["Y"]));
-            }
-            else
-            {
-                position = Vector2.zero;
-            }
-            FoodClass foodClass = new(ItemType.Food, doc.Id, ItemGrade.None, name,explain, sprite, scale, position);
-            foodClass.SetDegree(degree);
+            ////Scale
+            //Vector2 scale;
+            //if (dict.ContainsKey("Scale"))
+            //{
+            //    Dictionary<string, object> scaleDict = dict["Scale"] as Dictionary<string, object>;
+            //    scale = new(GetFloatValue(scaleDict["X"]), GetFloatValue(scaleDict["Y"]));
+            //}
+            //else
+            //{
+            //    scale = Vector2.one;
+            //}
+            ////Position
+            //Vector2 position;
+            //if (dict.ContainsKey("Position"))
+            //{
+            //    Dictionary<string, object> positionDict = dict["Position"] as Dictionary<string, object>;
+            //    position = new(GetFloatValue(positionDict["X"]), GetFloatValue(positionDict["Y"]));
+            //}
+            //else
+            //{
+            //    position = Vector2.zero;
+            //}
+            FoodClass foodClass = new(ItemType.Food, doc.Id, ItemGrade.None, name, explain, sprite, Vector2.one *0.6f, Vector2.zero);
+            foodClass.SetPokerCombination(pokerCombination);
             foodDict.Add(doc.Id, foodClass);
         }
     }
@@ -1204,23 +1213,65 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     [ContextMenu("SetDoc")]
     public async void SetDoc()
     {
-        await NewMethod("Fruit");
-        await NewMethod("Bread");
-        await NewMethod("Vegetable");
-        await NewMethod("Meat");
-    }
+        //List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Food");
+        //foreach (DocumentSnapshot doc in docs)
+        //{
+        //    Dictionary<string, object> dict = new()
+        //    {
 
-    private static async Task NewMethod(string _type)
-    {
-        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots($"Ingredient");
-        foreach (DocumentSnapshot doc in docs)
+        //        { "Effect", new List<object>() },
+        //        { "Explain", new Dictionary<string, string>(){ {"Ko","" },{"En","" } } },
+        //        { "Name", new Dictionary<string, string>(){ {"Ko","" },{"En","" } } },
+        //        { "PokerCombination", "" },
+        //    };
+        //    DataManager.dataManager.SetDocumentData(dict, "Food", doc.Id);
+
+        //}
+        //Debug.Log("Fin");
+        for (int i = 0; i < 9; i++)
         {
-            Dictionary<string, object> dict = new()
+            string pokerCombination;
+            switch (i)
             {
-
-                { "Scale", new Dictionary<string, object>(){ {"X",0.6f },{"Y",0.6f} } },
+                default:
+                    pokerCombination = "HighCard";
+                    break;
+                case 1:
+                    pokerCombination = "OnePair";
+                    break;
+                case 2:
+                    pokerCombination = "TwoPair";
+                    break;                
+                case 3:
+                    pokerCombination = "ThreeOfAKind";
+                    break;                
+                case 4:
+                    pokerCombination = "Straight";
+                    break;                
+                case 5:
+                    pokerCombination = "Flush";
+                    break;                
+                case 6:
+                    pokerCombination = "FullHouse";
+                    break;                
+                case 7:
+                    pokerCombination = "FourOfAKind";
+                    break;                
+                case 8:
+                    pokerCombination = "StraightFlush";
+                    break;
+            }
+            for (int j = 0; j < 3; j++)
+            {
+                Dictionary<string, object> dict = new()
+            {
+                { "Explain", new Dictionary<string, string>(){ {"Ko","" },{"En","" } } },
+                { "Name", new Dictionary<string, string>(){ {"Ko", $"{pokerCombination}_{j}" },{"En", $"{pokerCombination}_{j}" } } },
+                { "PokerCombination", pokerCombination },
+                { "Effect", new List<object>() },
             };
-            DataManager.dataManager.SetDocumentData(dict, "Ingredient",doc.Id);
+                DataManager.dataManager.SetDocumentData(dict, "Food", $"{pokerCombination}_{j}");
+            }
 
         }
         Debug.Log("Fin");
