@@ -159,7 +159,8 @@ public class ItemManager : MonoBehaviour
         GameManager.gameManager.SetGold(gold);
         List<CountableItem> addMainSub = new(main);
         addMainSub.AddRange(sub);
-        await AddCiesToInventory(addMainSub);
+        AddCiesToInventory(addMainSub);
+        await SetInventoryAtDb();
         if (GameManager.battleScenario)
         {
             GameManager.battleScenario.lootUi.SetLootAtUi(main, sub, gold);
@@ -170,7 +171,7 @@ public class ItemManager : MonoBehaviour
 
     }
 
-    public async Task AddCiesToInventory(List<CountableItem> addMainSub)
+    public void AddCiesToInventory(List<CountableItem> addMainSub)
     {
         foreach (CountableItem ci in addMainSub)//
         {
@@ -190,8 +191,7 @@ public class ItemManager : MonoBehaviour
                 existingSlot.ci.amount += ci.amount;
             }
         }
-        //Àü¸®Ç° Set
-        await SetInventoryAtDb();
+
     }
 
     public InventorySlot GetExistingSlot(Item _item)
@@ -206,14 +206,14 @@ public class ItemManager : MonoBehaviour
         int ableIndex = GetAbleIndex();
         if (ableIndex != -1)
             inventoryUi.inventorySlots[ableIndex].SetSlot(_ci);
-        
+
     }
-    int GetAbleIndex()
+    public int GetAbleIndex()
     {
         int ableIndex;
         for (ableIndex = 0; ableIndex < inventorySize; ableIndex++)
         {
-            if (inventoryUi.inventorySlots[ableIndex].ci == null)
+            if (inventoryUi.inventorySlots[ableIndex].ci == null || inventoryUi.inventorySlots[ableIndex].ci.amount ==0)
                 break;
         }
         if (ableIndex >= inventorySize)
@@ -457,12 +457,22 @@ public class ItemManager : MonoBehaviour
         for (int i = 0; i < 2; i++)
         {
             inventoryUi.equipSlots[i].expBar.SetActive(true);
-            inventoryUi.equipSlots[i].imageFill.fillAmount = 0;
+            inventoryUi.equipSlots[i].SetExp(0f);
         }
     }
     public void SetGetJobUi()
     {
         getJobUi.gameObject.SetActive(true);
         getJobUi.SetInfo(selectedCharacter);
+    }
+    public int GetNeedExp(ItemGrade _skillGrade)
+    {
+        switch (_skillGrade)
+        {
+            default:
+                return needExp[0];
+            case ItemGrade.Rare:
+                return needExp[1];
+        }
     }
 }

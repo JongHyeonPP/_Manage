@@ -19,17 +19,14 @@ public class InventorySlot : SlotBase
     public Transform panelBack;
     public Image imageGrade;
     public Image imageItem;
-    public TMP_Text textNum;
+    public TMP_Text textAmount;
     public int slotIndex;
     public GameObject imageNoSelect;
     public TMP_Text textPokerNum;
-    public Image imageCheck;
     private bool isSelected;
-    private bool isChecked;
     private void Awake()
     {
         isSelected = true;
-        SetCheck(false);
     }
     public void SetSlot(CountableItem _ci)
     {
@@ -104,11 +101,11 @@ public class InventorySlot : SlotBase
         imageGrade.gameObject.SetActive(true);
 
         if (ci.amount == 1)
-            textNum.gameObject.SetActive(false);
+            textAmount.gameObject.SetActive(false);
         else
         {
-            textNum.gameObject.SetActive(true);
-            textNum.text = ci.amount.ToString();
+            textAmount.gameObject.SetActive(true);
+            textAmount.text = ci.amount.ToString();
         }
 
         if (ci.item.itemType == ItemType.Ingredient)
@@ -127,13 +124,13 @@ public class InventorySlot : SlotBase
     {
         ci.amount += _value;
         if (ci.amount == 1)
-            textNum.gameObject.SetActive(false);
+            textAmount.gameObject.SetActive(false);
         else if(ci.amount == 0)
             ClearSlot();
         else
         {
-            textNum.gameObject.SetActive(true);
-            textNum.text = ci.amount.ToString();
+            textAmount.gameObject.SetActive(true);
+            textAmount.text = ci.amount.ToString();
         }
     }
     public void ClearSlot()
@@ -142,7 +139,7 @@ public class InventorySlot : SlotBase
         textPokerNum.transform.parent.gameObject.SetActive(false);
         imageGrade.gameObject.SetActive(false);
         imageItem.gameObject.SetActive(false);
-        textNum.gameObject.SetActive(false);
+        textAmount.gameObject.SetActive(false);
         imageHighlight.gameObject.SetActive(true);
         imageHighlight.color = new Color(
                 imageHighlight.color.r,
@@ -363,7 +360,7 @@ public class InventorySlot : SlotBase
     {
         if (ItemManager.itemManager.isUpgradeCase)
         {
-            SetCheck(!isChecked);
+            SelectInUpgradeCase();
         }
         else
         {
@@ -399,9 +396,14 @@ public class InventorySlot : SlotBase
         }
 
     }
-    public void SetCheck(bool _isCheck)
+
+    private void SelectInUpgradeCase()
     {
-        isChecked = _isCheck;
-        imageCheck.gameObject.SetActive(_isCheck);
+        if (ci.amount == 0)
+            return;
+        if (!ItemManager.itemManager.upgradeSkillUi.SetItemToUpgradeSlot(ci.item, this))
+            return;
+        ci.amount--;
+        textAmount.text = ci.amount.ToString();
     }
 }

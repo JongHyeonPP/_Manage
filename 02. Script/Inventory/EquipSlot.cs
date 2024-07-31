@@ -8,6 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEngine.TextCore.Text;
 
 public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPointerClickHandler
 {
@@ -19,8 +20,9 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     public TMP_Text textLevel;
     public GameObject expBar;
     public Image imageFill;
-    private void Awake()
+    private new void Awake()
     {
+        base.Awake();
         expBar.SetActive(false);
     }
     public void OnPointerEnter(PointerEventData eventData)
@@ -87,12 +89,17 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
             objectCategori.SetActive(false);
         }
     }
+    public void SetExp(float _exp)
+    {
+        imageFill.fillAmount = (float)_exp /ItemManager.itemManager.GetNeedExp(item.itemGrade);
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (expBar.activeSelf)
         {
-            ItemManager.itemManager.upgradeSkillUi.SetUpgradeSkillUi((SkillAsItem)item, index);
             ItemManager.itemManager.upgradeSkillUi.gameObject.SetActive(true);
+            ItemManager.itemManager.upgradeSkillUi.InitUpgradeSkillUi((SkillAsItem)item, index);
         }
     }
 }

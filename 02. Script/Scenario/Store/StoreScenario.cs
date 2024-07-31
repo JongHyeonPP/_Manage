@@ -12,12 +12,13 @@ public class StoreScenario : MonoBehaviour
     public StoreUi storeUi;
     public List<StoreSelect> storeSelects;
     public GameObject selectLight;
-
+    public GameObject raycastBlock;
     private void Awake()
     {
         GameManager.storeScenario = this;
         cookUi.gameObject.SetActive(false);
         selectLight.SetActive(false);
+        raycastBlock.SetActive(false);
         //storeUi.gameObject.SetActive(false);
     }
     public void NextButtonClicked()
@@ -25,10 +26,10 @@ public class StoreScenario : MonoBehaviour
         SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
     }
 
-    public void OnPointerClick(StoreCase _storeCase)
+    public void OnMediumClicked(StoreCase _storeCase)
     {
         selectLight.SetActive(false);
-        foreach (var x in storeSelects)
+        foreach (StoreSelect x in storeSelects)
         {
             x.imageMedium.SetActive(false);
         }
@@ -48,5 +49,10 @@ public class StoreScenario : MonoBehaviour
         {
             x.imageMedium.SetActive(true);
         }
+    }
+    public void OnRaycastBlockClicked()
+    {
+        cookUi.gameObject.SetActive(false);
+        //storeUi.gameObject.SetActive(false);
     }
 }

@@ -12,31 +12,32 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
     private readonly float _highlightAlpha = 0.5f;
     private readonly float _highlightFadeDuration = 0.2f;
     private float _currentHLAlpha = 0f;
-    private void Awake()
+    protected void Awake()
     {
-        imageHighlight.color = new Color(
-    imageHighlight.color.r,
-    imageHighlight.color.g,
-    imageHighlight.color.b,
-    0f
-);
-
+        SetHighLightAlphaZero();
     }
     private IEnumerator HighlightFadeInRoutine()
     {
         StopCoroutine(nameof(HighlightFadeOutRoutine));
-        //imageHighlight.gameObject.SetActive(true);
 
         float unit = _highlightAlpha / _highlightFadeDuration;
 
-        for (; _currentHLAlpha <= _highlightAlpha; _currentHLAlpha += unit * Time.deltaTime)
+        _currentHLAlpha = 0f;
+        while (_currentHLAlpha < _highlightAlpha)
         {
+            _currentHLAlpha += unit * Time.deltaTime;
+            if (_currentHLAlpha > _highlightAlpha)
+            {
+                _currentHLAlpha = _highlightAlpha;
+            }
+
             imageHighlight.color = new Color(
                 imageHighlight.color.r,
                 imageHighlight.color.g,
                 imageHighlight.color.b,
                 _currentHLAlpha
             );
+
 
             yield return null;
         }
@@ -66,7 +67,6 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
 
     public void HightlightOn()
     {
-        if (ItemManager.itemManager.inventoryUi.draggingSlot != null || this)
             if (highlightCoroutine != null)
             {
                 StopCoroutine(highlightCoroutine);
@@ -83,5 +83,14 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
         }
         highlightCoroutine = StartCoroutine(HighlightFadeOutRoutine());
         ItemManager.itemManager.inventoryUi.targetInventorySlot = null;
+    }
+    public void SetHighLightAlphaZero()
+    {
+        imageHighlight.color = new Color(
+imageHighlight.color.r,
+imageHighlight.color.g,
+imageHighlight.color.b,
+0f
+);
     }
 }

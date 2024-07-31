@@ -390,7 +390,7 @@ public class LobbyScenario : MonoBehaviour
 
             WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType]["Default"];
             CharacterData data = _slot.templateObject.AddComponent<CharacterData>();
-            data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new SkillAsItem[2] { null, null},new float[2] {0,0 } ,weapon);
+            data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new SkillAsItem[2] { null, null},new int[2] {0,0 } ,weapon);
             data.characterHierarchy.SetWeaponSprite(weapon);
             characterDataList[i] = data;
 

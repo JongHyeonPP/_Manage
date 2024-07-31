@@ -106,7 +106,7 @@ public class InventoryUi : MonoBehaviour
             for (int i = 0; i < 2; i++)
             {
                 equipSlots[i].expBar.SetActive(true);
-                equipSlots[i].imageFill.fillAmount = character.exp[i] / ItemManager.needExp[i];
+                equipSlots[i].SetExp((float)character.exp[i]);
             }
         else
         {
@@ -163,6 +163,8 @@ public class InventoryUi : MonoBehaviour
             if (slot.ci != null && slot.ci.item.itemType == ItemType.Skill && ((SkillAsItem)slot.ci.item).categori == _skillCategori)
             {
                 isActive = true;
+                slot.textAmount.text = slot.ci.amount.ToString();
+                slot.textAmount.gameObject.SetActive(true);
             }
             slot.SetSelected(isActive);
         }
@@ -262,12 +264,5 @@ public class InventoryUi : MonoBehaviour
         panelInventory.AddComponent<GraphicRaycaster>();
         canvas.overrideSorting = true;
         canvas.sortingOrder = 7;
-    }
-    public void SetSlotCheckAll(bool _isCheck)
-    {
-        foreach (InventorySlot slot in inventorySlots)
-        {
-            slot.SetCheck(_isCheck);
-        }
     }
 }

@@ -6,6 +6,7 @@ using BattleCollection;
 using Unity.VisualScripting;
 using EnumCollection;
 using UnityEngine.UI;
+using Firebase.Firestore;
 public class GetJobUi : MonoBehaviour
 {
     string jobName;
@@ -64,6 +65,11 @@ public class GetJobUi : MonoBehaviour
     private IEnumerator NextJobPhaseCor()
     {
         SetJob();
+        FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        {
+            await ItemManager.itemManager.SetInventoryAtDb();
+            await ItemManager.itemManager.SetCharacterAtDb();
+        });
         jobCh.CopyHierarchySprite(from);
         phase0.gameObject.SetActive(false);
         phase1.gameObject.SetActive(true);
@@ -77,6 +83,8 @@ public class GetJobUi : MonoBehaviour
         string replaced = explainStr[GameManager.language].Replace("{jobName}", jobName);
         textExplain.text = replaced;
         jobCh.animator.enabled = true;
+
+
     }
     IEnumerator FadeOutParticleSystemAlpha()
     {

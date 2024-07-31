@@ -32,6 +32,6 @@ public class StoreSelect : MonoBehaviour
     {
         if (!GameManager.storeScenario)
             return;
-        GameManager.storeScenario.OnPointerClick(storeCase);
+        GameManager.storeScenario.OnMediumClicked(storeCase);
     }
 }

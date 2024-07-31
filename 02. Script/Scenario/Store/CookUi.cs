@@ -29,6 +29,7 @@ public class CookUi : MonoBehaviour
         if (!GameManager.gameManager)
             return;
         textResult.text = (GameManager.language == Language.Ko) ? "노 카드" : "No Card";
+        imageResult.gameObject.SetActive(false);
         textName.text = string.Empty;
         var inventorySlots = ItemManager.itemManager.inventoryUi.inventorySlots;
         var cies = inventorySlots
@@ -130,15 +131,14 @@ public class CookUi : MonoBehaviour
 
     public PokerCombination EvaluateHand(List<IngredientClass> _hand)
     {
-        if (_hand == null || _hand.Count == 0)
-            return PokerCombination.NoCard;
+
 
         // 손에 있는 카드를 정렬
         var sortedHand = _hand.OrderBy(card => card.pokerNum).ToList();
 
         // 각 포커 핸드의 체크 로직
-        bool isFlush = sortedHand.Count >= 5 && IsFlush(sortedHand);
-        bool isStraight = sortedHand.Count >= 5 && IsStraight(sortedHand);
+        bool isFlush = IsFlush(sortedHand);
+        bool isStraight = IsStraight(sortedHand);
         bool isStraightFlush = isFlush && isStraight;
         bool isFourOfAKind = IsFourOfAKind(sortedHand);
         bool isFullHouse = IsFullHouse(sortedHand);
@@ -147,7 +147,9 @@ public class CookUi : MonoBehaviour
         bool isOnePair = IsOnePair(sortedHand);
         PokerCombination pokerCombination;
         // 포커 핸드의 우선순위에 따라 결과를 반환
-        if (isStraightFlush)
+        if (_hand == null || _hand.Count == 0)
+            pokerCombination = PokerCombination.NoCard;
+        else if (isStraightFlush)
             pokerCombination = PokerCombination.StraightFlush;
         else if (isFourOfAKind)
             pokerCombination = PokerCombination.FourOfAKind;
@@ -185,11 +187,15 @@ public class CookUi : MonoBehaviour
 
     private bool IsFlush(List<IngredientClass> hand)
     {
+        if (hand.Count != 5)
+            return false;
         return hand.All(card => card.ingredientType == hand[0].ingredientType);
     }
 
     private bool IsStraight(List<IngredientClass> hand)
     {
+        if (hand.Count != 5)
+            return false;
         for (int i = 0; i < hand.Count - 1; i++)
         {
             if (hand[i].pokerNum + 1 != hand[i + 1].pokerNum)
@@ -204,11 +210,14 @@ public class CookUi : MonoBehaviour
         return groupedByNum.Any(group => group.Count() >= 4);
     }
 
-    private bool IsFullHouse(List<IngredientClass> hand)
-    {
-        var groupedByNum = hand.GroupBy(card => card.pokerNum);
-        return groupedByNum.Count() == 2 && groupedByNum.Any(group => group.Count() == 3);
-    }
+private bool IsFullHouse(List<IngredientClass> hand)
+{
+    if (hand.Count != 5)
+        return false;
+
+    var groupedByNum = hand.GroupBy(card => card.pokerNum);
+    return groupedByNum.Count() == 2 && groupedByNum.Any(group => group.Count() == 3) && groupedByNum.Any(group => group.Count() == 2);
+}
 
     private bool IsThreeOfAKind(List<IngredientClass> hand)
     {
@@ -259,7 +268,7 @@ public class CookUi : MonoBehaviour
         bool isHalfFill;
         switch (_pokerCombination)
         {
-            default:
+            default://No Card
                 starNum = 0;
                 isHalfFill = false;
                 break;
@@ -332,18 +341,33 @@ public class CookUi : MonoBehaviour
     }
     public void CreateButtonClicked()
     {
-        if (!pokerSlots.Select(data => data.ingredient).Contains(null))
+        if (pokerSlots.Select(data => data.ingredient).Contains(null))
         {
-            StartCoroutine(CreateCoroutine());
+            GameManager.gameManager.SetPopUp("재료를 5개 선택해야합니다.", "5개");
+        }
+        else if (ItemManager.itemManager.GetAbleIndex() == -1)
+        {
+            GameManager.gameManager.SetPopUp("인벤토리를 비워주세요.");
         }
         else
         {
-            GameManager.gameManager.SetPopUp("재료를 5개 선택해야합니다.","5개");
+            StartCoroutine(CreateCoroutine());
         }
     }
     public IEnumerator CreateCoroutine()
     {
-        Debug.Log(ItemManager.itemManager.inventoryUi.inventorySlots);
+        //Clear
+
+        foreach (var x in ItemManager.itemManager.inventoryUi.inventorySlots.Where(data => data.ci != null))
+        {
+            x.ChangeCiAmount(0);
+        }
+        List<FoodClass> ableFoods = LoadManager.loadManager.foodDict.Values.Where(data => data.pokerCombination == currentCombination).ToList();
+        FoodClass selectedFood = ableFoods[Random.Range(0, ableFoods.Count)];
+        ItemManager.itemManager.SetItemToAbleIndex(new(selectedFood));
+        //ItemManager.itemManager.SetInventoryAtDb();
+
+
         imageResult.gameObject.SetActive(false);
         parentPokerSlot.enabled = false;
         RectTransform rect = imageResult.GetComponent<RectTransform>();
@@ -358,26 +382,23 @@ public class CookUi : MonoBehaviour
         parentPokerSlot.enabled = true;
         yield return StartCoroutine(FadeInOut(imageFire, 1f, false));
         imageFire.gameObject.SetActive(false);
-        foreach (PokerSlot slot in pokerSlots)
-        {
-            slot.ResetAlpha();
-        }
-        List<FoodClass> ableFoods = LoadManager.loadManager.foodDict.Values.Where(data => data.pokerCombination == currentCombination).ToList();
-        FoodClass selecedFood = ableFoods[Random.Range(0, ableFoods.Count)];
-        imageResult.color = new Color(1, 1, 1, 0);
-        imageResult.gameObject.SetActive(true);
-        StartCoroutine(FadeInOut(imageResult, 1f, true));
-        ItemManager.itemManager.SetItemToAbleIndex(new(selecedFood));
-        //Clear
         foreach (var x in pokerSlots)
         {
             x.ClearPoker();
         }
-        foreach (var x in ItemManager.itemManager.inventoryUi.inventorySlots.Where(data=>data.ci!=null))
+        foreach (PokerSlot slot in pokerSlots)
         {
-            x.ChangeCiAmount(0);
+            slot.ResetAlpha();
         }
-        textName.text = selecedFood.name[GameManager.language];
+
+
+        imageResult.sprite = selectedFood.sprite;
+        imageResult.color = new Color(1, 1, 1, 0);
+        imageResult.gameObject.SetActive(true);
+        StartCoroutine(FadeInOut(imageResult, 1f, true));
+
+
+        textName.text = selectedFood.name[GameManager.language];
 
         textResult.text = "";
     }
@@ -403,5 +424,10 @@ public class CookUi : MonoBehaviour
     private void OnDisable()
     {
         ResetPoker();
+        GameManager.storeScenario.raycastBlock.SetActive(false);
+    }
+    private void OnEnable()
+    {
+        GameManager.storeScenario.raycastBlock.SetActive(true);
     }
 }

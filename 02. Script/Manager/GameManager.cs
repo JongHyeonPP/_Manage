@@ -320,7 +320,7 @@ public class GameManager : MonoBehaviour
             float resist;
             float speed;
             SkillAsItem[] skills = new SkillAsItem[2];
-            float[] exp = new float[2];
+            int[] exp = new int[2];
             WeaponClass weapon;
 
             Sprite hair = null,
@@ -402,7 +402,7 @@ public class GameManager : MonoBehaviour
                 List<object> list = (List<object>)obj;
                 for (int i1 = 0; i1 < list.Count; i1++)
                 {
-                  exp[i1] = GetFloatValue(list[i1]);
+                  exp[i1] = (int)(long)list[i1];
                 }
             }
             if (tempDict.TryGetValue("Body", out obj))
