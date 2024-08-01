@@ -70,6 +70,7 @@ public class GameManager : MonoBehaviour
     public TMP_Text textGold;
     public TMP_Text textFame;
     public PopUpUi popupUi;
+    public GameObject uiRaycastBlock;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -85,6 +86,7 @@ public class GameManager : MonoBehaviour
             //Until Steam API
             uid = "KF5U1XMs5cy7n13dgKjF";
             popupUi.gameObject.SetActive(false);
+            uiRaycastBlock.gameObject.SetActive(false);
         }
     }
     async void Start()

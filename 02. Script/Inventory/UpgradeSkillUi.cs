@@ -16,6 +16,7 @@ public class UpgradeSkillUi : MonoBehaviour
     public TMP_Text textSkillGrade;
     public List<UpgradeSkillSlot> slots;
     private int skillIndex;
+
     private void Awake()
     {
         inventoryUi = ItemManager.itemManager.inventoryUi;
@@ -50,17 +51,34 @@ public class UpgradeSkillUi : MonoBehaviour
         Destroy(ItemManager.itemManager.inventoryUi.panelInventory.GetComponent<Canvas>());
         ItemManager.itemManager.isUpgradeCase = false;
         inventoryUi.SelectButtonSelect(inventoryUi.currentSelectButton);
+        ResetUpgradeSkillUi();
 
-        초기화하기
+    }
+    public void ResetUpgradeSkillUi()
+    {
+        foreach (UpgradeSkillSlot slot in slots.Where(data => data.targetInventorySlot))
+        {
+            slot.targetInventorySlot.ChangeCiAmount(slot.ci.amount);
+            for (int i = 0; i < slot.ci.amount; i++)
+            {
+                skillExpBar.DecreaseExpectValue(slot.ci.item.itemGrade);
+            }
+            slot.ClearSlot();
+        }
     }
     public bool SetItemToUpgradeSlot(Item _item, InventorySlot _targetInventorySlot)
     {
+        if (skillExpBar.isOperating)
+        {
+            Debug.Log("강화 진행 중");
+            return false;
+        }
         if (!skillExpBar.IncreaseExpectValue(_item.itemGrade))
         {
             GameManager.gameManager.SetPopUp("더 이상 강화할 수 없습니다.");
             return false;
         }
-        UpgradeSkillSlot existSlot = slots.Where(data => data.ci != null).Where(data=>data.ci.item.itemId == _item.itemId).FirstOrDefault();
+        UpgradeSkillSlot existSlot = slots.Where(data => data.ci != null).Where(data => data.ci.item.itemId == _item.itemId).FirstOrDefault();
         if (existSlot == null)
         {
             UpgradeSkillSlot emptySlot = slots.Where(data => data.ci == null).FirstOrDefault();
@@ -110,30 +128,61 @@ public class UpgradeSkillUi : MonoBehaviour
             SkillAsItem newSkillAsItem = newSkill.GetAsItem((int)itemGrade);
             character.skillAsIItems[skillIndex] = newSkillAsItem;
             inventoryUi.equipSlots[skillIndex].SetSlot(newSkillAsItem);
-            string skillGradeStr = string.Empty;
-            for (int i = 0; i <= (int)newSkillAsItem.itemGrade; i++)
-            {
-                skillGradeStr += 'I';
-            }
-            textSkillGrade.text = skillGradeStr;
         }
         inventoryUi.equipSlots[skillIndex].SetExp(exp);
         character.exp[skillIndex] = exp;
 
-        foreach (UpgradeSkillSlot slot in slots.Where(data=>data.targetInventorySlot!=null))
+        foreach (UpgradeSkillSlot slot in slots.Where(data => data.targetInventorySlot != null))
         {
             if (slot.targetInventorySlot.ci.amount == 0)
             {
-                slot.targetInventorySlot.ci = null;
+                slot.targetInventorySlot.ChangeCiAmount(0);
             }
             slot.ClearSlot();
         }
         {
-            FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
-            {
-                ItemManager.itemManager.SetCharacterAtDb();
-                ItemManager.itemManager.SetInventoryAtDb();
-            });
+            //FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+            //{
+            //    ItemManager.itemManager.SetCharacterAtDb();
+            //    ItemManager.itemManager.SetInventoryAtDb();
+            //});
         }
+    }
+
+    public IEnumerator UpdateSkillGrade(ItemGrade _grade)
+    {
+        // 1에서 0으로 알파값 변경
+        float duration = 0.5f;
+        float elapsedTime = 0f;
+        Color color = textSkillGrade.color;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            color.a = Mathf.Lerp(1f, 0f, elapsedTime / duration);
+            textSkillGrade.color = color;
+            yield return null;
+        }
+
+        // 원래 메서드 내용 수행
+        string skillGradeStr = string.Empty;
+        for (int i = 0; i <= (int)_grade; i++)
+        {
+            skillGradeStr += 'I';
+        }
+        textSkillGrade.text = skillGradeStr;
+
+        // 0에서 1로 알파값 변경
+        elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            color.a = Mathf.Lerp(0f, 1f, elapsedTime / duration);
+            textSkillGrade.color = color;
+            yield return null;
+        }
+
+        color.a = 1f;
+        textSkillGrade.color = color;
     }
 }

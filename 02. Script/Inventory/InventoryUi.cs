@@ -38,6 +38,7 @@ public class InventoryUi : MonoBehaviour
     public InventorySlot draggingSlot;
     public InventorySlot throwSlot;
     public SelectButton currentSelectButton;
+    public ParentStatusUp parentStatusUp;
 
     private void Awake()
     {
@@ -48,6 +49,11 @@ public class InventoryUi : MonoBehaviour
     private void OnEnable()
     {
         currentSelectButton = selectButtons[0];
+        GameManager.gameManager.uiRaycastBlock.SetActive(true);
+    }
+    private void OnDisable()
+    {
+        GameManager.gameManager.uiRaycastBlock.SetActive(false);
     }
     private void Start()
     {
@@ -265,4 +271,5 @@ public class InventoryUi : MonoBehaviour
         canvas.overrideSorting = true;
         canvas.sortingOrder = 7;
     }
+
 }

@@ -24,8 +24,9 @@ public class InventorySlot : SlotBase
     public GameObject imageNoSelect;
     public TMP_Text textPokerNum;
     private bool isSelected;
-    private void Awake()
+    private new void Awake()
     {
+        base.Awake();
         isSelected = true;
     }
     public void SetSlot(CountableItem _ci)
@@ -275,20 +276,27 @@ public class InventorySlot : SlotBase
         CharacterData targetCharacter = ItemManager.itemManager.selectedCharacter;
         switch (itemType)
         {
-            default:
+            case ItemType.Weapon:
+                WeaponClass newWeapon = curCi.item as WeaponClass;
+                WeaponClass previousWeapon = targetCharacter.weapon;
+                float maxHp = newWeapon.hp - previousWeapon.hp;
+                float ability = newWeapon.ability - previousWeapon.ability;
+                float resist = newWeapon.resist - previousWeapon.resist;
+                float speed = newWeapon.speed - previousWeapon.resist;
+                ItemManager.itemManager.inventoryUi.parentStatusUp.StartShowTextsStatus(0f, maxHp, ability, resist, speed);
                 targetCharacter.ChangeWeapon(curCi.item as WeaponClass);
                 break;
             case ItemType.Skill:
                 targetCharacter.skillAsIItems[targetSlot.index] = curCi.item as SkillAsItem;
+                if (!targetCharacter.skillAsIItems.Contains(null))
+                {
+                    ItemManager.itemManager.inventoryUi.jobSlot.buttonExclaim.SetActive(true);
+                }
                 break;
         }
 
         targetSlot.HightlightOff();
 
-        if (!targetCharacter.skillAsIItems.Contains(null))
-        {
-            ItemManager.itemManager.inventoryUi.jobSlot.buttonExclaim.SetActive(true);
-        }
     }
 
     private void SetOriginLocation()
@@ -302,7 +310,7 @@ public class InventorySlot : SlotBase
         if (!isSelected)
             return;
         HightlightOn();
-        if (ItemManager.itemManager.inventoryUi.draggingSlot !=null)
+        if (ItemManager.itemManager.inventoryUi.draggingSlot != null)
         {
             ItemManager.itemManager.inventoryUi.targetInventorySlot = this;
         }
@@ -332,13 +340,11 @@ public class InventorySlot : SlotBase
                 xOffset -= 80f;
                 break;
         }
-        if (!ItemManager.itemManager.isUpgradeCase)
-        {
-            if (ci != null && !ItemManager.itemManager.inventoryUi.draggingSlot)
-            {
 
-                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition + new Vector3(xOffset, yOffset), ci.item);
-            }
+        if (ci != null && !ItemManager.itemManager.inventoryUi.draggingSlot)
+        {
+
+            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition + new Vector3(xOffset, yOffset), ci.item);
         }
     }
 
@@ -385,6 +391,9 @@ public class InventorySlot : SlotBase
                         {
                             ItemManager.itemManager.inventoryUi.targetEquipSlot = ItemManager.itemManager.inventoryUi.equipSlots[1];
                         }
+                        break;
+                    case ItemType.Food:
+                        Debug.Log("요리 클릭클릭");
                         break;
                 }
                 if (ItemManager.itemManager.inventoryUi.targetEquipSlot)

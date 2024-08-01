@@ -119,7 +119,7 @@ namespace EnumCollection
     }
     public enum StatusType
     {
-        Hp, Ability, Resist, Speed
+        Hp, HpMax, Ability, Resist, Speed
     }
     public enum StateInMap
     {
