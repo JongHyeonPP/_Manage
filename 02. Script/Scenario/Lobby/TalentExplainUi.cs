@@ -12,7 +12,7 @@ public class TalentExplainUi : MonoBehaviour
     {
         textTitle.text = _title;
         textExplain.text = _explain;
-        float width = textTitle.preferredWidth + 100f;
+        float width = Mathf.Max(textTitle.preferredWidth, textExplain.preferredWidth) + 100f;
         float height =  textExplain.preferredHeight + 120f;
         Canvas.ForceUpdateCanvases();
         rectTransform.sizeDelta = new(width, height);

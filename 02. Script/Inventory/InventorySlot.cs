@@ -318,25 +318,16 @@ public class InventorySlot : SlotBase
         {
             ItemManager.itemManager.inventoryUi.targetInventorySlot = null;
         }
-        int row = slotIndex / 5;
-        float yOffset = 0f;
-        switch (row)
-        {
-            case 3:
-                yOffset += 40f;
-                break;
-            case 4:
-                yOffset += 80f;
-                break;
-        }
-        int column = slotIndex % 5;
+        int row = slotIndex / 6;
+
+        int column = slotIndex % 6;
         float xOffset = 0f;
         switch (column)
         {
-            case 3:
+            case 4:
                 xOffset -= 40f;
                 break;
-            case 4:
+            case 5:
                 xOffset -= 80f;
                 break;
         }
@@ -344,7 +335,7 @@ public class InventorySlot : SlotBase
         if (ci != null && !ItemManager.itemManager.inventoryUi.draggingSlot)
         {
 
-            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent.parent, transform.localPosition + new Vector3(xOffset, yOffset), ci.item);
+            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector2(xOffset, 40f), ci.item);
         }
     }
 

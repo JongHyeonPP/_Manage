@@ -41,17 +41,17 @@ abstract public class BaseInBattle : MonoBehaviour
     public HpBarInUi hpBarInUi;
     public Dictionary<EffectType, float> TempEffects = new();//전투동안 지속되는 효과
     public Dictionary<EffectType, float> EffectsByAtt = new();//대미지를 입히면 적용시키는 효과, 비중첩
-    public BaseInBattle targetOpponent;
+    public BaseInBattle targetOpponent { get; set; }
     public BaseInBattle targetAlly;
 
     public bool IsEnemy { get; protected set; }
     public bool isMonster { get; protected set; }
     //스킬 정보
-    private List<SkillActiveForm> skillQueue = new();
-    private List<PassiveEffect> passiveEffects;
+    [SerializeField]private List<SkillActiveForm> skillQueue = new();
+    [SerializeField] private List<PassiveEffect> passiveEffects;
 
     public Animator animator;
-    public GridObject grid;
+    public GridObject grid { get; set; }
     private Coroutine moveCoroutine;
     private readonly float ARRIVAL_TIME = 2f;
     public Transform rootTargetTransform;
@@ -60,6 +60,7 @@ abstract public class BaseInBattle : MonoBehaviour
     public abstract void SetAnimParam();
     protected void InitBase(GridObject _grid)
     {
+        grid = _grid;
         transform.SetParent(_grid.transform);
         rootTargetTransform = new GameObject("RootTarget").transform;
         rootTargetTransform.SetParent(transform.GetChild(0));
@@ -91,14 +92,14 @@ abstract public class BaseInBattle : MonoBehaviour
             //해야함!
             foreach (BaseInBattle x in IsEnemy ? BattleScenario.characters : BattleScenario.enemies)
             {
-                x.FindNewTargetOpponent();
+                if (x)
+                    x.FindNewTargetOpponent();
             }
             foreach (BaseInBattle x in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
             {
-                x.FindNewTargetAlly();
+                if (x)
+                    x.FindNewTargetAlly();
             }
-
-
         }
 
         if (moveCoroutine != null)
@@ -176,6 +177,7 @@ abstract public class BaseInBattle : MonoBehaviour
     }
     public void ApplyValue(float _value, EffectType _effectType, bool _byAtt = false)
     {
+        Debug.Log(_effectType + " : " + _value);
         if (_byAtt)
         {
             if (!EffectsByAtt.ContainsKey(_effectType))
@@ -337,8 +339,8 @@ abstract public class BaseInBattle : MonoBehaviour
         }
         void NewTargetForOther()
         {
-            List<BaseInBattle> enemiesBase = BattleScenario.enemies.Where(item => !item.isDead).ToList();
-            List<BaseInBattle> charactersBase = BattleScenario.characters.Where(item => !item.isDead).ToList();
+            List<BaseInBattle> enemiesBase = BattleScenario.enemies.Where(item =>item&& !item.isDead).ToList();
+            List<BaseInBattle> charactersBase = BattleScenario.characters.Where(item => item&& !item.isDead).ToList();
             foreach (BaseInBattle x in IsEnemy ? enemiesBase : charactersBase)
             {
                 if (x != this)
@@ -358,16 +360,34 @@ abstract public class BaseInBattle : MonoBehaviour
         abilityInBattle = ability;
         speedInBattle = speed;
         resistInBattle = resist;
-        List<SkillActiveForm> SkillActiveForms = new();
-        SkillActiveForms.Add(new SkillActiveForm(this));
+        passiveEffects = new();
+        List<SkillActiveForm> SkillActiveForms = new()
+        {
+            new SkillActiveForm(this)
+        };
+        int cooldownIndex = 0;
         for (int i = 0; i < skillInBattles.Count; i++)
         {
             SkillInBattle skillInBattle = skillInBattles[i];
             if (skillInBattle == null)
                 continue;
-            SkillActiveForm skillActiveForm = new SkillActiveForm(this, skillInBattle);
-            SkillActiveForms.Add(skillActiveForm);
-            passiveEffects = skillInBattle.GetPassiveEffects(this);
+            CooldownSlot targetCooldownSlot = null;
+            if (!IsEnemy)
+            {
+                if (skillInBattle.skillCategori != SkillCategori.Default)
+                {
+                    targetCooldownSlot = hpBarInUi.cooldownSlots[cooldownIndex++];
+                }
+            }
+            SkillActiveForm skillActiveForm = new SkillActiveForm(this, skillInBattle, targetCooldownSlot);
+            if (skillActiveForm.effectActiveForms.Count > 0)
+                SkillActiveForms.Add(skillActiveForm);
+            if (!IsEnemy)
+            {
+                List<PassiveEffect> passiveEffect = skillInBattle.GetPassiveEffects(this);
+                if (passiveEffect != null)
+                    passiveEffects.AddRange(passiveEffect);
+            }
         }
         for (int i = 0; i < SkillActiveForms.Count; i++)
         {
@@ -375,33 +395,37 @@ abstract public class BaseInBattle : MonoBehaviour
         }
     }
 
-    IEnumerator StartQueueCycle(SkillActiveForm _skllActiveForm)
+    IEnumerator StartQueueCycle(SkillActiveForm _skillActiveForm)
     {
-        yield return new WaitForSeconds(_skllActiveForm.skillInBattle.cooltime);
-        skillQueue.Add(_skllActiveForm);
+        if(_skillActiveForm.cooldownSlot)
+        _skillActiveForm.cooldownSlot.StartCooldown(_skillActiveForm.skillInBattle.cooltime / speedInBattle);
+        yield return new WaitForSeconds(_skillActiveForm.skillInBattle.cooltime/speedInBattle);
+        skillQueue.Add(_skillActiveForm);
         if (skillQueue.Count == 1)
-            StartCoroutine(QueueCycle(_skllActiveForm));
+            StartCoroutine(QueueCycle(_skillActiveForm));
     }
 
-    IEnumerator QueueCycle(SkillActiveForm _ab)
+    IEnumerator QueueCycle(SkillActiveForm _skillActiveForm)
     {
-        yield return _ab.ActiveSkill();
-        skillQueue.Remove(_ab);
+        yield return _skillActiveForm.ActiveSkill();
+        skillQueue.Remove(_skillActiveForm);
         //Next Skill
         if (skillQueue.Count > 0)
         {
-            yield return StartCoroutine(skillQueue[0].ActiveSkill());
+            StartCoroutine(QueueCycle(skillQueue[0]));
         }
-        yield return new WaitForSeconds(_ab.skillInBattle.cooltime);
-        skillQueue.Add(_ab);
+        if (_skillActiveForm.cooldownSlot)
+            _skillActiveForm.cooldownSlot.StartCooldown(_skillActiveForm.skillInBattle.cooltime / speedInBattle);
+        yield return new WaitForSeconds(_skillActiveForm.skillInBattle.cooltime/speedInBattle);
+        skillQueue.Add(_skillActiveForm);
         if (skillQueue.Count == 1)
-            StartCoroutine(QueueCycle(_ab));
+            StartCoroutine(QueueCycle(_skillActiveForm));
     }
     public void FindNewTargetOpponent()
     {
         List<BaseInBattle> targetByColumn;
         int targetColumn;
-        List<BaseInBattle> targetsBase = (IsEnemy ? BattleScenario.characters : BattleScenario.enemies).Where(item => !item.isDead).ToList();
+        List<BaseInBattle> targetsBase = (IsEnemy ? BattleScenario.characters : BattleScenario.enemies).Where(item => item!=null&& !item.isDead).ToList();
         if (targetsBase.Count == 0)
         {
             targetOpponent = null;
@@ -431,7 +455,7 @@ abstract public class BaseInBattle : MonoBehaviour
     public void FindNewTargetAlly()
     {
 
-        List<BaseInBattle> targetsBase = (IsEnemy ? BattleScenario.enemies : BattleScenario.characters).Where(item => !item.isDead).ToList();
+        List<BaseInBattle> targetsBase = (IsEnemy ? BattleScenario.enemies : BattleScenario.characters).Where(item =>item&& !item.isDead).ToList();
         targetsBase.Remove(this);
         if (targetsBase.Count == 0)
         {

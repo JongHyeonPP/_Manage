@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class StatusSlot_E : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class StatusSlot_Equip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     StatusExplain statusExplain;
     public StatusType statusType;

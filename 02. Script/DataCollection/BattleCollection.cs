@@ -2,6 +2,7 @@ using DefaultCollection;
 using EnumCollection;
 using HardLight2DUtil;
 using ItemCollection;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace BattleCollection
 {
-
+    [Serializable]
     public class SkillInBattle
     {
         public static float defaultAttackCooltime = 3f;
@@ -18,14 +19,15 @@ namespace BattleCollection
         public bool isAnim;
         public VisualEffect visualEffect { get; set; }
         public bool isPre;
-        public SkillCategori categori;
-        public SkillInBattle(float _coolTime, List<SkillEffect> _effects, bool _isAnim, VisualEffect _visualEffect, bool _isPre)
+        public SkillCategori skillCategori;
+        public SkillInBattle(float _coolTime, List<SkillEffect> _effects, bool _isAnim, VisualEffect _visualEffect, bool _isPre, SkillCategori _skillCategori)
         {
             cooltime = _coolTime;
             effects = _effects;
             isAnim = _isAnim;
             visualEffect = _visualEffect;
             isPre = _isPre;
+            skillCategori = _skillCategori;
         }
 
 
@@ -40,10 +42,12 @@ namespace BattleCollection
                 passiveEffect.value = _caster.CalcEffectValueByType(passiveEffect.value, effect.effectType);
                 passiveEffect.SetTargets(_caster);
                 passiveEffect.ApplyToTarget();
+                passiveEffects.Add(passiveEffect);
             }
             return passiveEffects;
         }
     }
+
     public abstract class SkillEffect
     {
         public int count;
@@ -67,6 +71,8 @@ namespace BattleCollection
         }
 
     }
+    [Serializable]
+
     public class PassiveEffect:SkillEffect
     {
         public bool byAtt = false;
@@ -304,15 +310,18 @@ namespace BattleCollection
             fromRoot = _fromRoot;
         }
     }
-
+    [Serializable]
     public class SkillActiveForm
     {
+        readonly float skillCastTime = 1f;
+
         public BaseInBattle caster;
         public List<ActiveEffect> effectActiveForms = new();
-        readonly float skillCastTime = 1f;
         public SkillInBattle skillInBattle;
-        public SkillActiveForm(BaseInBattle _caster, SkillInBattle _skillInBattle)
+        public CooldownSlot cooldownSlot; 
+        public SkillActiveForm(BaseInBattle _caster, SkillInBattle _skillInBattle , CooldownSlot _cooldownSlot)
         {
+            cooldownSlot = _cooldownSlot;
             skillInBattle = _skillInBattle;
             caster = _caster;
             foreach (SkillEffect effect in skillInBattle.effects)
@@ -328,8 +337,8 @@ namespace BattleCollection
         public SkillActiveForm(BaseInBattle _caster)
         {
             caster = _caster;
-
-            skillInBattle = new SkillInBattle(3f, new() { new ActiveEffect(1, false, 1f, EffectType.Damage, EffectRange.Dot, ValueBase.Ability, true, 0f, 0f) }, true, null, false);
+            List<SkillEffect> skillEffects = new List<SkillEffect>() { new ActiveEffect(1, false, 1f, EffectType.Damage, EffectRange.Dot, ValueBase.Ability, true, 0f, 0f) };
+            skillInBattle = new SkillInBattle(SkillInBattle.defaultAttackCooltime, skillEffects, true, LoadManager.loadManager.skillVisualEffectDict["Default"], false, SkillCategori.Default);
             effectActiveForms.Add(((ActiveEffect)skillInBattle.effects[0]).SetCaster(caster));
         }
 
@@ -390,27 +399,26 @@ namespace BattleCollection
                             List<BaseInBattle> targets = BattleScenario.GetTargetsByRange(effectForm.range, effectTarget);
                             if (skillInBattle.isPre)
                                 yield return new WaitForSeconds(3f);
-                            foreach (BaseInBattle x in targets)
+                            foreach (BaseInBattle target in targets)
                             {
-                                if (x.gameObject.activeSelf)
-                                    effectForm.ActiveEffect0nTarget(x);/////ÇÙ½É
+                                if (target.gameObject.activeSelf)
+                                    effectForm.ActiveEffect0nTarget(target);/////ÇÙ½É
+                                if (skillInBattle.visualEffect != null)
+                                {
+                                    GameManager.battleScenario.CreateVisualEffect(skillInBattle.visualEffect, target, true);
+                                }
                             }
                         }
                     }
                     for (int i = 0; i < ((repeatValue > 0) ? 2 : 1); i++)
                     {
-                        //Skill
-                        if (skillInBattle.visualEffect != null)
-                        {
-                            foreach (GridObject grid in targetGrids)
-                                if (grid.owner)
-                                    GameManager.battleScenario.CreateVisualEffect(skillInBattle.visualEffect, grid.owner, true);
-                        }
+
                         //Weapon
                         if (caster.weapon != null)
                             caster.StartCoroutine(WeaponVisualEffect());
                         if (skillInBattle.isAnim)
                         {
+
                             SkillAnim();
                             yield return new WaitForSeconds(skillCastTime);
                         }
@@ -430,6 +438,10 @@ namespace BattleCollection
             {
                 float minValue = SkillInBattle.defaultAttackCooltime;
                 float maxValue = 8;
+                if (skillInBattle.isAnim)
+                    caster.animator.speed = 0.5f;
+                else
+                    caster.animator.speed = 1f;
                 if (!caster.isMonster)
                     caster.animator.SetFloat("AttackState", (skillInBattle.cooltime - minValue) / (maxValue - minValue));
                 //caster.animator.SetFloat("NormalState", 0.5f);
@@ -449,7 +461,7 @@ namespace BattleCollection
                         yield return new WaitForSeconds(0.3f);
                         break;
                 }
-                if (skillInBattle.categori == SkillCategori.Default)
+                if (skillInBattle.skillCategori == SkillCategori.Default)
                     GameManager.battleScenario.CreateVisualEffect(caster.weapon.defaultVisualEffect, caster, false);
                 else
                     GameManager.battleScenario.CreateVisualEffect(caster.weapon.skillVisualEffect, caster, false);

@@ -7,6 +7,7 @@ using System.Linq;
 using System;
 using ItemCollection;
 using System.Threading.Tasks;
+using DefaultCollection;
 
 [Serializable]
 public class CharacterData:MonoBehaviour
@@ -25,8 +26,11 @@ public class CharacterData:MonoBehaviour
     public WeaponClass weapon;
     public CharacterHierarchy characterHierarchy;
     public CharacterInBattle characterAtBattle;
+    public List<TalentClass> talents;
+
     internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability,
-        float _resist, float _speed, int _gridIndex, SkillAsItem[] _skillasItems, int[] _exp, WeaponClass _weapon)
+        float _resist, float _speed, int _gridIndex, SkillAsItem[] _skillasItems, int[] _exp, WeaponClass _weapon,
+        List<TalentClass> _talents)
     {
         docId = _docId;
         jobClass = LoadManager.loadManager.jobsDict[_jobId];
@@ -42,6 +46,7 @@ public class CharacterData:MonoBehaviour
         weapon = _weapon;
         if (_jobId != "000")
             characterHierarchy.SetJobSprite(jobClass);
+        talents = _talents;
     }
     public void SetPermEffects(EffectType _effectType, float _value)
     {

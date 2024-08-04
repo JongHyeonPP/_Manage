@@ -29,7 +29,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     {
         if (expBar.activeSelf)
         {
-            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 100f, 0f), item);
+            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector3(50f,30f), item);
             HightlightOn();
         }
         else
@@ -37,7 +37,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
             InventorySlot draggingSlot = ItemManager.itemManager.inventoryUi.draggingSlot;
             if (item != null)
             {
-                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform.parent, transform.localPosition + new Vector3(0f, 100f, 0f), item);
+                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector3(50f, 30f), item);
             }
             if (!draggingSlot || draggingSlot.ci.item.itemType != itemType)
                 return;

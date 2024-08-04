@@ -4,7 +4,7 @@ using EnumCollection;
 using Firebase.Firestore;
 using ItemCollection;
 using LobbyCollection;
-using MapCollection;
+using StageCollection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +16,7 @@ using UnityEngine;
 public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해서 저장하고 있는 스크립트
 {
     public static LoadManager loadManager;
-    bool isInit = false;
+    public bool isInit = false;
     public Dictionary<string, Skill> skillsDict = new();//Key는 Document의 ID
     public Dictionary<string, JobClass> jobsDict = new();//Key는 스킬의 Index. Ex)200, 101
     public Dictionary<string, EnemyClass> enemyiesDict = new();//Key는 Document의 ID를 int로 parse
@@ -38,27 +38,23 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
     {
         if (!loadManager)
         {
+            isInit = false;
             loadManager = this;
         }
     }
-    public void Start()
+
+    public async Task LoadDbBaseData()
     {
-        StartAsync();
+        await LoadVisualEffect();
+        await InitSkill();
+        await Task.WhenAll(InitUserDoc(), InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
+            InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
+            InitNodeType());
+        InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
+        isInit = true;
+        Debug.Log("LoadComplete");
     }
-    async void StartAsync()
-    {
-        if (!isInit)
-        {
-            await LoadVisualEffect();
-            await InitSkill();
-            await Task.WhenAll(InitUserDoc(), InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
-                InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
-                InitNodeType());
-            InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
-            Debug.Log("LoadComplete");
-            isInit = true;
-        }
-    }
+
     async Task LoadVisualEffect()
     {
         await LoadVisualEffectType("Weapon", weaponVisualEffectDict);
@@ -670,29 +666,32 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             }
             List<TalentEffect> effects = new();
             {
-                List<object> effectList = dict["Effect"] as List<object>;
-                foreach (object effectobj in effectList)
+                if (dict.ContainsKey("Effect"))
                 {
-                    List<float> valueList = new();
-                    Dictionary<string, object> effectDict = effectobj as Dictionary<string, object>;
-                    EffectType effectType = EffectType.AttAscend;
-                    if (effectDict.TryGetValue("Type", out object obj))
+                    List<object> effectList = dict["Effect"] as List<object>;
+                    foreach (object effectobj in effectList)
                     {
-                        bool success = Enum.TryParse((string)obj, out effectType);
-                        if (!success)
+                        List<float> valueList = new();
+                        Dictionary<string, object> effectDict = effectobj as Dictionary<string, object>;
+                        EffectType effectType = EffectType.AttAscend;
+                        if (effectDict.TryGetValue("Type", out object obj))
                         {
-                            Debug.LogError("Invalid Parse");
+                            bool success = Enum.TryParse((string)obj, out effectType);
+                            if (!success)
+                            {
+                                Debug.LogError("Invalid Parse");
+                            }
                         }
+                        foreach (object x in (List<object>)effectDict["Value"])
+                        {
+                            valueList.Add(GetFloatValue(x));
+                        }
+                        effects.Add(new(valueList, effectType));
                     }
-                    foreach (object x in (List<object>)effectDict["Value"])
-                    {
-                        valueList.Add(GetFloatValue(x));
-                    }
-                    effects.Add(new(valueList, effectType));
                 }
             }
             Sprite sprite = talentSprites.Where(item => item.name == doc.Id).FirstOrDefault();
-            talentDict.Add(doc.Id, new TalentClass(name, (int)(long)dict["AbleLevel"], explain, effects, sprite));
+            talentDict.Add(doc.Id, new TalentClass(doc.Id, name, (int)(long)dict["AbleLevel"], explain, effects, sprite));
         }
     }
 

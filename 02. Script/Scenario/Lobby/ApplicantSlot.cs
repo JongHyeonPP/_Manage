@@ -26,9 +26,9 @@ public class ApplicantSlot : MonoBehaviour
     private readonly Color GreenHair = new Color(0f, 190f / 255f, 0f);
     public GameObject templateObject;
     public List<Sprite> numberTexture;
-    public Dictionary<string, object> bodyDict { get; private set; } = new();
+    public Dictionary<string, object> bodyDict = new();
 
-    public List<TalentClass> talents = new();
+    public List<TalentClass> talents { get; private set; } = new();
 
     private void Awake()
     {
@@ -67,7 +67,8 @@ public class ApplicantSlot : MonoBehaviour
         float talentEffect =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentEffectUp];
         float talentLevel =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentLevelUp];
         int talentNum = GameManager.AllocateProbability(0.1f, 0.6f, 0.25f, 0.05f);//0, 1, 2, 3°³
-        List<TalentClass> ableTalents = LoadManager.loadManager.talentDict.Where(item => item.Value.ableLevel <= talentLevel).Select(item =>item.Value).ToList();
+        //int talentNum = GameManager.AllocateProbability(0.5f, 0.5f);
+        List<TalentClass> ableTalents = LoadManager.loadManager.talentDict.Where(item => item.Value.ableLevel>=0).Where(item => item.Value.ableLevel <= talentLevel).Select(item =>item.Value).ToList();
         for (int i = 0; i < talentNum; i++)
         {
             TalentClass selectedTalent = ableTalents[Random.Range(0, ableTalents.Count)];
@@ -75,7 +76,11 @@ public class ApplicantSlot : MonoBehaviour
             talents.Add(selectedTalent);
             ableTalents.Remove(selectedTalent);
         }
-        ableTalents = ableTalents.OrderBy(item => item.ableLevel).ThenBy(item => item.ableLevel).ToList();
+        talents = talents.OrderBy(item => item.ableLevel).ThenBy(item => item.ableLevel).ToList();
+        if (talents.Count == 0)
+        {
+            talents.Add(LoadManager.loadManager.talentDict["NoTalent"]);
+        }
     }
 
     private void InitStatusInRange()

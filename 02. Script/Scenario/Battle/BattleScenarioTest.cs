@@ -66,7 +66,8 @@ public class BattleScenarioTest : MonoBehaviour
         BattleScenario.RefreshGrid();
         foreach (BaseInBattle x in BattleScenario.characters)
         {
-            x.StopBattle();
+            if (x)
+                x.StopBattle();
         }
         await battleScenario.StageClearAsync();
     }

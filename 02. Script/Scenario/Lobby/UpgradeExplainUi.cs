@@ -8,7 +8,7 @@ public class UpgradeExplainUi : MonoBehaviour
     private TMP_Text textExplain;
     private TMP_Text textInfo;
     float widthCorrection = 100f;
-    float heightCorrection = 100f;
+    float heightCorrection = 110f;
     public RectTransform rectTransform;
     void Awake()
     {

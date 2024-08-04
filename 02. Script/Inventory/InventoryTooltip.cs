@@ -11,21 +11,21 @@ public class InventoryTooltip : MonoBehaviour
     public TMP_Text categori;
     public TMP_Text grade;
     public TMP_Text explain;
-    public StatusSlot_T hpSlot;
-    public StatusSlot_T abilitySlot;
-    public StatusSlot_T resistSlot;
-    public StatusSlot_T speedSlot;
+    public StatusSlot_I hpSlot;
+    public StatusSlot_I abilitySlot;
+    public StatusSlot_I resistSlot;
+    public StatusSlot_I speedSlot;
     public Transform parentStatus; 
-    RectTransform rect;
+    RectTransform rectTransform;
     GridLayoutGroup parentStatus_Glg;
-    readonly float baseHeight = 160f;
-    readonly float verticalSpace = 70f;
+    readonly float baseHeight = 170f;
+    readonly float verticalSpace = 20f;
     private void Awake()
     {
-        rect = GetComponent<RectTransform>();
+        rectTransform = GetComponent<RectTransform>();
         parentStatus_Glg = parentStatus.GetComponent<GridLayoutGroup>();
     }
-    public void SetTooltipInfo(Item _item)
+    public void SetTooltipInfo(Item _item, Vector3 _localPosition)
     {
         _item.SetSpriteToImage(itemImage);
         itemName.text = _item.name[GameManager.language];
@@ -73,8 +73,32 @@ public class InventoryTooltip : MonoBehaviour
                 gradeStr = (GameManager.language == Language.Ko) ? "유니크" : "Unique";
                 break;
         }
+        if (_item.itemType == ItemType.Ingredient)
+        {
+            switch (((IngredientClass)_item).ingredientType)
+            {
+                case IngredientType.Meat:
+                    gradeStr = (GameManager.language == Language.Ko) ? "고기" : "Meat";
+                    break;
+                case IngredientType.Fish:
+                    gradeStr = (GameManager.language == Language.Ko) ? "해산물" : "Sea Food";
+                    break;
+                case IngredientType.Fruit:
+                    gradeStr = (GameManager.language == Language.Ko) ? "과일" : "Fruit";
+                    break;
+                case IngredientType.Vegetable:
+                    gradeStr = (GameManager.language == Language.Ko) ? "야채" : "Vegetiable";
+                    break;
+                case IngredientType.Special:
+                    
+                    break;
+            }
+        }
         grade.text = gradeStr;
         explain.text = _item.explain[GameManager.language];
+        float width = rectTransform.rect.width;
+        float height = baseHeight + explain.preferredHeight;
+        float yCorrection = explain.preferredHeight;
         if (_item.itemType == ItemType.Weapon)
         {
             WeaponClass _weapon = (WeaponClass)_item;
@@ -82,6 +106,8 @@ public class InventoryTooltip : MonoBehaviour
             abilitySlot.SetValue(_weapon.ability);
             resistSlot.SetValue(_weapon.resist);
             speedSlot.SetValue(_weapon.speed);
+            height += (parentStatus_Glg.cellSize.y + parentStatus_Glg.spacing.y)*2;
+            yCorrection += (parentStatus_Glg.cellSize.y + parentStatus_Glg.spacing.y) * 2;
         }
         else
         {
@@ -90,14 +116,10 @@ public class InventoryTooltip : MonoBehaviour
             resistSlot.gameObject.SetActive(false);
             speedSlot.gameObject.SetActive(false);
         }
-        int statusNum = 0;
-        foreach (Transform x in parentStatus)
-        {
-            if (x.gameObject.activeSelf)
-                statusNum++;
-        }
         Canvas.ForceUpdateCanvases();
-        rect.sizeDelta = new Vector2(rect.rect.width, baseHeight + explain.preferredHeight + (parentStatus_Glg.cellSize.y + parentStatus_Glg.spacing.y) * (statusNum+1 / 2));
-        parentStatus.localPosition = new Vector3(0f,-(explain.preferredHeight + verticalSpace),0f);
+
+        rectTransform.sizeDelta = new Vector2(width, height);
+        parentStatus.localPosition = new Vector2(0f,-(explain.preferredHeight + verticalSpace));
+        transform.localPosition = _localPosition + Vector3.up * yCorrection;
     }
 }

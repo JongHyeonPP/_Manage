@@ -71,7 +71,7 @@ public class CharacterInBattle : BaseInBattle
         GameManager.battleScenario.StartCoroutine(OnDead_Base());
         bool gameOverFlag = false;
         foreach (var x in BattleScenario.characters)
-            if (!x.isDead)
+            if (x&&!x.isDead)
                 gameOverFlag = true;
         if (!gameOverFlag)
         {

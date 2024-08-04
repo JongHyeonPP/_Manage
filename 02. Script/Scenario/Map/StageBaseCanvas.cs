@@ -7,7 +7,7 @@ using EnumCollection;
 using System.Linq;
 using UnityEngine.UI;
 using Unity.VisualScripting;
-using MapCollection;
+using StageCollection;
 using UnityEngine.SceneManagement;
 
 public class StageBaseCanvas : MonoBehaviour
@@ -415,8 +415,8 @@ public class StageBaseCanvas : MonoBehaviour
                 choiseNode += ":::" + node.arrayIndex;
             }
 
-            //bool isStore = GameManager.CalculateProbability(1 / 8);
-            bool isStore = false;
+            bool isStore = GameManager.CalculateProbability(1 / 4);
+            //bool isStore = false;
             List<KeyValuePair<string, NodeType>> kvps;
             if (!isStore)
                 kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == node.backGroundType).ToList();

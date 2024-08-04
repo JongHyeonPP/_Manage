@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager gameManager;
     public Camera uiCamera;
-    public Difficulty difficulty;
+    //public Difficulty difficulty;
     public static Language language;
     private string uid;
     public string Uid
@@ -84,16 +84,14 @@ public class GameManager : MonoBehaviour
             uiCamera.gameObject.SetActive(true);
             inventoryButton.SetActive(true);
             //Until Steam API
-            uid = "KF5U1XMs5cy7n13dgKjF";
+            uid = "Xp1RrEgUPPIK7kwziyOA";
             popupUi.gameObject.SetActive(false);
-            uiRaycastBlock.gameObject.SetActive(false);
+            uiRaycastBlock.SetActive(false);
         }
     }
-    async void Start()
+    public async Task LoadProgressDoc()
     {
         progressDoc = await DataManager.dataManager.GetField("Progress", Uid);
-        BattleScenario.characters = new();
-        BattleScenario.enemies = new();
     }
     public async Task LoadUserDoc()
     {
@@ -143,7 +141,7 @@ public class GameManager : MonoBehaviour
     }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
-        if (_arg0.name != "Awake" && _arg0.name != "Start")
+        if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Loading")
         {
             if (_arg0.name.Contains("Stage"))
                 DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", Uid);
@@ -170,6 +168,9 @@ public class GameManager : MonoBehaviour
         }
         if (_arg0.name == "Battle" || _arg0.name == "Store")
             StageScenarioBase.state = StateInMap.NeedPhase;
+        if (StageScenarioBase.stageBaseCanvas)
+            StageScenarioBase.stageBaseCanvas.gameObject.SetActive(_arg0.name.Contains("Stage"));
+        SettingManager.settingManager.buttonSetting.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
     }
     private void InitGrids()
     {
@@ -268,7 +269,7 @@ public class GameManager : MonoBehaviour
                 canvas.gameObject.SetActive(false);
             }
         }
-        SceneManager.LoadSceneAsync(scene);
+        LoadingScenario.LoadScene(scene);
     }
 
     public void SetGold(float _gold)
@@ -295,7 +296,7 @@ public class GameManager : MonoBehaviour
         DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
     }
 
-    public async Task LoadCharacter(int _battleLevel =-1)
+    public async Task LoadCharacter(int _battleLevel = -1)
     {
         foreach (var x in BattleScenario.CharacterGrids)
         {
@@ -310,7 +311,8 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("No Characters");
         }
-       List<CharacterData> dataList = new() { null,null,null};
+        List<CharacterData> dataList = new() { null, null, null };
+        List<BaseInBattle> inBattleList = new() { null, null, null };
         for (int i = 0; i < characterDocs.Count; i++)
         {
             DocumentSnapshot snapShot = characterDocs[i];
@@ -324,6 +326,7 @@ public class GameManager : MonoBehaviour
             SkillAsItem[] skills = new SkillAsItem[2];
             int[] exp = new int[2];
             WeaponClass weapon;
+            List<TalentClass> talents = new();
 
             Sprite hair = null,
             faceHair = null,
@@ -510,26 +513,31 @@ public class GameManager : MonoBehaviour
                 characterIndex = (int)(long)tempDict["CharacterIndex"];
             GridObject _grid = BattleScenario.CharacterGrids[gridIndex];
             string jobId = (string)tempDict["JobId"];
+            //Talents
+            foreach (object x in (List<object>)tempDict["Talent"])
+            {
+                talents.Add(LoadManager.loadManager.talentDict[(string)x]);
+            }
 
             GameObject characterObject = Instantiate(CharacterTemplate);
             //CharacterHierarchy
             CharacterHierarchy characterHierarchy = characterObject.transform.GetChild(0).GetComponent<CharacterHierarchy>();
             characterHierarchy.SetBodySprite(hair, faceHair, eyesFront, eyesBack, head, armL, armR, weapon.sprite, hairColor);
 
-            
             //CharacterData
             CharacterData data = characterObject.AddComponent<CharacterData>();
-            data.InitCharacterData(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, gridIndex, skills, exp, weapon);
+            data.InitCharacterData(snapShot.Id, jobId, maxHp, hp, ability, resist, speed, gridIndex, skills, exp, weapon, talents);
             if (characterIndex != -1)
                 dataList[characterIndex] = data;
             else
                 dataList[i] = data;
-            //CharacterAtBattle, Applicant는 가질 필요없기 때문에 미리 갖고 있지 않는다.
+            
             CharacterInBattle characterAtBattle = characterObject.AddComponent<CharacterInBattle>();
             characterAtBattle.InitCharacter(data, _grid);
-            BattleScenario.characters.Add(characterAtBattle);
+            inBattleList[characterIndex] = characterAtBattle;
         }
-        characterList = dataList.Where(item=>item != null).ToList();
+        BattleScenario.characters = inBattleList;
+        characterList = dataList;
     }
 
     public JobClass GetJob(string _id0,string _id1)
@@ -666,4 +674,5 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(popupUi.SetContent(_content, _emphasizeStr));
     }
+
 }

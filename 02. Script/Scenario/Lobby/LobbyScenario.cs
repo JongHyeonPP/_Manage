@@ -70,7 +70,6 @@ public class LobbyScenario : MonoBehaviour
         upgradeExplainUi.gameObject.SetActive(false);
         InitUpgradeUi(LobbyCase.Pub);
         InitUpgradeUi(LobbyCase.Guild);
-
     }
     public void InitUpgradeUi(LobbyCase _lobbyCase)
     {
@@ -215,7 +214,7 @@ public class LobbyScenario : MonoBehaviour
     {
         UpgradeClass upgradeClass = LoadManager.loadManager.upgradeDict[_upgradeSlot.curId];
         int level = GameManager.gameManager.upgradeLevelDict[_upgradeSlot.curId];
-        if (level == upgradeClass.content.Count)
+        if (level == upgradeClass.content.Count-1)
         {
             Debug.Log("최고 레벨");
             return;
@@ -264,7 +263,7 @@ public class LobbyScenario : MonoBehaviour
             cur = string.Empty;
         }
         string next;
-        if (level != upgradeClass.content.Count)
+        if (level != upgradeClass.content.Count-1)
         {
             next = upgradeClass.info[GameManager.language].Replace("{Value}", upgradeClass.content[level+1].value.ToString());
         }
@@ -370,6 +369,7 @@ public class LobbyScenario : MonoBehaviour
             }
 
             string weaponId = $"{weaponTypeStr}:::Default";
+            List<string> talentStrs = _slot.talents.Select(item => item.talentId).ToList();
             Dictionary<string, object> characterDict = new()
             {
                 { "MaxHp", _slot.Hp },
@@ -383,14 +383,15 @@ public class LobbyScenario : MonoBehaviour
                 { "CharacterIndex", i },
                 { "Skill_0", string.Empty },
                 { "Skill_1", string.Empty },
-                { "Exp", new float[]{ 0,0} },
-                { "JobId", "000" }
+                { "Exp", new int[]{ 0,0} },
+                { "JobId", "000" },
+                { "Talent",  talentStrs}
             };
             string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.Uid}/Characters");
 
             WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType]["Default"];
             CharacterData data = _slot.templateObject.AddComponent<CharacterData>();
-            data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new SkillAsItem[2] { null, null},new int[2] {0,0 } ,weapon);
+            data.InitCharacterData(docId, "000", _slot.Hp, _slot.Hp, _slot.Ability, _slot.Resist, _slot.Speed, gridIndex, new SkillAsItem[2] { null, null},new int[2] {0,0 } ,weapon, _slot.talents);
             data.characterHierarchy.SetWeaponSprite(weapon);
             characterDataList[i] = data;
 

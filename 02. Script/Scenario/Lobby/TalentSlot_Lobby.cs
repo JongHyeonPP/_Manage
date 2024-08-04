@@ -7,7 +7,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 using EnumCollection;
-public class TalentSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+using System;
+public class TalentSlot_Lobby : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     RecruitUi recruitUi;
     public Image imageIcon;
@@ -24,17 +25,27 @@ public class TalentSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         currentTalent = _talent;
         imageIcon.sprite = _talent.sprite;
-        switch (_talent.effectLevel)
+        if (_talent.ableLevel == -1)
         {
-            default:
-                textLevel.text = "I";
-                break;
-            case 1:
-                textLevel.text = "II";
-                break;
-            case 2:
-                textLevel.text = "III";
-                break;
+            imageIcon.transform.localScale = Vector3.one * 0.6f;
+            textLevel.transform.parent.gameObject.SetActive(false);
+        }
+        else
+        {
+            textLevel.transform.parent.gameObject.SetActive(true);
+            imageIcon.transform.localScale = Vector3.one;
+            switch (_talent.effectLevel)
+            {
+                default:
+                    textLevel.text = "I";
+                    break;
+                case 1:
+                    textLevel.text = "II";
+                    break;
+                case 2:
+                    textLevel.text = "III";
+                    break;
+            }
         }
     }
     public void OnPointerEnter(PointerEventData eventData)
@@ -42,8 +53,12 @@ public class TalentSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         talentExplainUi.rectTransform.parent = transform;
         talentExplainUi.rectTransform.localPosition = new Vector2(0f, 50f);
         talentExplainUi.gameObject.SetActive(true);
-        string levelStr = (GameManager.language == Language.Ko) ? "레벨" : "Level";
-        string title = $"{currentTalent.name[GameManager.language]} <size=120%>({levelStr} {currentTalent.effectLevel + 1})";
+        string title = currentTalent.name[GameManager.language];
+        if (currentTalent.ableLevel != -1)
+        {
+            string levelStr = (GameManager.language == Language.Ko) ? "레벨" : "Level";
+            title += $" <size=120%>({levelStr} {currentTalent.effectLevel + 1})";
+        }
         talentExplainUi.SetTalentExplain(title ,currentTalent.GetExplain());
     }
 
@@ -51,4 +66,6 @@ public class TalentSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         talentExplainUi.gameObject.SetActive(false);
     }
+
+
 }

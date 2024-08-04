@@ -16,7 +16,7 @@ public class RecruitUi : LobbyUiBase
     public Transform parentApplicant;
     public List<ApplicantSlot> applicantSlots;
     public List<ApplicantSlot> selectedSlots = new() { null, null, null };
-    public List<TalentSlot> talentSlots;
+    public List<TalentSlot_Lobby> talentSlots;
     public TalentExplainUi talentExplainUi;
 
     private void Awake()
@@ -40,7 +40,7 @@ public class RecruitUi : LobbyUiBase
     }
     public void InitTalent()
     {
-        foreach (TalentSlot x in talentSlots)
+        foreach (TalentSlot_Lobby x in talentSlots)
         {
             x.gameObject.SetActive(false);
         }

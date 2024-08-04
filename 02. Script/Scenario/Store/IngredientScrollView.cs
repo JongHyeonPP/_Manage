@@ -6,14 +6,15 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class IngredientScrollView : MonoBehaviour
+public class IngredientScrollView : CustomScrollRect
 {
-    public RectTransform content;
+    public new RectTransform content;
     public GameObject ingredientSlotObj;
     private GridLayoutGroup gridLayoutGroup;
     public List<IngredientSlot> slots = new();
-    private void Start()
+    private new void Start()
     {
+        base.Start();
         gridLayoutGroup = content.GetComponent<GridLayoutGroup>();
         content.sizeDelta = new Vector2(gridLayoutGroup.spacing.x, content.sizeDelta.y);
         for (int i = 0; i < content.childCount; i++)

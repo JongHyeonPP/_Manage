@@ -12,7 +12,7 @@ using UnityEngine.TextCore.Text;
 public class ItemManager : MonoBehaviour
 {
     public static ItemManager itemManager;
-    public static readonly int inventorySize = 25;//5*5
+    public static readonly int inventorySize = 36;//6*6
     public Sprite item_None;
     public Sprite item_Normal;
     public Sprite item_Rare;
@@ -37,7 +37,7 @@ public class ItemManager : MonoBehaviour
     public static readonly Color utilColor = new(0.2003195f, 1f, 0.0235849f);
 
     public GameObject backgroundInventoryAdd;
-    public CharacterData selectedCharacter;
+    public CharacterData selectedCharacter { get; set; }
 
     public bool isUpgradeCase;
     public static readonly int[] needExp = new int[2] { 5, 10 };
@@ -277,7 +277,8 @@ public class ItemManager : MonoBehaviour
     {
         foreach (CharacterData data in GameManager.gameManager.characterList)
         {
-            data.SetCharacterAtDbAsync();
+            if (data)
+                data.SetCharacterAtDbAsync();
         }
 
         return Task.CompletedTask;
@@ -416,8 +417,8 @@ public class ItemManager : MonoBehaviour
 
     public void LoadEquip()
     {
-        CharacterData character = GameManager.gameManager.characterList[0];
-
+        CharacterData character = GameManager.gameManager.characterList.Where(data => data != null).FirstOrDefault();
+        
         SkillAsItem[] skills = character.skillAsIItems;
         WeaponClass weapon = character.weapon;
         inventoryUi.SetEquipSlot(skills[0], 0);

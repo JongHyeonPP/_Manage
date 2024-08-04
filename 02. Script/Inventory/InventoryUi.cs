@@ -39,7 +39,7 @@ public class InventoryUi : MonoBehaviour
     public InventorySlot throwSlot;
     public SelectButton currentSelectButton;
     public ParentStatusUp parentStatusUp;
-
+    public List<TalentSlot_Inventory> talentSlots;
     private void Awake()
     {
         tooltip.gameObject.SetActive(false);
@@ -87,20 +87,21 @@ public class InventoryUi : MonoBehaviour
 
     public void SetCharacterAtInventory(int _index)
     {
-        CharacterData character = ItemManager.itemManager.selectedCharacter = GameManager.gameManager.characterList[_index];
-        if (character != null)
-        {
-            float maxHp = character.maxHp;
-            float hp = character.hp;
-            float ability = character.ability;
-            float resist = character.resist;
-            float speed = character.speed;
-            hpText.text = hp.ToString("F0") + "/" + maxHp.ToString("F0");
-            abilityText.text = ability.ToString("F0");
-            resistText.text = resist.ToString("F0");
-            speedText.text = speed.ToString("F1");
-            ch.CopyHierarchySprite(character.characterHierarchy);
-        }
+        CharacterData character = GameManager.gameManager.characterList[_index];
+        if (character == null)
+            return;
+        ItemManager.itemManager.selectedCharacter = character;
+        float maxHp = character.maxHp;
+        float hp = character.hp;
+        float ability = character.ability;
+        float resist = character.resist;
+        float speed = character.speed;
+        hpText.text = hp.ToString("F0") + "/" + maxHp.ToString("F0");
+        abilityText.text = ability.ToString("F0");
+        resistText.text = resist.ToString("F0");
+        speedText.text = speed.ToString("F1");
+        ch.CopyHierarchySprite(character.characterHierarchy);
+
         for (int i = 0; i < characterSelectFocus.Count; i++)
         {
             characterSelectFocus[i].SetActive(i == _index);
@@ -108,7 +109,7 @@ public class InventoryUi : MonoBehaviour
         equipSlots[0].SetSlot(character.skillAsIItems[0]);
         equipSlots[1].SetSlot(character.skillAsIItems[1]);
         equipSlots[2].SetSlot(character.weapon);
-        if (character.jobClass.jobId !="000")
+        if (character.jobClass.jobId != "000")
             for (int i = 0; i < 2; i++)
             {
                 equipSlots[i].expBar.SetActive(true);
@@ -129,6 +130,18 @@ public class InventoryUi : MonoBehaviour
                 jobSlot.SetJobIcon(character.jobClass);
                 break;
 
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            if (i < character.talents.Count)
+            {
+                talentSlots[i].gameObject.SetActive(true);
+                talentSlots[i].SetTalentSlot(character.talents[i]);
+            }
+            else
+            {
+                talentSlots[i].gameObject.SetActive(false);
+            }
         }
     }
 
@@ -180,8 +193,7 @@ public class InventoryUi : MonoBehaviour
     {
         tooltip.transform.SetParent(_parent);
         tooltip.gameObject.SetActive(true);
-        tooltip.transform.localPosition = _localPosition;// + new Vector3(25, -15, 0f);
-        tooltip.SetTooltipInfo(_item);
+        tooltip.SetTooltipInfo(_item, _localPosition);
     }
     public void EnterThrowZone()
     {
@@ -207,8 +219,8 @@ public class InventoryUi : MonoBehaviour
         List<CountableItem> sortedWeaponList = ciList
             .Where(data => data.item.itemType == ItemType.Weapon)
             .Select(data => new { CountableItem = data, Weapon = (WeaponClass)data.item })
-            .OrderBy(data => data.Weapon.weaponType)
-            .ThenBy(data => data.Weapon.itemGrade)
+            .OrderBy(data => data.Weapon.itemGrade)
+            .ThenBy(data => data.Weapon.weaponType)
             .Select(data => data.CountableItem)
             .ToList();
 
@@ -247,6 +259,7 @@ public class InventoryUi : MonoBehaviour
                 slot.SetSlot(sortedList[i]);
             else
                 slot.ClearSlot();
+            SelectButtonSelect(currentSelectButton);
         }
     }
 

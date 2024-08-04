@@ -21,6 +21,7 @@ namespace ItemCollection
             amount = _amount;
         }
     }
+
     public abstract class Item//무기, 요리, 스킬
     {
         public ItemType itemType;
@@ -197,11 +198,11 @@ namespace ItemCollection
         public SkillInBattle GetInBattle(int _level)
         {
             VisualEffect visualEffect;
-            if (visualEffects!=null&& visualEffects.Count < _level)
+            if (visualEffects!=null&&_level<visualEffects.Count)
                 visualEffect = visualEffects[_level];
             else
                 visualEffect = null;
-            SkillInBattle skillInBattle = new SkillInBattle(cooltime, effectsList[_level], isAnim, visualEffect, isPre);
+            SkillInBattle skillInBattle = new SkillInBattle(cooltime, effectsList[_level], isAnim, visualEffect, isPre, categori);
             return skillInBattle;
         }
 
@@ -230,21 +231,21 @@ namespace ItemCollection
                 string ReplaceByRegex(string _origin, string _field)
                 {
                     string fontColor;
-                    float fontSize;
+                    string fontSize;
                     string replacedStr = _origin;
                     switch (_field)
                     {
                         default://Value
                             fontColor = "#0096FF";
-                            fontSize = 17.5f;
+                            fontSize = "120%";
                             break;
                         case "Count":
                             fontColor = "#4C4CFF";
-                            fontSize = 17.5f;
+                            fontSize = "120%";
                             break;
                         case "Vamp":
                             fontColor = "#4C4CFF";
-                            fontSize = 17.5f;
+                            fontSize = "120%";
                             break;
                     }
                     // 정규식 패턴 문자열 생성, % 포함 여부도 확인
@@ -295,6 +296,7 @@ namespace ItemCollection
         }
 
     }
+    [Serializable]
     public class SkillAsItem:Item
     {
         public SkillCategori categori;

@@ -25,7 +25,7 @@ public class EnemyInBattle : BaseInBattle
         resist = resistInBattle = _enemyClass.resist;
         speed = speedInBattle = _enemyClass.speed;
         skillInBattles = _enemyClass.skills;
-        grid = _grid;
+
         grid.owner = this;
         fireObj = Instantiate(GameManager.gameManager.prefabFire0, transform);
         fireObj.SetActive(false);

@@ -1,17 +1,10 @@
 using EnumCollection;
-using MapCollection;
-using System;
+using StageCollection;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using TMPro;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class DestinationNode : MonoBehaviour
 {
@@ -121,13 +114,13 @@ public class DestinationNode : MonoBehaviour
     {
         if (StageScenarioBase.state != StateInMap.NeedEnter)
             return;
-        StageScenarioBase.stageBaseCanvas.HideAndFadeOutDeselectedEdgeNodes();
-        StageScenarioBase.stageBaseCanvas.gameObject.SetActive(false);
-        buttonEnter.gameObject.SetActive(false);
+        //StageScenarioBase.stageBaseCanvas.HideAndFadeOutDeselectedEdgeNodes();
+        //StageScenarioBase.stageBaseCanvas.gameObject.SetActive(false);
+        //buttonEnter.gameObject.SetActive(false);
         if (nodeType.backgroundType == BackgroundType.Store)
-            SceneManager.LoadScene("Store");
+            LoadingScenario.LoadScene("Store");
         else
-            SceneManager.LoadScene("Battle");
+            LoadingScenario.LoadScene("Battle");
     }
     public void ActiveWithObject(bool _isAcitve)
     {

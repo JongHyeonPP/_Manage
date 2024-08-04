@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,8 +14,8 @@ public class BattleScenario : MonoBehaviour
 {
     public System.Action regularEffect;
     public BattleDifficulty battleDifficulty;
-    public static List<BaseInBattle> enemies;
-    public static List<BaseInBattle> characters;
+    public static List<BaseInBattle> enemies = new();
+    public static List<BaseInBattle> characters { get; set; } = new();
     public GridObject gridOnPointer;
     public bool isDragging = false;
     #region UI
@@ -40,23 +41,44 @@ public class BattleScenario : MonoBehaviour
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
     public static BackgroundType currentBackground;
-    private async void Awake()
+    private void Awake()
     {
         if (!GameManager.gameManager)
             return;
         GameManager.battleScenario = this;
-
-        Init_BattleSetAsync();
+        lootUi.InitLootUi();
         Init_UiSet();
         Init_RegularEffectSet();
-        lootUi.InitLootUi();
+        for (int i = 0; i < 3; i++)
+        {
+            CharacterData data = GameManager.gameManager.characterList[i];
+            HpBarInUi hpBarInUI = panelHpUi.GetChild(i).GetComponent<HpBarInUi>();
+            if (data != null)
+            {
+                BaseInBattle characterAtBattle = characters[i];
+                characterAtBattle.hpBarInUi = hpBarInUI;
+
+                if (hpBarInUI)
+                {
+                    hpBarInUI.InitHpBarInUi(data.skillAsIItems, data.characterHierarchy);
+                    hpBarInUI.SetHp(characterAtBattle.Hp, characterAtBattle.armor, characterAtBattle.maxHp);
+                }
+            }
+            else
+            {
+                hpBarInUI.gameObject.SetActive(false);
+            }
+        }
     }
+
+
 
     private void Init_RegularEffectSet()
     {
         foreach (var x in characters)
         {
-            regularEffect += x.ActiveRegularEffect;
+            if (x)
+                regularEffect += x.ActiveRegularEffect;
         }
         foreach (var x in enemies)
         {
@@ -116,35 +138,47 @@ public class BattleScenario : MonoBehaviour
 
         ChangeBackground(StageScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType);
     }
-
-    private async void Init_BattleSetAsync()
+    public static async Task Init_BattleSetAsync(System.IProgress<float> progress)
     {
-            if (enemies.Count == 0)
+        float totalSteps = 3; // 총 단계 수
+        float currentStep = 0;
+
+        if (enemies.Count == 0)
         {
-            List<EnemyPiece> selectedCase = MakeEnemies();//적 생성
+            List<EnemyPiece> selectedCase = MakeEnemies(); // 적 생성
 
             await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
             {
                 for (int i = 0; i < selectedCase.Count; i++)
                 {
                     Dictionary<string, object> enemyDict = new()
-                    {
-                        { "Id", selectedCase[i].id },
-                        { "GridIndex", selectedCase[i].index }
-                    };
+                {
+                    { "Id", selectedCase[i].id },
+                    { "GridIndex", selectedCase[i].index }
+                };
                     DataManager.dataManager.SetDocumentData(enemyDict, $"Progress/{GameManager.gameManager.Uid}/Enemies");
                 }
-                DataManager.dataManager.SetDocumentData("Scene", "Battle", "Progress", GameManager.gameManager.Uid); ;
+                DataManager.dataManager.SetDocumentData("Scene", "Battle", "Progress", GameManager.gameManager.Uid);
                 return Task.CompletedTask;
             });
+
+            currentStep++;
+            progress?.Report(currentStep / totalSteps);
         }
-        CharacterAtBattleInit();//Data->Base
+        // 캐릭터 초기화
+        CharacterAtBattleInit(); // Data -> Base
+        currentStep++;
+        progress?.Report(currentStep / totalSteps);
+
         List<CharacterData> characters = GameManager.gameManager.characterList;
         for (int i = 0; i < characters.Count; i++)
         {
             CharacterInBattle characterAtBattle = characters[i].characterAtBattle;
-
+            // 캐릭터 초기화 로직 추가 가능
         }
+
+        currentStep++;
+        progress?.Report(currentStep / totalSteps);
     }
 
     public void OnGridPointerDown()
@@ -156,7 +190,7 @@ public class BattleScenario : MonoBehaviour
     public static List<BaseInBattle> GetTargetsByRange(EffectRange _range, BaseInBattle _target)
     {
         List<BaseInBattle> targets = null;
-        List<BaseInBattle> targetsBase = (_target.IsEnemy ? enemies : characters).Where(item => !item.isDead).ToList();
+        List<BaseInBattle> targetsBase = (_target.IsEnemy ? enemies : characters).Where(item => item&& !item.isDead).ToList();
         switch (_range)
         {
             case EffectRange.Dot://가장 가까운 대상
@@ -231,28 +265,17 @@ public class BattleScenario : MonoBehaviour
         }
     }
 
-    private void CharacterAtBattleInit()
+    private  static void CharacterAtBattleInit()
     {
         List<CharacterData> characterDataList = GameManager.gameManager.characterList;
         for (int i = 0; i < characterDataList.Count; i++)
         {
             CharacterData data = characterDataList[i];
+            if (data == null)
+                continue;
             CharacterInBattle characterAtBattle = data.characterAtBattle;
-            HpBarInUi hpBarInUI = panelHpUi.GetChild(i).GetComponent<HpBarInUi>();
-            characterAtBattle.hpBarInUi = hpBarInUI;
             characterAtBattle.SynchronizeCharacterData(data);
-            if (hpBarInUI)
-            {
-                hpBarInUI.characterHierarchy.CopyHierarchySprite(data.characterHierarchy);
-                //이미지 셋도 여기서 해야하는듯
-                for (int i1 = 0; i1 < 2; i1++)
-                {
-                    if (data.skillAsIItems[i1]!=null)
-                        hpBarInUI.skillObject[i1].SetActive(true);
-                    else
-                        hpBarInUI.skillObject[i1].SetActive(false);
-                }
-            }
+
             
         }
         battlePatern = BattlePatern.OnReady;
@@ -331,7 +354,8 @@ public class BattleScenario : MonoBehaviour
         RefreshGrid();
         foreach (BaseInBattle x in characters)
         {
-            x.StopBattle();
+            if (x)
+                x.StopBattle();
         }
         yield return new WaitForSeconds(2f);
         StageClearAsync();
@@ -348,6 +372,8 @@ public class BattleScenario : MonoBehaviour
         {
             foreach (CharacterData data in dataList)
             {
+                if (!data)
+                    continue;
                 data.hp = data.characterAtBattle.Hp;
                 DataManager.dataManager.SetDocumentData("Hp", Mathf.Max(data.hp, 1), string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
             }
@@ -376,7 +402,8 @@ public class BattleScenario : MonoBehaviour
     {
         foreach (BaseInBattle x in characters)
         {
-            x.InBattleFieldZero();
+            if (x)
+                x.InBattleFieldZero();
         }
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
@@ -399,22 +426,18 @@ public class BattleScenario : MonoBehaviour
         }
         foreach (var x in characters)
         {
-            x.StartBattle();
+            if (x)
+                x.StartBattle();
         }
         canvasBattle.GetChild(0).gameObject.SetActive(false);
         StartCoroutine(ActiveRegualrEffect());
         battlePatern = BattlePatern.Battle;
         StartCoroutine(MoveGaugeCor());
     }
-    private List<EnemyPiece> MakeEnemies()
+    private static List<EnemyPiece> MakeEnemies()
     {
         List<string> casesStr = StageScenarioBase.stageBaseCanvas.currentNode.nodeType.casesStr;
         string caseStr = casesStr[Random.Range(0, casesStr.Count)];
-        //Dictionary<string, EnemyCase> values = LoadManager.loadManager.enemyCaseDict;
-        //List<string> ableCases = values.Where(item => item.Value.levelRange.Contains(_nodeLevel))
-        //                      .Select(item => item.Key)
-        //                      .ToList();
-        //string selectedCase = ableCases[Random.Range(0, ableCases.Count)];
         List<EnemyPiece> enemyPieces = LoadEnemiesByCase(caseStr);
         return enemyPieces;
     }
@@ -465,8 +488,8 @@ public class BattleScenario : MonoBehaviour
         GameObject effectObj = Instantiate(_visualEffect.effectObject, target);
         if (_isSkillVe && !_visualEffect.fromRoot)
         {
-            float rangeX = UnityEngine.Random.Range(-0.1f, 0.1f);
-            float rangeY = UnityEngine.Random.Range(-0.1f, 0.1f);
+            float rangeX = Random.Range(-0.5f, 0.5f);
+            float rangeY = Random.Range(-0.5f, 0.5f);
             effectObj.transform.position += new Vector3(rangeX, rangeY);
         }
         if (_visualEffect.sound != string.Empty)
@@ -492,38 +515,7 @@ public class BattleScenario : MonoBehaviour
     public string visualEffectStr;
     public float visualEffectDur;
 
-    [ContextMenu("VisualEffetTest")]
-    public void VisualEffectTest()
-    {
-        List<BaseInBattle> temp = new(enemies);
-        temp.AddRange(characters);
-        foreach (BaseInBattle x in temp)
-        {
-            Transform target;
-            if (LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].fromRoot)
-            {
-                target = x.rootTargetTransform;
-            }
-            else
-            {
-                target = x.skillTargetTransform;
-            }
-            GameObject effectObj = Instantiate(LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].effectObject, target);
-            int rangeX = UnityEngine.Random.Range(-2, 2);
-            int rangeY = UnityEngine.Random.Range(-2, 2);
-            if (!LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].fromRoot)
-                effectObj.transform.position += new Vector3(rangeX, rangeY);
-            if (LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].sound != string.Empty)
-            {
-                SoundManager.soundManager.SfxPlay(LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].sound);
-            }
-            if (visualEffectDur == 0)
-                Destroy(effectObj, LoadManager.loadManager.skillVisualEffectDict[visualEffectStr].duration);
-            else
-                Destroy(effectObj, visualEffectDur);
-        }
-    }
-    public List<EnemyPiece> LoadEnemiesByCase(string _caseStr)
+    public static List<EnemyPiece> LoadEnemiesByCase(string _caseStr)
     {
         List<EnemyPiece> enemyPieces = new();
         //foreach (var x in BattleScenario.EnemyGrids)
@@ -600,6 +592,9 @@ public class BattleScenario : MonoBehaviour
     internal void PassiveReconnect()
     {
         foreach (var character in characters)
-            character.PassiveReconnect();
+        {
+            if (character)
+                character.PassiveReconnect();
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -18,11 +19,14 @@ public class AwakeScenario : MonoBehaviour
         StartCoroutine(ShowJhLogo());
     }
 
-    private void Start()
+    private async void Start()
     {
         SettingManager.settingManager.buttonSetting.SetActive(false);
+        await GameManager.gameManager.LoadProgressDoc();
         SceneManager.LoadScene("Start");
     }
+
+
 
     private IEnumerator ShowJhLogo()
     {

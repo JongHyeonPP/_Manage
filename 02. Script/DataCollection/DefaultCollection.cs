@@ -1,11 +1,13 @@
 using BattleCollection;
 using EnumCollection;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace DefaultCollection
 {
+    [Serializable]
     public class TalentClass
     {
         public Dictionary<Language, string> name;
@@ -14,8 +16,11 @@ namespace DefaultCollection
         public List<TalentEffect> effects;
         public Sprite sprite;
         public int effectLevel;
-        public TalentClass(Dictionary<Language, string> _name, int _ableLevel, Dictionary<Language, string> _explain, List<TalentEffect> _effects, Sprite _sprite)
+        public string talentId;
+
+        public TalentClass(string _talentId, Dictionary<Language, string> _name, int _ableLevel, Dictionary<Language, string> _explain, List<TalentEffect> _effects, Sprite _sprite)
         {
+            talentId = _talentId;
             effects = _effects;
             name = _name;
             explain = _explain;

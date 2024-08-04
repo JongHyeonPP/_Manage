@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class JobSlot : SlotBase
+public class JobSlot : MonoBehaviour
 {
     StatusExplain statusExplain;
     public Image jobIconSlot;
@@ -31,12 +31,10 @@ public class JobSlot : SlotBase
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition;
         statusExplain.SetExplain(job.name[GameManager.language], job.jobSkill.explain[0][GameManager.language]);
-        HightlightOn();
     }
     public void OnPointerExit()
     {
         statusExplain.gameObject.SetActive(false);
-        HightlightOff();
     }
     public void SetJobIcon(JobClass _job)
     {
