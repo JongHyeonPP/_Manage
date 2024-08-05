@@ -135,7 +135,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -648,7 +648,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 5.3049927, y: -152.3}
+  m_AnchoredPosition: {x: 5.3049927, y: -165.5}
   m_SizeDelta: {x: 204.80002, y: 58.700012}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &2975941329689762627
@@ -890,7 +890,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1001,7 +1001,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -19.5, y: -84.5}
+  m_AnchoredPosition: {x: -19.5, y: -90.2}
   m_SizeDelta: {x: 188.1, y: 43.14}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &5662091554057876514
@@ -1517,7 +1517,7 @@ RectTransform:
   m_GameObject: {fileID: 6010077882631128139}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 687.5}
-  m_LocalScale: {x: 1.0003124, y: 1.0003124, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6321065189905327321}
@@ -1529,7 +1529,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: -372.9, y: -409.2}
-  m_SizeDelta: {x: 260.8, y: 214.61}
+  m_SizeDelta: {x: 260.8, y: 240}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &493799301106603029
 CanvasRenderer:
@@ -1581,6 +1581,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 403d6be8bdf798140974090ed588d840, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skillIcon: {fileID: 7860792916151722785}
+  textName: {fileID: 1182655831795224526}
+  textExplain: {fileID: 8701622691171850825}
+  textCategori: {fileID: 7796726836592593575}
+  textGrade: {fileID: 8187277611081728258}
 --- !u!223 &4125352736580670662
 Canvas:
   m_ObjectHideFlags: 0
@@ -1872,7 +1877,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

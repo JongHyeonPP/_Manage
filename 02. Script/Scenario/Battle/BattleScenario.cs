@@ -31,7 +31,7 @@ public class BattleScenario : MonoBehaviour
     public RectTransform rectCharacterGroup;
     public bool isInCharacter;
     public static List<EffectType> buffOrDebuff;
-    public static BattlePatern battlePatern = BattlePatern.OnReady;
+    public static BattlePatern battlePatern;
     public float moveGauge;
     public Transform panelHpUi;
     public static List<GridObject> CharacterGrids { get; private set; } = new();
@@ -41,11 +41,13 @@ public class BattleScenario : MonoBehaviour
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
     public static BackgroundType currentBackground;
+    public BattleTooltip battleTooltip;
     private void Awake()
     {
         if (!GameManager.gameManager)
             return;
         GameManager.battleScenario = this;
+        battlePatern = BattlePatern.OnReady;
         lootUi.InitLootUi();
         Init_UiSet();
         Init_RegularEffectSet();
@@ -61,7 +63,8 @@ public class BattleScenario : MonoBehaviour
                 if (hpBarInUI)
                 {
                     hpBarInUI.InitHpBarInUi(data.skillAsIItems, data.characterHierarchy);
-                    hpBarInUI.SetHp(characterAtBattle.Hp, characterAtBattle.armor, characterAtBattle.maxHp);
+                    //hpBarInUI.SetHp(characterAtBattle.Hp, characterAtBattle.armor, characterAtBattle.maxHp);
+                    characterAtBattle.Hp = characterAtBattle.Hp;
                 }
             }
             else
@@ -137,6 +140,7 @@ public class BattleScenario : MonoBehaviour
         backgrounds[BackgroundType.Lava] = prefabSet.GetChild(14).gameObject;
 
         ChangeBackground(StageScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType);
+        battleTooltip.gameObject.SetActive(false);
     }
     public static async Task Init_BattleSetAsync(System.IProgress<float> progress)
     {

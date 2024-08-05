@@ -23,7 +23,7 @@ public class InventorySlot : SlotBase
     public int slotIndex;
     public GameObject imageNoSelect;
     public TMP_Text textPokerNum;
-    private bool isSelected;
+    public bool isSelected;
     private new void Awake()
     {
         base.Awake();
@@ -96,6 +96,7 @@ public class InventorySlot : SlotBase
                 }
                 imageItem.transform.localScale = Vector2.one * 0.7f;
                 imageItem.sprite = itemSprite;
+                imageItem.transform.localPosition = Vector3.zero;
                 break;
 
         }
@@ -120,6 +121,7 @@ public class InventorySlot : SlotBase
         {
             textPokerNum.transform.parent.gameObject.SetActive(false);
         }
+
     }
     public void ChangeCiAmount(int _value)
     {

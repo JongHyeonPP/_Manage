@@ -18,6 +18,8 @@ abstract public class BaseInBattle : MonoBehaviour
         set
         {
             hp = Mathf.Clamp(value, 0, maxHpInBattle);
+            if (!GameManager.battleScenario)
+                return;
             if (hpBarInScene.gameObject)
                 hpBarInScene.SetHp(hp, armor, maxHpInBattle);
             if (hpBarInUi)

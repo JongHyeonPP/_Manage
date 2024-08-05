@@ -16,7 +16,7 @@ public class HpBarInUi : HpBarBase
             CooldownSlot slot = cooldownSlots[i];
             if (_skillAsIItems[i] != null)
             {
-                slot.imageSkillIcon.sprite = _skillAsIItems[i].sprite;
+                slot.InitSkill(_skillAsIItems[i]);
                 slot.gameObject.SetActive(true);
             }
             else

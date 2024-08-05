@@ -284,5 +284,13 @@ public class InventoryUi : MonoBehaviour
         canvas.overrideSorting = true;
         canvas.sortingOrder = 7;
     }
-
+    public void UnsetUpgradeMode()
+    {
+        foreach (InventorySlot x in inventorySlots)
+        {
+            if (x.isSelected)
+                if (x.ci.amount == 1)
+                    x.ChangeCiAmount(0);
+        }
+    }
 }

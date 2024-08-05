@@ -180,7 +180,7 @@ public class GridObject : MonoBehaviour
         if (!owner || !GameManager.battleScenario.isDragging) return;
         if (GameManager.battleScenario.gridOnPointer == null || GameManager.battleScenario.gridOnPointer == this|| !GameManager.battleScenario.gridOnPointer || isEnemy != GameManager.battleScenario.gridOnPointer.isEnemy)
         {
-            GameManager.battleScenario.MoveCharacterByGrid(this, this);
+            GameManager.battleScenario.MoveCharacterByGrid(this, this);//¿ø À§Ä¡ º¹±Í
         }
         else
         {
@@ -189,9 +189,10 @@ public class GridObject : MonoBehaviour
             if (BattleScenario.battlePatern != BattlePatern.OnReady)
             {
                 GameManager.battleScenario.moveGauge = 0f;
+                GameManager.battleScenario.PassiveReconnect();
             }
         }
-        GameManager.battleScenario.PassiveReconnect();
+
         GameManager.battleScenario.gridOnPointer = null;
         GameManager.battleScenario.isDragging = false;
         GameManager.IsPaused = false;

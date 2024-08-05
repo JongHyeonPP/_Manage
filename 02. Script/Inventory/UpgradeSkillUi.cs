@@ -50,6 +50,7 @@ public class UpgradeSkillUi : MonoBehaviour
         Destroy(ItemManager.itemManager.inventoryUi.panelInventory.GetComponent<GraphicRaycaster>());
         Destroy(ItemManager.itemManager.inventoryUi.panelInventory.GetComponent<Canvas>());
         ItemManager.itemManager.isUpgradeCase = false;
+        inventoryUi.UnsetUpgradeMode();
         inventoryUi.SelectButtonSelect(inventoryUi.currentSelectButton);
         ResetUpgradeSkillUi();
 

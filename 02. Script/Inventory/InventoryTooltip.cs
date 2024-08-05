@@ -59,21 +59,45 @@ public class InventoryTooltip : MonoBehaviour
                 categoriStr = (GameManager.language == Language.Ko) ? "요리 재료" : "Ingredient";
                 break;
         }
-        categori.text = categoriStr;
-        string gradeStr = "";
-        switch (_item.itemGrade)
+        string categoriColor = string.Empty;
+        if (_item.itemType == ItemType.Skill)
         {
-            case ItemGrade.Normal:
-                gradeStr = (GameManager.language == Language.Ko) ? "노말" : "Normal";
-                break;
-            case ItemGrade.Rare:
-                gradeStr = (GameManager.language == Language.Ko) ? "레어" : "Rare";
-                break;
-            case ItemGrade.Unique:
-                gradeStr = (GameManager.language == Language.Ko) ? "유니크" : "Unique";
-                break;
+            switch (((SkillAsItem)_item).categori)
+            {
+                case SkillCategori.Power:
+                    categoriColor = "<color=#FF3E3D>";
+                    break;
+                case SkillCategori.Util:
+                    categoriColor =  "<color=#63FF00>";
+                    break;
+                case SkillCategori.Sustain:
+                    categoriColor = "<color=#F2F200>";
+                    break;
+            }
+            categoriStr = categoriColor + categoriStr;
         }
-        if (_item.itemType == ItemType.Ingredient)
+        categori.text = categoriStr;
+        string gradeStr = string.Empty;
+        if (_item.itemType != ItemType.Ingredient)
+        {
+            switch (_item.itemGrade)
+            {
+                default:
+                    gradeStr = "<color=#ABABAB>" + ((GameManager.language == Language.Ko) ? "기본" : "Default");
+                    break;
+                case ItemGrade.Normal:
+                    gradeStr = "<color=#FFAF26>" + ((GameManager.language == Language.Ko) ? "노말" : "Normal");
+                    break;
+                case ItemGrade.Rare:
+                    gradeStr = "<color=#25FFF8>" + ((GameManager.language == Language.Ko) ? "레어" : "Rare");
+                    break;
+                case ItemGrade.Unique:
+                    gradeStr = "<color=#FF25EA>" + ((GameManager.language == Language.Ko) ? "유니크" : "Unique");
+                    break;
+            }
+
+        }
+        else
         {
             switch (((IngredientClass)_item).ingredientType)
             {
