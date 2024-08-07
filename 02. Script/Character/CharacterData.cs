@@ -25,7 +25,7 @@ public class CharacterData:MonoBehaviour
     public int[] exp;
     public WeaponClass weapon;
     public CharacterHierarchy characterHierarchy;
-    public CharacterInBattle characterAtBattle;
+    public CharacterInBattle characterAtBattle { get; set; }
     public List<TalentClass> talents;
 
     internal void InitCharacterData(string _docId, string _jobId, float _maxHp, float _hp, float _ability,

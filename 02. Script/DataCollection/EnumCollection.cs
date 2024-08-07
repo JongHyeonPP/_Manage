@@ -130,4 +130,8 @@ namespace EnumCollection
         NoCard, HighCard, OnePair, TwoPair, ThreeOfAKind,
         Straight, Flush, FullHouse, FourOfAKind, StraightFlush
     }
+    public enum ScoreType
+    {
+        Enemy, Destination, Boss, Food, Total
+    }
 }

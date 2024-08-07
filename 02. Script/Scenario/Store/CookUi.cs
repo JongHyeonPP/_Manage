@@ -338,6 +338,7 @@ private bool IsFullHouse(List<IngredientClass> hand)
             gradeStar.imageFill.fillAmount = 0f;
         }
         imageResult.gameObject.SetActive(false);
+        textName.text = string.Empty;
     }
     public void CreateButtonClicked()
     {

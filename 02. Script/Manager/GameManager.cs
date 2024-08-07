@@ -55,6 +55,7 @@ public class GameManager : MonoBehaviour
     public GameObject prefabHpBarInScene;
     public GameObject prefabFire0;
     public GameObject gridPre;
+    [HideInInspector] public RectTransform parentCharacter;
     #endregion
     EventTrigger eventTrigger;
     public int stage;
@@ -71,11 +72,19 @@ public class GameManager : MonoBehaviour
     public TMP_Text textFame;
     public PopUpUi popupUi;
     public GameObject uiRaycastBlock;
+
+    //Score
+    public int enemyNum;
+    public int destinationNum;
+    public int bossNum;
+    public int foodNum;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
         {
             gameManager = this;
+            //Until Steam API
+            uid = "Xp1RrEgUPPIK7kwziyOA";
             SceneManager.sceneLoaded += OnSceneLoaded;
             DontDestroyOnLoad(gameObject);
             DontDestroyOnLoad(uiCamera);
@@ -83,8 +92,6 @@ public class GameManager : MonoBehaviour
             InitGrids();
             uiCamera.gameObject.SetActive(true);
             inventoryButton.SetActive(true);
-            //Until Steam API
-            uid = "Xp1RrEgUPPIK7kwziyOA";
             popupUi.gameObject.SetActive(false);
             uiRaycastBlock.SetActive(false);
         }
@@ -141,12 +148,14 @@ public class GameManager : MonoBehaviour
     }
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
+        Dictionary<string, object> docDict = new();
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Loading")
         {
             if (_arg0.name.Contains("Stage"))
-                DataManager.dataManager.SetDocumentData("Scene", "Stage", "Progress", Uid);
+                docDict.Add("Scene", "Stage");
             else
-                DataManager.dataManager.SetDocumentData("Scene", _arg0.name, "Progress", Uid);
+                docDict.Add("Scene", _arg0.name);
+            DataManager.dataManager.SetDocumentData(docDict, "Progress", Uid);
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby" && _arg0.name != "Battle")
         {
@@ -175,66 +184,30 @@ public class GameManager : MonoBehaviour
     private void InitGrids()
     {
         canvasGrid.gameObject.SetActive(false);
-        Transform panelCharacter = canvasGrid.GetChild(0);
+        parentCharacter = canvasGrid.GetChild(1).GetComponent<RectTransform>();
 
-        GridLayoutGroup groupFrinedly = panelCharacter.GetComponent<GridLayoutGroup>();
-        panelCharacter.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3 + BattleScenario.gridCorrection, groupFrinedly.cellSize.y * 3 + BattleScenario.gridCorrection);
-        EventTrigger trigger = panelCharacter.gameObject.AddComponent<EventTrigger>();
+        GridLayoutGroup groupFrinedly = parentCharacter.GetComponent<GridLayoutGroup>();
+        parentCharacter.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3 + BattleScenario.gridCorrection, groupFrinedly.cellSize.y * 3 + BattleScenario.gridCorrection);
 
-        Entry enterEntry = new();
-        trigger.triggers.Add(enterEntry);
-        enterEntry.eventID = EventTriggerType.PointerEnter;
-        enterEntry.callback.AddListener((data) =>
-        {
-            battleScenario.isInCharacter = true;
-        });
-
-        Entry exitEntry = new();
-        trigger.triggers.Add(exitEntry);
-        exitEntry.eventID = EventTriggerType.PointerExit;
-        exitEntry.callback.AddListener((data) =>
-        {
-            if (!battleScenario.isDragging) return;
-            battleScenario.isInCharacter = false;
-        });
-
-
-        Transform panelEnemy = canvasGrid.GetChild(1);
-
-        eventTrigger = panelCharacter.gameObject.AddComponent<EventTrigger>();
-        Entry downEntry = new();
-        eventTrigger.triggers.Add(downEntry);
-        downEntry.eventID = EventTriggerType.PointerDown;
-        // Button 이벤트 추가
-        gameObject.AddComponent<Button>().onClick.AddListener(() =>
-        {
-            Debug.Log("Down");
-        });
-
+        Transform panelEnemy = canvasGrid.GetChild(2);
 
         for (int i = 0; i < 9; i++)
         {
-            GameObject characterObject = Instantiate(prefabGridObject, panelCharacter);
-            GridObject characterGrid = characterObject.GetComponent<GridObject>();
+            GridObject characterGrid = parentCharacter.GetChild(i).GetComponent<GridObject>();
             characterGrid.InitObject();
             characterGrid.isEnemy = false;
             characterGrid.index = i;
             BattleScenario.CharacterGrids.Add(characterGrid);
-            GameObject prefabPre = Instantiate(gridPre, characterObject.transform);
+            GameObject prefabPre = Instantiate(gridPre, characterGrid.transform);
             prefabPre.SetActive(true);
             characterGrid.imagePre = prefabPre.GetComponent<Image>();
             characterGrid.imagePre.enabled = false;
-            characterGrid.SetClickEvent().SetDownEvent().SetDragEvent().SetEnterEvent().SetExitEvent().SetUpEvent();
 
-            GameObject enemyObject = Instantiate(prefabGridObject, panelEnemy);
-            GridObject enemyGrid = enemyObject.GetComponent<GridObject>();
-            
-
+            GridObject enemyGrid = panelEnemy.GetChild(i).GetComponent<GridObject>();
             enemyGrid.InitObject();
             enemyGrid.isEnemy = true;
             enemyGrid.index = i;
             BattleScenario.EnemyGrids.Add(enemyGrid);
-            enemyGrid.SetClickEvent().SetDownEvent().SetDragEvent().SetEnterEvent().SetExitEvent().SetUpEvent();
         }
     }
 
@@ -251,6 +224,11 @@ public class GameManager : MonoBehaviour
             StageScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
             StageScenarioBase.nodeTypes = ((List<object>)progressDoc["NodeTypes"]).Select(item => item?.ToString()).ToArray();
             StageScenarioBase.stageNum = (int)(long)progressDoc["StageNum"];
+            //Score
+            enemyNum = (int)(long)progressDoc["EnemyNum"];
+            destinationNum = (int)(long)progressDoc["DestinationNum"];
+            bossNum = (int)(long)progressDoc["BossNum"];
+            foodNum = (int)(long)progressDoc["FoodNum"];
             ItemManager.itemManager.LoadEquip();
             switch (scene)
             {
@@ -291,7 +269,12 @@ public class GameManager : MonoBehaviour
             { "Scene", "Stage" },
             { "Inventory", new object[24] },
             {"NodeTypes", StageScenarioBase.nodeTypes },
-            {"StageNum", 0 }
+            {"StageNum", 0 },
+            //Score
+            {"EnemyNum", 0  },
+            {"DestinationNum", 0  },
+            {"BossNum", 0  },
+            {"FoodNum", 0  }
         };
         DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
     }
@@ -535,6 +518,7 @@ public class GameManager : MonoBehaviour
             CharacterInBattle characterAtBattle = characterObject.AddComponent<CharacterInBattle>();
             characterAtBattle.InitCharacter(data, _grid);
             inBattleList[characterIndex] = characterAtBattle;
+            characterObject.name = "Character_" + characterIndex;
         }
         BattleScenario.characters = inBattleList;
         characterList = dataList;
@@ -633,29 +617,11 @@ public class GameManager : MonoBehaviour
         // 여기에 도달하는 경우는 없지만, 컴파일러의 경고를 제거하기 위해 기본적으로 0을 반환
         return 0;
     }
-    public async void GameOver()
-    {
 
-
-        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
-        {
-            await battleScenario.ClearCharacterAsync();
-            await battleScenario.ClearEnemyAsync();
-            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
-            await documentRef.DeleteAsync();
-        });
-        StartCoroutine(GameOverCor());
-
-        IEnumerator GameOverCor()
-        {
-            foreach (var x in BattleScenario.enemies)
-                x.StopBattle();
-            yield return new WaitForSeconds(5f);
-            canvasGrid.gameObject.SetActive(false);
-            scene = null;
-            progressDoc = null;
-            battleScenario.panelGameOver.gameObject.SetActive(true);
-        }
+    public void GameOver()
+    { 
+        scene = null;
+        progressDoc = null;
     }
     public static float GetRandomNumber(float _mean, float _standardDeviation)
     {

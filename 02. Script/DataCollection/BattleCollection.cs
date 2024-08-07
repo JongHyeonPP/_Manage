@@ -313,7 +313,7 @@ namespace BattleCollection
     [Serializable]
     public class SkillActiveForm
     {
-        readonly float skillCastTime = 1f;
+        readonly float skillCastTime = 0.5f;
 
         public BaseInBattle caster;
         public List<ActiveEffect> effectActiveForms = new();
@@ -371,6 +371,13 @@ namespace BattleCollection
                     {
                         BaseInBattle effectTarget;
                         effectTarget = GetTarget(effectForm);
+                        if (effectTarget == null)
+                        {
+                            yield return skillCastTime;
+                            WeaponAnim();
+                            yield return skillCastTime;
+                            yield break;
+                        }
                         List<GridObject> tempGrids = BattleScenario.GetTargetGridsByRange(effectForm.range, effectTarget.grid);
                         foreach (GridObject grid in tempGrids)
                         {
@@ -388,6 +395,7 @@ namespace BattleCollection
                             x.PreActive();
                         }
                     }
+                    yield return new WaitForSeconds(skillCastTime);
                     float repeatValue = caster.GetRegularValue(EffectType.Repeat);
                     for (int i = 0; i < ((repeatValue > 0) ? 2 : 1); i++)
                     {
@@ -405,6 +413,7 @@ namespace BattleCollection
                                     effectForm.ActiveEffect0nTarget(target);/////ÇÙ½É
                                 if (skillInBattle.visualEffect != null)
                                 {
+                                    yield return new WaitForSeconds(0.5f);
                                     GameManager.battleScenario.CreateVisualEffect(skillInBattle.visualEffect, target, true);
                                 }
                             }
@@ -412,16 +421,8 @@ namespace BattleCollection
                     }
                     for (int i = 0; i < ((repeatValue > 0) ? 2 : 1); i++)
                     {
-
-                        //Weapon
-                        if (caster.weapon != null)
-                            caster.StartCoroutine(WeaponVisualEffect());
-                        if (skillInBattle.isAnim)
-                        {
-
-                            SkillAnim();
-                            yield return new WaitForSeconds(skillCastTime);
-                        }
+                        WeaponAnim();
+                        yield return new WaitForSeconds(skillCastTime);
                     }
                     if (skillInBattle.isPre)
                         foreach (GridObject x in targetGrids)
@@ -467,8 +468,19 @@ namespace BattleCollection
                     GameManager.battleScenario.CreateVisualEffect(caster.weapon.skillVisualEffect, caster, false);
             }
 
+            void WeaponAnim()
+            {
+                //Weapon
+                if (caster.weapon != null)
+                    caster.StartCoroutine(WeaponVisualEffect());
+                if (skillInBattle.isAnim)
+                {
+                    SkillAnim();
 
-    }
+                }
+            }
+
+        }
         BaseInBattle GetTarget(ActiveEffect effectForm)
         {
             BaseInBattle effectTarget;

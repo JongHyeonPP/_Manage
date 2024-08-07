@@ -41,6 +41,5 @@ public class CharacterInStage : MonoBehaviour
 
         // 애니메이터 상태를 원래대로 되돌림
         characterHierarchy.animator.SetFloat("RunState", 0f);
-        Debug.Log("On Moved");
     }
 }

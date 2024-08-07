@@ -45,10 +45,20 @@ public class HpBarBase : MonoBehaviour
     }
     private void Update()
     {
-        if (hpBar_Back)
-            if (hpBar.fillAmount < hpBar_Back.fillAmount)
-            {
-                hpBar_Back.fillAmount -= Time.deltaTime * backSpeed;
-            }
+        switch (BattleScenario.battlePatern)
+        {
+            case BattlePatern.Battle:
+                if (hpBar_Back)
+                    if (hpBar.fillAmount < hpBar_Back.fillAmount)
+                    {
+                        hpBar_Back.fillAmount -= Time.deltaTime * backSpeed;
+                    }
+                break;
+            case BattlePatern.OnReady:
+                if (hpBar_Back)
+                    hpBar_Back.fillAmount = hpBar.fillAmount;
+                break;
+        }
+
     }
 }

@@ -5,11 +5,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using static BattleCollection.ActiveEffect;
 
 abstract public class BaseInBattle : MonoBehaviour
 {
     public JobClass job;
+    public new Dictionary<Language, string> name;
     public float maxHpInBattle;
     public float maxHp;
     [SerializeField] private float hp;
@@ -17,6 +19,7 @@ abstract public class BaseInBattle : MonoBehaviour
         get { return hp; }
         set
         {
+            Debug.Log("_Hp Value : " + value);
             hp = Mathf.Clamp(value, 0, maxHpInBattle);
             if (!GameManager.battleScenario)
                 return;
@@ -43,7 +46,7 @@ abstract public class BaseInBattle : MonoBehaviour
     public HpBarInUi hpBarInUi;
     public Dictionary<EffectType, float> TempEffects = new();//전투동안 지속되는 효과
     public Dictionary<EffectType, float> EffectsByAtt = new();//대미지를 입히면 적용시키는 효과, 비중첩
-    public BaseInBattle targetOpponent { get; set; }
+    public BaseInBattle targetOpponent;
     public BaseInBattle targetAlly;
 
     public bool IsEnemy { get; protected set; }
@@ -53,12 +56,13 @@ abstract public class BaseInBattle : MonoBehaviour
     [SerializeField] private List<PassiveEffect> passiveEffects;
 
     public Animator animator;
-    public GridObject grid { get; set; }
+    public GridObject grid;
     private Coroutine moveCoroutine;
     private readonly float ARRIVAL_TIME = 2f;
     public Transform rootTargetTransform;
     public Transform skillTargetTransform;
     public GameObject fireObj;
+
     public abstract void SetAnimParam();
     protected void InitBase(GridObject _grid)
     {
@@ -179,7 +183,6 @@ abstract public class BaseInBattle : MonoBehaviour
     }
     public void ApplyValue(float _value, EffectType _effectType, bool _byAtt = false)
     {
-        Debug.Log(_effectType + " : " + _value);
         if (_byAtt)
         {
             if (!EffectsByAtt.ContainsKey(_effectType))
@@ -270,6 +273,8 @@ abstract public class BaseInBattle : MonoBehaviour
 
         foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
         {
+            if (!ally)
+                continue;
             float value = ally.GetRegularValue(EffectType.Revive);
             if (value > 0)
             {
@@ -409,19 +414,29 @@ abstract public class BaseInBattle : MonoBehaviour
 
     IEnumerator QueueCycle(SkillActiveForm _skillActiveForm)
     {
-        yield return _skillActiveForm.ActiveSkill();
+        yield return StartCoroutine(_skillActiveForm.ActiveSkill());
+
+        // 코루틴이 완료된 후의 작업 수행
         skillQueue.Remove(_skillActiveForm);
-        //Next Skill
+
+        // 다음 스킬 실행
         if (skillQueue.Count > 0)
         {
             StartCoroutine(QueueCycle(skillQueue[0]));
         }
+
         if (_skillActiveForm.cooldownSlot)
+        {
             _skillActiveForm.cooldownSlot.StartCooldown(_skillActiveForm.skillInBattle.cooltime / speedInBattle);
-        yield return new WaitForSeconds(_skillActiveForm.skillInBattle.cooltime/speedInBattle);
+        }
+
+        yield return new WaitForSeconds(_skillActiveForm.skillInBattle.cooltime / speedInBattle);
         skillQueue.Add(_skillActiveForm);
+
         if (skillQueue.Count == 1)
+        {
             StartCoroutine(QueueCycle(_skillActiveForm));
+        }
     }
     public void FindNewTargetOpponent()
     {
@@ -478,7 +493,6 @@ abstract public class BaseInBattle : MonoBehaviour
     {
         GameManager.battleScenario.regularEffect -= ActiveRegularEffect;
         grid.owner = null;
-        StopAllCoroutines();
         skillQueue.Clear();
         //hpBarInScene.StopAllCoroutines();
         //if (hpBarInUi)
@@ -494,6 +508,7 @@ abstract public class BaseInBattle : MonoBehaviour
     private IEnumerator FadeOutCoroutine()
     {
         SpriteRenderer[] spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
+        Image[] images = hpBarInScene.GetComponentsInChildren<Image>();
         // 3초 동안 반복
         float timer = 0f;
         float coroutineTime = 2f;
@@ -505,11 +520,20 @@ abstract public class BaseInBattle : MonoBehaviour
             // 각 SpriteRenderer의 투명도 조절
             foreach (SpriteRenderer spriteRenderer in spriteRenderers)
             {
+                if (!spriteRenderer)
+                    continue;
                 Color color = spriteRenderer.color;
                 color.a = alpha;
                 spriteRenderer.color = color;
             }
-
+            foreach (Image image in images)
+            {
+                if (!image)
+                    continue;
+                Color color = image.color;
+                color.a = alpha;
+                image.color = color;
+            }
             // 0.05초마다 갱신
             yield return new WaitForSeconds(0.05f);
             timer += 0.05f;
@@ -518,7 +542,8 @@ abstract public class BaseInBattle : MonoBehaviour
         // 코루틴 종료 후 모든 SpriteRenderer를 비활성화
         foreach (SpriteRenderer spriteRenderer in spriteRenderers)
         {
-            spriteRenderer.gameObject.SetActive(false);
+            if (spriteRenderer)
+                spriteRenderer.gameObject.SetActive(false);
         }
     }
 

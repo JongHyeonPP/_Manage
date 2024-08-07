@@ -18,43 +18,12 @@ public class BattleScenarioTest : MonoBehaviour
         if (!GameManager.gameManager)
             return;
         battleScenario = GameManager.battleScenario;
-        for (int i = 0; i < 9; i++)
-        {
-            int index = i;
-            var friendlyGrid = BattleScenario.CharacterGrids[i];
-            friendlyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(BattleScenario.CharacterGrids[index], false));
-            var enemyGrid = BattleScenario.EnemyGrids[i];
-            enemyGrid.GetComponent<Button>().onClick.AddListener(() => OnCharacterGridClicked(BattleScenario.EnemyGrids[index], true));
-        }
-
     }
     public enum TestPattern
     {
         Default, Bot, Move
     }
     public TestPattern testPattern = TestPattern.Default;
-    private void OnCharacterGridClicked(GridObject _grid, bool _isEnemyGrid)
-    {
-        if (testPattern != TestPattern.Default)
-        {
-            switch (testPattern)
-            {
-                case TestPattern.Bot:
-                    RefreshTest();
-                    break;
-                case TestPattern.Move:
-                    if (moveTargetIndex > -1)
-                    {
-                        //battleScenario.MoveCharacter(moveTargetIndex, _gridIndex, _isEnemyGrid, false);
-                    }
-                    else
-                    {
-                    }
-                    break;
-            }
-            return;
-        }
-    }
     public void RefreshTest()
     {
         testPattern = TestPattern.Default;
@@ -63,6 +32,17 @@ public class BattleScenarioTest : MonoBehaviour
 
     public async void StageClearTest()
     {
+        foreach (BaseInBattle x in BattleScenario.enemies)
+        {
+            if (((EnemyInBattle)x).isBoss)
+            {
+                GameManager.gameManager.bossNum++;
+            }
+            else
+            {
+                GameManager.gameManager.enemyNum++;
+            }
+        }
         BattleScenario.RefreshGrid();
         foreach (BaseInBattle x in BattleScenario.characters)
         {
@@ -73,7 +53,7 @@ public class BattleScenarioTest : MonoBehaviour
     }
     public void GameOverTest()
     {
-        GameManager.gameManager.GameOver();
+        battleScenario.GameOver();
     }
     public void BattleSimulationAsync()
     {

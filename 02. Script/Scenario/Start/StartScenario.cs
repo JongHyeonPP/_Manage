@@ -98,5 +98,4 @@ public class StartScenario : MonoBehaviour
     {
         loadGame.InactiveButton();
     }
-    public void GotoBattleSimulation() => SceneManager.LoadScene("BattleSimulation");
 }

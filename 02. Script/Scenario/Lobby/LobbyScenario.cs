@@ -399,6 +399,7 @@ public class LobbyScenario : MonoBehaviour
             characterAtBattle.InitCharacter(data, BattleScenario.CharacterGrids[gridIndex]);
             BattleScenario.characters.Add(characterAtBattle);
             data.characterAtBattle = characterAtBattle;
+            data.name = "Character_" + i;
         }
         GameManager.gameManager.characterList =  characterDataList;
     }

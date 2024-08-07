@@ -288,9 +288,10 @@ public class InventoryUi : MonoBehaviour
     {
         foreach (InventorySlot x in inventorySlots)
         {
-            if (x.isSelected)
-                if (x.ci.amount == 1)
-                    x.ChangeCiAmount(0);
+            if (x.ci != null)
+                if (x.isSelected)
+                    if (x.ci.amount == 1)
+                        x.ChangeCiAmount(0);
         }
     }
 }

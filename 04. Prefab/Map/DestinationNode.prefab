@@ -333,7 +333,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 5427177865677505602}
         m_TargetAssemblyTypeName: DestinationNode, Assembly-CSharp
-        m_MethodName: EnterBattle
+        m_MethodName: OnEnterButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -949,4 +949,5 @@ MonoBehaviour:
   buttonEnter: {fileID: 6446556824316368294}
   textEnter: {fileID: 6784478667050107045}
   arrayIndex: 0
+  backGroundType: 0
   phaseNum: 0

@@ -12,7 +12,6 @@ public class CharacterInBattle : BaseInBattle
 {
     public static readonly Color TARGET_COLOR = new(0f, 0f, 1f, 0.5f);
     public bool isAct = false;
-    public new string name;
     public List<TalentClass> talents;
 
     public void SynchronizeCharacterData(CharacterData _data)
@@ -47,6 +46,7 @@ public class CharacterInBattle : BaseInBattle
             gameObject.SetActive(true);
             isDead = false;
         }
+        name = _data.jobClass.name;
     }
     public void InitCharacter(CharacterData _data, GridObject _grid)
     {
@@ -75,7 +75,7 @@ public class CharacterInBattle : BaseInBattle
                 gameOverFlag = true;
         if (!gameOverFlag)
         {
-            GameManager.gameManager.GameOver();//게임 오버
+            GameManager.battleScenario.GameOver();//게임 오버
         }
 
     }

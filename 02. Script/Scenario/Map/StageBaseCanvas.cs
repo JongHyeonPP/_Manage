@@ -63,7 +63,8 @@ public class StageBaseCanvas : MonoBehaviour
     }
     private void Start()
     {
-        characterInStage.characterHierarchy.CopyHierarchySprite(GameManager.gameManager.characterList[0].characterHierarchy);
+        if (GameManager.gameManager.characterList[0])
+            characterInStage.characterHierarchy.CopyHierarchySprite(GameManager.gameManager.characterList[0].characterHierarchy);
     }
 
 
@@ -401,6 +402,14 @@ public class StageBaseCanvas : MonoBehaviour
                 break;
         }
         string choiseNode = string.Empty;
+        bool isStore = false;
+        if(StageScenarioBase.phase != 5)
+           isStore = GameManager.CalculateProbability(1);
+        int storeIndex = -1;
+        if (isStore)
+        {
+            storeIndex = Random.Range(0, tempTo.Count);
+        }
         for (int i = 0; i < tempTo.Count; i++)
         {
             DestinationNode node = tempTo[i];
@@ -415,13 +424,13 @@ public class StageBaseCanvas : MonoBehaviour
                 choiseNode += ":::" + node.arrayIndex;
             }
 
-            bool isStore = GameManager.CalculateProbability(1 / 4);
+
             //bool isStore = false;
             List<KeyValuePair<string, NodeType>> kvps;
-            if (!isStore)
-                kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == node.backGroundType).ToList();
-            else
+            if (i == storeIndex)
                 kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == BackgroundType.Store).ToList();
+            else
+                kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == node.backGroundType).ToList();
             KeyValuePair<string, NodeType> selected = kvps[Random.Range(0, kvps.Count)];
             node.SetNodeType(selected.Value);
             StageScenarioBase.nodeTypes[node.index] = selected.Key;

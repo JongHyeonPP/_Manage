@@ -165,10 +165,6 @@ public class ItemManager : MonoBehaviour
         {
             GameManager.battleScenario.lootUi.SetLootAtUi(main, sub, gold);
         }
-
-
-
-
     }
 
     public void AddCiesToInventory(List<CountableItem> addMainSub)
@@ -206,6 +202,12 @@ public class ItemManager : MonoBehaviour
         int ableIndex = GetAbleIndex();
         if (ableIndex != -1)
             inventoryUi.inventorySlots[ableIndex].SetSlot(_ci);
+        else
+        {
+            string popUpMessage = (GameManager.language == Language.Ko) ? "가방이 가득차 아이템을\n수령하지 못했습니다." : "Bag is full, unable to receive the item.";
+            GameManager.gameManager.SetPopUp(popUpMessage);
+        }
+            
 
     }
     public int GetAbleIndex()

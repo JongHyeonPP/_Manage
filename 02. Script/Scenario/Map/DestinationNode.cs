@@ -110,7 +110,7 @@ public class DestinationNode : MonoBehaviour
         buttonEnter.color = new Color(1f, 1f, 1f, _alpha);
         textEnter.color = new Color(1f, 1f, 1f, _alpha);
     }
-    public void EnterBattle()
+    public async void OnEnterButtonClick()
     {
         if (StageScenarioBase.state != StateInMap.NeedEnter)
             return;
@@ -121,6 +121,8 @@ public class DestinationNode : MonoBehaviour
             LoadingScenario.LoadScene("Store");
         else
             LoadingScenario.LoadScene("Battle");
+        GameManager.gameManager.destinationNum++;
+        await DataManager.dataManager.SetDocumentData("DestinationNum", GameManager.gameManager.destinationNum, "Progress", GameManager.gameManager.Uid);
     }
     public void ActiveWithObject(bool _isAcitve)
     {
