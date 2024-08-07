@@ -112,8 +112,10 @@ public class InventoryUi : MonoBehaviour
         if (character.jobClass.jobId != "000")
             for (int i = 0; i < 2; i++)
             {
+                if (character.skillAsIItems[i] == null)
+                    continue;
                 equipSlots[i].expBar.SetActive(true);
-                equipSlots[i].SetExp((float)character.exp[i]);
+                equipSlots[i].SetExp(character.exp[i]);
             }
         else
         {

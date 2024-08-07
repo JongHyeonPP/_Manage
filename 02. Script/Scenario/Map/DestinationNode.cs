@@ -154,7 +154,8 @@ public class DestinationNode : MonoBehaviour
             imageObject.sprite = nodeType.objectSprite;
             imageObject.SetNativeSize();
             RectTransform gradientRect = imageGradient.GetComponent<RectTransform>();
-            gradientRect.sizeDelta = new(imageObject.sprite.rect.width, imageObject.sprite.rect.height);
+            if (imageObject.sprite)
+                gradientRect.sizeDelta = new(imageObject.sprite.rect.width, imageObject.sprite.rect.height);
         }
     }
     public void SetNameText() => textName.text = nodeType.name[GameManager.language];

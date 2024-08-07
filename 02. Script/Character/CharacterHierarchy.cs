@@ -3,6 +3,7 @@ using EnumCollection;
 using ItemCollection;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CharacterHierarchy : MonoBehaviour
@@ -69,12 +70,19 @@ public class CharacterHierarchy : MonoBehaviour
         ClothesSet(clothBodyRenderer, ClothesPart.ClothBody);
         ClothesSet(clothLeftRenderer,  ClothesPart.ClothLeft);
         ClothesSet(clothRightRenderer,  ClothesPart.ClothRight);
+        ClothesSet(clothRightRenderer,  ClothesPart.ClothRight);
+        ClothesSet(clothRightRenderer,  ClothesPart.ClothRight);
         ClothesSet(armorBodyRenderer,  ClothesPart.ArmorBody);
         ClothesSet(armorRightRenderer,  ClothesPart.ArmorRight);
         ClothesSet(armorLeftRenderer,  ClothesPart.ArmorLeft);
         ClothesSet(helmetRenderer,  ClothesPart.Helmet);
         ClothesSet(footRightRenderer,  ClothesPart.FootRight);
         ClothesSet(footLeftRenderer,  ClothesPart.FootLeft);
+        if (_job.jobId == "002")
+        {
+            clothLeftRenderer.color = new Color(1f, 0.6f, 0.6f);
+            clothRightRenderer.color = new Color(1f, 0.6f, 0.6f);
+        }
         void ClothesSet(SpriteRenderer _spriteRenderer, ClothesPart _clothesPart)
         {
             if (clothesDictPiece.ContainsKey(_clothesPart))
@@ -86,8 +94,10 @@ public class CharacterHierarchy : MonoBehaviour
     public void CopyHierarchySprite(CharacterHierarchy _origin)
     {
         hairRenderer.enabled = _origin.hairRenderer.enabled;
-        List<Sprite> sprites = _origin.GetHierarchySprite(out Color _hairColor);
-        hairColor = _hairColor;
+        List<Sprite> sprites = _origin.GetHierarchySprite();
+        List<Color> colors = _origin.GetHierarchyColor();
+
+        hairColor = colors[0];
         hairRenderer.sprite = sprites[0];
         faceHairRenderer.sprite = sprites[1];
         headRenderer.sprite = sprites[2];
@@ -114,11 +124,13 @@ public class CharacterHierarchy : MonoBehaviour
         footLeftRenderer.sprite = sprites[17];
         hairRenderer.color = hairColor;
         faceHairRenderer.color = hairColor;
+        clothLeftRenderer.color = colors[1];
+        clothRightRenderer.color = colors[2];
     }
-    public List<Sprite> GetHierarchySprite(out Color _hairColor)
+    public List<Sprite> GetHierarchySprite()
     {
-        List<Sprite> returnValue = new();
-        returnValue.AddRange(new Sprite[] {
+        List<Sprite> returnValue =
+        new List<Sprite> {
         hairRenderer.sprite,
         faceHairRenderer.sprite,
         headRenderer.sprite,
@@ -137,10 +149,21 @@ public class CharacterHierarchy : MonoBehaviour
         helmetRenderer.sprite,
         footRightRenderer.sprite,
         footLeftRenderer.sprite
-        });
-        _hairColor = hairColor;
+        };
+
         return returnValue;
     }
+    public List<Color> GetHierarchyColor()
+    {
+        List<Color> returnValue=
+                    new List<Color> {
+                        hairColor,
+                        clothLeftRenderer.color,
+                        clothRightRenderer.color,
+    };
+        return returnValue;
+    }
+
     public IEnumerator GraduallyChangeAlpha(bool _isFadeIn, float _duration)
     {
         SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();

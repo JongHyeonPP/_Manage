@@ -47,9 +47,19 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     {
         await LoadVisualEffect();
         await InitSkill();
-        await Task.WhenAll(InitUserDoc(), InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
-            InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
-            InitNodeType());
+        //await Task.WhenAll(InitUserDoc(), InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
+        //    InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
+        //    InitNodeType());
+        await InitUpgrade();//InitUserDocº¸´Ù À§¿¡ ÀÖ¾î¾ßÇÔ
+        await InitUserDoc();
+        await InitJob();
+        await InitEnemy();
+        await InitTalent();
+        await InitEnemyCase();
+        await InitWeapon();
+        await InitIngredient();
+        await InitFood();
+        await InitNodeType();
         InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
         isInit = true;
         Debug.Log("LoadComplete");
@@ -193,7 +203,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 foreach (object x in (List<object>)obj)
                 {
                     string visualEffectStr = (string)x;
-
+                    if(skillVisualEffectDict.ContainsKey(visualEffectStr))
                     visualEffect.Add(skillVisualEffectDict[visualEffectStr]);
                 }
             }
@@ -932,9 +942,12 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 VisualEffect skillVisualEffect = null;
                 if (dict.TryGetValue("VisualEffect", out obj))
                 {
+                    VisualEffect ve;
                     Dictionary<string, object> veDict = obj as Dictionary<string, object>;
-                    defaultVisualEffect = weaponVisualEffectDict[(string)veDict["Default"]];
-                    skillVisualEffect = weaponVisualEffectDict[(string)veDict["Skill"]];
+                    if(weaponVisualEffectDict.TryGetValue((string)veDict["Default"], out ve))
+                    defaultVisualEffect = ve;
+                    if (weaponVisualEffectDict.TryGetValue((string)veDict["Skill"], out ve))
+                        skillVisualEffect = ve;
                 }
                 weaponClass.SetVisualEffect(defaultVisualEffect, skillVisualEffect);
 
@@ -990,6 +1003,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             };
 
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
+            if (sprite == null)
+                Debug.LogError("No Sprite" + doc.Id);
             //Scale
             Vector2 scale;
             if (dict.ContainsKey("Scale"))
@@ -1028,6 +1043,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             PokerCombination pokerCombination;
             Sprite sprite;
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
+            if (sprite == null)
+                Debug.LogError("No Sprite" + doc.Id);
             //Name
             Dictionary<string, object> nameObjDict = dict["Name"] as Dictionary<string, object>;
             Dictionary<Language, string> name = new()
