@@ -30,13 +30,13 @@ public class MainLootSlot : MonoBehaviour
     public void SetMainLootSlot(Item _item)
     {
         nameDict = _item.name;
-        if (_item.itemType == ItemType.Weapon)
+        if (_item.weaponType == ItemType.Weapon)
         {
             panelWeapon.gameObject.SetActive(true);
             panelSkill.gameObject.SetActive(false);
             SetWeaponAtSlot(_item);
         }
-        else if (_item.itemType == ItemType.Skill)
+        else if (_item.weaponType == ItemType.Skill)
         {
             panelWeapon.gameObject.SetActive(false);
             panelSkill.gameObject.SetActive(true);

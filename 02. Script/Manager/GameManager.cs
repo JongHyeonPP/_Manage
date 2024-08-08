@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -319,6 +320,7 @@ public class GameManager : MonoBehaviour
             armL = null,
             armR = null;
             Color hairColor = Color.black;
+            Color eyeColor = Color.black;
             if (tempDict.TryGetValue("Ability", out obj))
             {
                 ability = GetFloatValue(obj);
@@ -457,6 +459,14 @@ public class GameManager : MonoBehaviour
                     float blue = GetFloatValue(colorDict["B"]);
                     hairColor = new Color(red, green, blue);
                 }
+                if (bodyDict.TryGetValue("EyeColor", out obj1))
+                {
+                    Dictionary<string, object> colorDict = obj1 as Dictionary<string, object>;
+                    float red = GetFloatValue(colorDict["R"]);
+                    float green = GetFloatValue(colorDict["G"]);
+                    float blue = GetFloatValue(colorDict["B"]);
+                    eyeColor = new Color(red, green, blue);
+                }
             }
             if (tempDict.TryGetValue("WeaponId", out obj))
             {
@@ -505,7 +515,7 @@ public class GameManager : MonoBehaviour
             GameObject characterObject = Instantiate(CharacterTemplate);
             //CharacterHierarchy
             CharacterHierarchy characterHierarchy = characterObject.transform.GetChild(0).GetComponent<CharacterHierarchy>();
-            characterHierarchy.SetBodySprite(hair, faceHair, eyesFront, eyesBack, head, armL, armR, weapon.sprite, hairColor);
+            characterHierarchy.SetBodySprite(hair, faceHair, eyesFront, eyesBack, head, armL, armR, weapon.sprite, hairColor, eyeColor);
 
             //CharacterData
             CharacterData data = characterObject.AddComponent<CharacterData>();

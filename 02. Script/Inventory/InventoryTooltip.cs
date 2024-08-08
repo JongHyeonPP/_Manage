@@ -30,7 +30,7 @@ public class InventoryTooltip : MonoBehaviour
         _item.SetSpriteToImage(itemImage);
         itemName.text = _item.name[GameManager.language];
         string categoriStr = "";
-        switch (_item.itemType)
+        switch (_item.weaponType)
         {
             case ItemType.Weapon:
                 categoriStr = (GameManager.language == Language.Ko) ? "¹«±â" : "Weapon";
@@ -60,7 +60,7 @@ public class InventoryTooltip : MonoBehaviour
                 break;
         }
         string categoriColor = string.Empty;
-        if (_item.itemType == ItemType.Skill)
+        if (_item.weaponType == ItemType.Skill)
         {
             switch (((SkillAsItem)_item).categori)
             {
@@ -78,7 +78,7 @@ public class InventoryTooltip : MonoBehaviour
         }
         categori.text = categoriStr;
         string gradeStr = string.Empty;
-        if (_item.itemType != ItemType.Ingredient)
+        if (_item.weaponType != ItemType.Ingredient)
         {
             switch (_item.itemGrade)
             {
@@ -123,7 +123,7 @@ public class InventoryTooltip : MonoBehaviour
         float width = rectTransform.rect.width;
         float height = baseHeight + explain.preferredHeight;
         float yCorrection = explain.preferredHeight;
-        if (_item.itemType == ItemType.Weapon)
+        if (_item.weaponType == ItemType.Weapon)
         {
             WeaponClass _weapon = (WeaponClass)_item;
             hpSlot.SetValue(_weapon.hp);

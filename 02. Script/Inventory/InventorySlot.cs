@@ -34,7 +34,7 @@ public class InventorySlot : SlotBase
         imageItem.gameObject.SetActive(true);
         ci = _ci;
         Sprite gradeSprite;
-        if (_ci.item.itemType == ItemType.Food)
+        if (_ci.item.weaponType == ItemType.Food)
         {
             PokerCombination pokerCombination = ((FoodClass)_ci.item).pokerCombination;
             switch (pokerCombination)
@@ -76,7 +76,7 @@ public class InventorySlot : SlotBase
         }
         imageGrade.sprite = gradeSprite;
         Sprite itemSprite;
-        switch (ci.item.itemType)
+        switch (ci.item.weaponType)
         {
             default:
                 ci.item.SetSpriteToImage(imageItem);
@@ -110,7 +110,7 @@ public class InventorySlot : SlotBase
             textAmount.text = ci.amount.ToString();
         }
 
-        if (ci.item.itemType == ItemType.Ingredient)
+        if (ci.item.weaponType == ItemType.Ingredient)
         {
             textPokerNum.transform.parent.gameObject.SetActive(true);
             IngredientClass ingredient = (IngredientClass)ci.item;
@@ -240,11 +240,11 @@ public class InventorySlot : SlotBase
                 return;
             }
         CountableItem curCi = ci;
-        if (ci.item.itemType == ItemType.Weapon)
+        if (ci.item.weaponType == ItemType.Weapon)
         {
             SetSlot( new(targetSlot.item));
         }
-        else if (ci.item.itemType == ItemType.Skill)
+        else if (ci.item.weaponType == ItemType.Skill)
         {
             if (targetSlot.item != null)//교체하기
             {
@@ -370,7 +370,7 @@ public class InventorySlot : SlotBase
             // 우클릭 감지
             if (pointerData.button == PointerEventData.InputButton.Right)
             {
-                switch (ci.item.itemType)
+                switch (ci.item.weaponType)
                 {
                     case ItemType.Weapon:
                         ItemManager.itemManager.inventoryUi.targetEquipSlot = ItemManager.itemManager.inventoryUi.equipSlots[2];

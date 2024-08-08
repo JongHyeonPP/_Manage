@@ -153,7 +153,7 @@ public class ItemManager : MonoBehaviour
                 AddCiToArr(sub, ci);
             }
         }
-        main = main.OrderBy(data => data.item.itemType).ToList();
+        main = main.OrderBy(data => data.item.weaponType).ToList();
         sub = sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
         int gold = Random.Range(10, 13);
         GameManager.gameManager.SetGold(gold);
@@ -173,7 +173,7 @@ public class ItemManager : MonoBehaviour
         {
             InventorySlot existingSlot = null;
 
-            if (ci.item.itemType != ItemType.Weapon)
+            if (ci.item.weaponType != ItemType.Weapon)
             {
                 existingSlot = GetExistingSlot(ci.item);
             }
@@ -232,7 +232,7 @@ public class ItemManager : MonoBehaviour
             if (ci == null)
                 continue;
             string typeStr;
-            switch (ci.item.itemType)
+            switch (ci.item.weaponType)
             {
                 default:
                     typeStr = "Weapon";
@@ -248,7 +248,7 @@ public class ItemManager : MonoBehaviour
                     break;
             }
             string itemId;
-            switch (ci.item.itemType)
+            switch (ci.item.weaponType)
             {
                 default:
                     itemId = ci.item.itemId;

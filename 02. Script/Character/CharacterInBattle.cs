@@ -54,7 +54,6 @@ public class CharacterInBattle : BaseInBattle
         IsEnemy = false;
         InitBase(_grid);
         
-
         transform.localScale = Vector3.one;
         transform.GetChild(0).localScale = Vector3.one * 100;
         transform.localPosition = Vector3.zero;

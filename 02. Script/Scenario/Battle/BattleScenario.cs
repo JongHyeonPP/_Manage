@@ -44,6 +44,8 @@ public class BattleScenario : MonoBehaviour
     public string visualEffectStr;
     public float visualEffectDur;
     public StatusExplain_Battle statusExplain;
+    public TMP_Text damagePrefab;
+
     private void Awake()
     {
         if (!GameManager.gameManager)
@@ -434,12 +436,12 @@ public class BattleScenario : MonoBehaviour
     {
         foreach (var x in enemies)
         {
-            x.StartBattle();
+            //x.StartBattle();
         }
         foreach (var x in characters)
         {
-            //if (x)
-            //    x.StartBattle();
+            if (x)
+                x.StartBattle();
         }
         canvasBattle.GetChild(0).gameObject.SetActive(false);
         StartCoroutine(ActiveRegualrEffect());

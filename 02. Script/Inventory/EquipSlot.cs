@@ -39,7 +39,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
             {
                 ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector3(50f, 30f), item);
             }
-            if (!draggingSlot || draggingSlot.ci.item.itemType != itemType)
+            if (!draggingSlot || draggingSlot.ci.item.weaponType != itemType)
                 return;
             HightlightOn();
             ItemManager.itemManager.inventoryUi.targetEquipSlot = this;
@@ -60,8 +60,8 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
             imageItem.gameObject.SetActive(true);
             item = _item;
             _item.SetSpriteToImage(imageItem);
-            objectCategori.SetActive(_item.itemType == ItemType.Skill);
-            if (_item.itemType == ItemType.Skill)
+            objectCategori.SetActive(_item.weaponType == ItemType.Skill);
+            if (_item.weaponType == ItemType.Skill)
             {
                 objectCategori.SetActive(true);
                 switch (_item.itemGrade)

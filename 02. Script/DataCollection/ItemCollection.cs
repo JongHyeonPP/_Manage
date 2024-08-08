@@ -24,7 +24,7 @@ namespace ItemCollection
 
     public abstract class Item//무기, 요리, 스킬
     {
-        public ItemType itemType;
+        public ItemType weaponType;
         public string itemId;//DB에 셋하기 위함
         public ItemGrade itemGrade;
         public Dictionary<Language, string> name;
@@ -36,7 +36,7 @@ namespace ItemCollection
         protected Item(ItemType _itemType, string _itemId, ItemGrade _itemGrade,
             Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position)
         {
-            itemType = _itemType;
+            weaponType = _itemType;
             itemId = _itemId;
             itemGrade = _itemGrade;
             name = _name;
@@ -59,7 +59,7 @@ namespace ItemCollection
 
         public IngredientClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType,_itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
-            itemType = _itemType;
+            weaponType = _itemType;
             itemId = _itemId;
             itemGrade = _itemGrade;
             name = _name;
@@ -96,7 +96,7 @@ namespace ItemCollection
 
         public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
-            itemType = _itemType;
+            weaponType = _itemType;
             itemId = _itemId;
             itemGrade = _itemGrade;
             name = _name;

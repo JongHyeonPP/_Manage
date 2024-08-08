@@ -435,7 +435,7 @@ namespace BattleCollection
             }
 
 
-            void SkillAnim()
+            void CharacterAnim()
             {
                 float minValue = SkillInBattle.defaultAttackCooltime;
                 float maxValue = 8;
@@ -445,8 +445,21 @@ namespace BattleCollection
                     caster.animator.speed = 1f;
                 if (!caster.isMonster)
                     caster.animator.SetFloat("AttackState", (skillInBattle.cooltime - minValue) / (maxValue - minValue));
-                //caster.animator.SetFloat("NormalState", 0.5f);
-                //caster.animator.SetFloat("SkillState", 0.5f);
+                float stateNum;
+                switch (caster.weapon.weaponType)
+                {
+                    default:
+                        stateNum = 0f;
+                        break;
+                    case WeaponType.Bow:
+                        stateNum = 0.5f;
+                        break;
+                    case WeaponType.Magic:
+                        stateNum = 1f;
+                        break;
+                }
+                caster.animator.SetFloat("NormalState", stateNum);
+                caster.animator.SetFloat("SkillState", stateNum);
                 bool isTagetEnemy = skillInBattle.effects.Where(item => item.isPassive == false).FirstOrDefault().isTargetEnemy;
                 if (isTagetEnemy)
                     caster.animator.SetTrigger("Attack");
@@ -475,7 +488,7 @@ namespace BattleCollection
                     caster.StartCoroutine(WeaponVisualEffect());
                 if (skillInBattle.isAnim)
                 {
-                    SkillAnim();
+                    CharacterAnim();
 
                 }
             }
@@ -510,5 +523,5 @@ namespace BattleCollection
             return effectTarget;
         }
     }
-    
+
 }

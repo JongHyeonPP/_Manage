@@ -15,6 +15,7 @@ abstract public class BaseInBattle : MonoBehaviour
     public float maxHpInBattle;
     public float maxHp;
     [SerializeField] private float hp;
+    protected ShowDamageText damageInBattle;
     public float Hp {
         get { return hp; }
         set
@@ -62,6 +63,7 @@ abstract public class BaseInBattle : MonoBehaviour
     public Transform rootTargetTransform;
     public Transform skillTargetTransform;
     public GameObject fireObj;
+    private ShowDamageText showDamageText;
 
     public abstract void SetAnimParam();
     protected void InitBase(GridObject _grid)
@@ -77,6 +79,7 @@ abstract public class BaseInBattle : MonoBehaviour
             animator = GetComponent<Animator>();
         else
             animator = transform.GetComponentInChildren<Animator>();
+        showDamageText = gameObject.AddComponent<ShowDamageText>();
     }
     public void InBattleFieldZero()
     {

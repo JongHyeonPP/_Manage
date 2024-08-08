@@ -9,6 +9,7 @@ using UnityEngine;
 public class CharacterHierarchy : MonoBehaviour
 {
     private Color hairColor;
+    private Color eyeColor;
     [Header("Body")]
     [SerializeField] private SpriteRenderer hairRenderer;
     [SerializeField] private SpriteRenderer faceHairRenderer;
@@ -32,7 +33,7 @@ public class CharacterHierarchy : MonoBehaviour
     [SerializeField] private SpriteRenderer footLeftRenderer;
     public Animator animator;
 
-    public void SetBodySprite(Sprite _hair, Sprite _faceHair, Sprite _eyeFront, Sprite _eyeBack, Sprite _head, Sprite _armL, Sprite _armR,  Sprite _weapon,Color _hairColor)
+    public void SetBodySprite(Sprite _hair, Sprite _faceHair, Sprite _eyeFront, Sprite _eyeBack, Sprite _head, Sprite _armL, Sprite _armR,  Sprite _weapon,Color _hairColor, Color _eyeColor)
     {
         hairColor = _hairColor;
         hairRenderer.sprite = _hair;
@@ -44,18 +45,25 @@ public class CharacterHierarchy : MonoBehaviour
         foreach (SpriteRenderer renderer in eyesFrontRenderer)
         {
             if (_eyeFront != null)
+            {
                 renderer.sprite = _eyeFront;
+                renderer.color = _eyeColor;
+            }
         }
         foreach (SpriteRenderer renderer in eyesBackRenderer)
         {
             if (_eyeBack != null)
+            {
                 renderer.sprite = _eyeBack;
+
+            }
         }
         if (_armL != null)
             armLRenderer.sprite = _armL;
         if (_armR != null)
             armRRenderer.sprite = _armR;
         weaponRenderer.sprite = _weapon;
+        eyeColor = _eyeColor;
     }
 
     public void SetWeaponSprite(WeaponClass _weapon)
@@ -97,7 +105,7 @@ public class CharacterHierarchy : MonoBehaviour
         List<Sprite> sprites = _origin.GetHierarchySprite();
         List<Color> colors = _origin.GetHierarchyColor();
 
-        hairColor = colors[0];
+
         hairRenderer.sprite = sprites[0];
         faceHairRenderer.sprite = sprites[1];
         headRenderer.sprite = sprites[2];
@@ -122,10 +130,17 @@ public class CharacterHierarchy : MonoBehaviour
         helmetRenderer.sprite = sprites[15];
         footRightRenderer.sprite = sprites[16];
         footLeftRenderer.sprite = sprites[17];
+        
+        hairColor = colors[0];
+        eyeColor = colors[1];
         hairRenderer.color = hairColor;
         faceHairRenderer.color = hairColor;
-        clothLeftRenderer.color = colors[1];
-        clothRightRenderer.color = colors[2];
+        foreach (SpriteRenderer renderer in eyesFrontRenderer)
+        {
+            renderer.color = eyeColor;
+        }
+        clothLeftRenderer.color = colors[2];
+        clothRightRenderer.color = colors[3];
     }
     public List<Sprite> GetHierarchySprite()
     {
@@ -158,6 +173,7 @@ public class CharacterHierarchy : MonoBehaviour
         List<Color> returnValue=
                     new List<Color> {
                         hairColor,
+                        eyeColor,
                         clothLeftRenderer.color,
                         clothRightRenderer.color,
     };

@@ -17,13 +17,14 @@ public class ApplicantSlot : MonoBehaviour
     private bool isActived;
     private bool isSelected;
     public Animator templateAnimator;
-    private readonly Color BlackHair = new Color(45f / 255f, 45f / 255f, 45f / 255f);
-    private readonly Color BrownHair = new Color(80f / 255f, 45f / 255f, 0f);
-    private readonly Color BlueHair = new Color(28f / 255f, 58f / 255f, 180f / 255f);
-    private readonly Color RedHair = new Color(204f / 255f, 18f / 255f, 23f / 255f);
-    private readonly Color YellowHair = new Color(1f, 1f, 0f);
-    private readonly Color WhiteHair = new Color(1f, 1f, 1f);
-    private readonly Color GreenHair = new Color(0f, 190f / 255f, 0f);
+    private readonly Color Black = Color.black;
+    private readonly Color GrayColor = new Color(45f / 255f, 45f / 255f, 45f / 255f);
+    private readonly Color BrownColor = new Color(80f / 255f, 45f / 255f, 0f);
+    private readonly Color BlueColor = new Color(28f / 255f, 58f / 255f, 180f / 255f);
+    private readonly Color RedColor = new Color(204f / 255f, 18f / 255f, 23f / 255f);
+    private readonly Color YellowColor = new Color(1f, 1f, 0f);
+    private readonly Color WhiteColor = new Color(1f, 1f, 1f);
+    private readonly Color GreenColor = new Color(0f, 190f / 255f, 0f);
     public GameObject templateObject;
     public List<Sprite> numberTexture;
     public Dictionary<string, object> bodyDict = new();
@@ -120,9 +121,9 @@ public class ApplicantSlot : MonoBehaviour
             Sprite eyeBack;
             Sprite armL;
             Sprite armR;
-            Color hairColor;
+            Color hairColor = Color.black;
+            Color eyeColor=Color.black;
             hair = faceHair =  null;
-            hairColor = Color.black;
             //Species
             Species species;
             //Human, Elf, Devil, Skelton, Orc
@@ -197,25 +198,42 @@ public class ApplicantSlot : MonoBehaviour
                 switch (GameManager.AllocateProbability(0.5f, 0.2f, 0.05f, 0.05f, 0.05f, 0.1f, 0.05f))
                 {
                     default:
-                        hairColor = BlackHair;
+                        hairColor = GrayColor;
                         break;
                     case 1:
-                        hairColor = BrownHair;
+                        hairColor = BrownColor;
                         break;
                     case 2:
-                        hairColor = BlueHair;
+                        hairColor = BlueColor;
                         break;
                     case 3:
-                        hairColor = RedHair;
+                        hairColor = RedColor;
                         break;
                     case 4:
-                        hairColor = YellowHair;
+                        hairColor = YellowColor;
                         break;
                     case 5:
-                        hairColor = WhiteHair;
+                        hairColor = WhiteColor;
                         break;
                     case 6:
-                        hairColor = GreenHair;
+                        hairColor = GreenColor;
+                        break;
+
+                }
+                //Eye
+                switch (GameManager.AllocateProbability(0.4f, 0.4f, 0.1f, 0.1f))
+                {
+                    default:
+                        eyeColor = BrownColor;
+                        break;
+                    case 1:
+                        eyeColor = Black;
+                        break;
+                    case 2:
+                        eyeColor = BlueColor;
+                        break;
+                    case 3:
+                        eyeColor = RedColor;
                         break;
 
                 }
@@ -223,9 +241,9 @@ public class ApplicantSlot : MonoBehaviour
                 colorDict.Add("R", hairColor.r);
                 colorDict.Add("G", hairColor.g);
                 colorDict.Add("B", hairColor.b);
-                bodyDict.Add("HairColor", colorDict);
+                bodyDict.Add("EyeColor", colorDict);
             }
-            characterHierarchy.SetBodySprite(hair, faceHair, eyeFront, eyeBack, head, armL, armR,null, hairColor);
+            characterHierarchy.SetBodySprite(hair, faceHair, eyeFront, eyeBack, head, armL, armR,null, hairColor, eyeColor);
         }
     }
     public void SlotBtnClicked()
