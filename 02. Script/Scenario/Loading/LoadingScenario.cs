@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -22,30 +23,28 @@ public class LoadingScenario : MonoBehaviour
     public static void LoadScene(string _sceneName)
     {
         nextScene = _sceneName;
-        SceneManager.LoadScene ("Loading");
+        SceneManager.LoadSceneAsync("Loading");
     }
     private IEnumerator LoadSceneProcess()
     {
         AsyncOperation op = SceneManager.LoadSceneAsync(nextScene);
         op.allowSceneActivation = false;
         float timer = 0f;
-        float initProgress = 0f;
         float minimumLoadTime = 1f;
-        if (!LoadManager.loadManager.isInit)
-            LoadManager.loadManager.LoadDbBaseData();
 
-        if (nextScene == "Battle")
+        bool needDbLoad = !LoadManager.loadManager.isInit;
+        bool needBattleInit = nextScene == "Battle";
+
+        if (needDbLoad)
         {
-            var progressReporter = new Progress<float>(progress =>
-            {
-                initProgress = progress * 0.5f; // 초기화 작업을 전체의 50%로 가정
-            });
+            // DB 초기화 진행
+            LoadManager.loadManager.LoadDbBaseData();
+        }
 
-            var task = BattleScenario.Init_BattleSetAsync(progressReporter);
-            while (!task.IsCompleted)
-            {
-                yield return null;
-            }
+        if (needBattleInit)
+        {
+            // 배틀 초기화 진행
+            BattleScenario.Init_BattleSetAsync();
         }
 
         // 최소 로딩 시간 동안 0%에서 90%까지 진행
@@ -55,35 +54,73 @@ public class LoadingScenario : MonoBehaviour
             float progress = Mathf.Lerp(0f, 0.9f, timer / minimumLoadTime);
             imageLoadingBar.fillAmount = progress;
             textLoading.text = (progress * 100).ToString("F1") + "%";
-
             yield return null;
         }
 
-        // 초기화 작업을 포함하여 남은 로딩 진행
-        while (!(op.isDone && LoadManager.loadManager.isInit))
+        // 로딩 진행 상태를 계산하는 함수
+        float CalculateTotalProgress(float sceneProgress)
         {
-            yield return null;
+            float combinedProgress = 0f;
 
-            if (op.progress < 0.9f)
+            if (needDbLoad && needBattleInit)
             {
-                float totalProgress = (op.progress * 0.5f) + initProgress; // 로딩과 초기화를 50%씩으로 합산
-                imageLoadingBar.fillAmount = totalProgress;
-                textLoading.text = (totalProgress * 100).ToString("F1") + "%";
+                combinedProgress = Mathf.Clamp01(LoadManager.loadManager.dbProgress * 0.5f + BattleScenario.battleProgress * 0.5f);
+            }
+            else if (needDbLoad)
+            {
+                combinedProgress = Mathf.Clamp01(LoadManager.loadManager.dbProgress);
+            }
+            else if (needBattleInit)
+            {
+                combinedProgress = Mathf.Clamp01(BattleScenario.battleProgress);
             }
             else
             {
-                timer += Time.unscaledDeltaTime;
-                float progress = Mathf.Lerp(0.9f, 1f, timer);
-                imageLoadingBar.fillAmount = progress;
-                textLoading.text = (progress * 100).ToString("F1") + "%";
+                // DB 로딩과 배틀 초기화가 필요 없는 경우
+                combinedProgress = sceneProgress;
+            }
 
-                if (imageLoadingBar.fillAmount >= 1f)
+            // 씬 로딩의 가중치를 높게 설정
+            return Mathf.Clamp01(combinedProgress * 0.5f + sceneProgress * 0.5f);
+        }
+
+        // 씬 로딩 진행
+        bool progressBeyond90Percent = false;
+        float post90PercentTimer = 0f;
+        while (!op.isDone)
+        {
+            float sceneProgress = Mathf.Clamp01(op.progress / 0.9f);
+            float totalProgress = CalculateTotalProgress(sceneProgress);
+
+            if (sceneProgress < 1f)
+            {
+                imageLoadingBar.fillAmount = totalProgress;
+                textLoading.text = (totalProgress * 100).ToString("F1") + "%";
+            }
+            else if (!progressBeyond90Percent)
+            {
+                progressBeyond90Percent = true;
+                post90PercentTimer = 0f;
+            }
+
+            if (progressBeyond90Percent)
+            {
+                post90PercentTimer += Time.unscaledDeltaTime;
+                float progress = Mathf.Lerp(0.9f, 1f, post90PercentTimer);
+                totalProgress = CalculateTotalProgress(progress);
+
+                imageLoadingBar.fillAmount = totalProgress;
+                textLoading.text = (totalProgress * 100).ToString("F1") + "%";
+
+                if (totalProgress >= 1f)
                 {
                     op.allowSceneActivation = true;
                     yield break;
                 }
             }
-        }
 
+            yield return null;
+        }
     }
+
 }

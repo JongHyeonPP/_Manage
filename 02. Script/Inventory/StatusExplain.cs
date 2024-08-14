@@ -4,11 +4,18 @@ using UnityEngine;
 using TMPro;
 using EnumCollection;
 using JetBrains.Annotations;
+using UnityEngine.UI;
 public class StatusExplain : MonoBehaviour
 {
+    private RectTransform rectTransform;
     public TMP_Text statusName;
     public TMP_Text statusExplain;
-public void SetHpExplain(float _maxHp, float _hp)
+    public RectTransform imageLine;
+    private void Awake()
+    {
+        rectTransform = GetComponent<RectTransform>();
+    }
+    public void SetHpExplain(float _maxHp, float _hp)
     {
         statusName.text = "<b><color=#FF4545>" + ((GameManager.language == Language.Ko) ? "체력" : "Hp");
         statusExplain.text = (GameManager.language == Language.Ko) ?
@@ -26,10 +33,11 @@ public void SetHpExplain(float _maxHp, float _hp)
 
     public void SetResistExplain(float _resist)
     {
+        float calcedResist = BattleScenario.CalcResist(_resist) * 100f;
         statusName.text = "<b><color=#45FF63>" + ((GameManager.language == Language.Ko) ? "저항력" : "Resist");
         statusExplain.text = (GameManager.language == Language.Ko) ?
-            $"받는 피해가 <b><color=#45FF63><size=120%>{_resist:F1}%</size></color></b>\n만큼 감소합니다." :
-            $"The damage taken is\nreduced by <b><color=#45FF63><size=120%>{_resist:F1}%</size></color></b>";
+            $"받는 피해가 <b><color=#45FF63><size=120%>{calcedResist:F1}%</size></color></b>\n만큼 감소합니다." :
+            $"The damage taken is\nreduced by <b><color=#45FF63><size=120%>{calcedResist:F1}%</size></color></b>";
     }
 
     public void SetSpeedExplain(float _speed)
@@ -43,5 +51,11 @@ public void SetHpExplain(float _maxHp, float _hp)
     {
         statusName.text = _name;
         statusExplain.text = _explain;
+        SetSize();
+    }
+    private void SetSize()
+    {
+        rectTransform.sizeDelta = new Vector2(statusName.preferredWidth + 50f, rectTransform.sizeDelta.y);
+        imageLine.sizeDelta = new Vector2(Mathf.Max( statusName.preferredWidth, 163.2f), imageLine.sizeDelta.y);
     }
 }

@@ -2,7 +2,7 @@ namespace EnumCollection
 {
     public enum DataSection : byte
     {
-        SoundSetting, Language
+        SoundSetting, Language, Screen
     }
     public enum VolumeType : byte
     {
@@ -15,19 +15,18 @@ namespace EnumCollection
     public enum EffectType : byte
     {
         //발동류
-        Damage, Curse, Heal, Restoration, Armor, Bleed, AbilityVamp,
+        Damage, Heal, Armor, Bleed, AbilityVamp,
         //효과류
         AttAscend, ResistAscend, HealAscend, DebuffAscend, Reduce,
         AttDescend, ResistDescend, SpeedAscend, SpeedDescend,
-        Confuse, BleedTransfer, Reflect, Paralyze, Necro,
-        BarrierConv, Enchant, Repeat,
-        DamageShare, AbilityAscend,
+        Confuse, BleedTransfer, Reflect, Paralyze,
+        Enchant, Repeat,
+         AbilityAscend,
         ResistByDamage, Vamp, Critical, Revive,
         FameAscend, GoldAscend,
-        //직업류
-        CorpseExplo, BuffAscend, RewardAscend,
+        BuffAscend, RewardAscend,
+        ResilienceAscend
 
-        AttAscend_Torment, ResilienceAscend
     }
     public enum UpgradeEffectType : byte
     {
@@ -36,7 +35,7 @@ namespace EnumCollection
     public enum EffectRange : byte
     {
         Dot, Row, Column, Self,
-        Behind, Front
+        Behind, Front, TargetsAllies
     }
     public enum EffectPrecon : byte
     {

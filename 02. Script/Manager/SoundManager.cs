@@ -8,20 +8,24 @@ using EnumCollection;
 public class SoundManager : MonoBehaviour
 {
     public static SoundManager soundManager;
+    public AudioMixer masterMixer;
     [SerializeField] private AudioSource bgmSource;
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private Dictionary<string, AudioClip> bgmList;
     [SerializeField] private Dictionary<string, AudioClip> sfxList;
     readonly string bgmPath = "Sound/Bgm";
     readonly string sfxPath = "Sound/Sfx";
+    private void Update()
+    {
+        //masterMixer.GetFloat("BGM", out float value);
+        //Debug.Log(value);
+    }
     private void Awake()
     {
         if (!soundManager)
         {
             soundManager = this;
             SceneManager.sceneLoaded += OnSceneLoaded;
-            bgmSource = GetComponents<AudioSource>()[0];
-            sfxSource = GetComponents<AudioSource>()[1];
             bgmList = new ();
             foreach (AudioClip x in Resources.LoadAll<AudioClip>(bgmPath))
             {
@@ -33,11 +37,6 @@ public class SoundManager : MonoBehaviour
                 sfxList.Add(x.name, x);
             }
         }
-    }
-
-    public void OnOffSound(VolumeType eVolume, bool _onOff)
-    {
-
     }
     public void ToggleAudioVolume()
     {

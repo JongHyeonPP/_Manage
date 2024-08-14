@@ -16,10 +16,12 @@ public class JobSlot : MonoBehaviour
     }
     public void OnPointerEnter()
     {
+        if (!ItemManager.itemManager.selectedCharacter)
+            return;
         JobClass job;
         if (isInGetJob)
         {
-            job = GameManager.gameManager.GetJob(ItemManager.itemManager.selectedCharacter.skillAsIItems[0].itemId, ItemManager.itemManager.selectedCharacter.skillAsIItems[1].itemId);
+            job = GameManager.gameManager.GetJob(ItemManager.itemManager.selectedCharacter.skillAsItems[0].itemId, ItemManager.itemManager.selectedCharacter.skillAsItems[1].itemId);
         }
         else
         {
@@ -46,7 +48,7 @@ public class JobSlot : MonoBehaviour
     public void Case000(CharacterData _character)
     {
         jobIconSlot.gameObject.SetActive(false);
-        if (_character.skillAsIItems[0] != null && _character.skillAsIItems[1] != null)//둘 다 null이 아니면
+        if (_character.skillAsItems[0] != null && _character.skillAsItems[1] != null)//둘 다 null이 아니면
         {
             buttonExclaim.SetActive(true);
         }

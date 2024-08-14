@@ -68,7 +68,8 @@ public class GameManager : MonoBehaviour
     public GameObject[] stageBaseCanvases;
     #endregion
     //Menu
-    public GameObject inventoryButton;
+    public GameObject buttonSetting;
+    public GameObject buttonInventory;
     public TMP_Text textGold;
     public TMP_Text textFame;
     public PopUpUi popupUi;
@@ -79,6 +80,8 @@ public class GameManager : MonoBehaviour
     public int destinationNum;
     public int bossNum;
     public int foodNum;
+    public GameObject showDamageObject;
+
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -92,9 +95,10 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
             uiCamera.gameObject.SetActive(true);
-            inventoryButton.SetActive(true);
+            buttonInventory.SetActive(true);
             popupUi.gameObject.SetActive(false);
             uiRaycastBlock.SetActive(false);
+            DontDestroyOnLoad(GameObject.FindWithTag("CANVASGROUP"));
         }
     }
     public async Task LoadProgressDoc()
@@ -150,7 +154,7 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
         Dictionary<string, object> docDict = new();
-        if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Loading")
+        if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Loading"&& _arg0.name != "Lobby")
         {
             if (_arg0.name.Contains("Stage"))
                 docDict.Add("Scene", "Stage");
@@ -160,12 +164,12 @@ public class GameManager : MonoBehaviour
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby" && _arg0.name != "Battle")
         {
-            inventoryButton.SetActive(true);
+            buttonInventory.SetActive(true);
             textGold.transform.parent.gameObject.SetActive(true);
         }
         else
         {
-            inventoryButton.SetActive(false);
+            buttonInventory.SetActive(false);
             textGold.transform.parent.gameObject.SetActive(false);
         }
         if (_arg0.name == "Lobby")
@@ -180,7 +184,7 @@ public class GameManager : MonoBehaviour
             StageScenarioBase.state = StateInMap.NeedPhase;
         if (StageScenarioBase.stageBaseCanvas)
             StageScenarioBase.stageBaseCanvas.gameObject.SetActive(_arg0.name.Contains("Stage"));
-        SettingManager.settingManager.buttonSetting.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
+       buttonSetting.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
     }
     private void InitGrids()
     {
@@ -509,7 +513,11 @@ public class GameManager : MonoBehaviour
             //Talents
             foreach (object x in (List<object>)tempDict["Talent"])
             {
-                talents.Add(LoadManager.loadManager.talentDict[(string)x]);
+                string str = (string)x;
+                string[] splittedStr = (str).Split(":::");
+                string talentId = splittedStr[0];
+                int effectLevel = int.Parse(splittedStr[1]);
+                talents.Add(LoadManager.loadManager.talentDict[talentId].SetEffectLevel(effectLevel));
             }
 
             GameObject characterObject = Instantiate(CharacterTemplate);

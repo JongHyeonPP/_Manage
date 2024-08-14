@@ -33,7 +33,7 @@ public class CookUi : MonoBehaviour
         textName.text = string.Empty;
         var inventorySlots = ItemManager.itemManager.inventoryUi.inventorySlots;
         var cies = inventorySlots
-            .Where(data => data.ci != null && data.ci.item.weaponType == ItemType.Ingredient)
+            .Where(data => data.ci != null && data.ci.item.itemType == ItemType.Ingredient)
             .Select(data => data.ci);
 
         SetCiesToScrollView(GetSortedItemsByType(cies, IngredientType.Meat), meatView);

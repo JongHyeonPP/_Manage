@@ -17,6 +17,7 @@ public class StartScenario : MonoBehaviour
     public StartButton exit;
 
     private bool isOperating;
+    public PanelNewGame panelNewGame;
     private void Awake()
     {
         if (!GameManager.gameManager) return;
@@ -29,24 +30,30 @@ public class StartScenario : MonoBehaviour
 
         SettingManager.LanguageChangeEvent += LanguageChange;
         LanguageChange();
-        SettingManager.settingManager.InitVolumeSliders();
-        SettingManager.settingManager.buttonSetting.SetActive(false);
-
+        panelNewGame.gameObject.SetActive(false);
         isOperating = false;
     }
     private void Start()
     {
         if (GameManager.gameManager)
-            if (GameManager.gameManager.progressDoc ==null|| !GameManager.gameManager.progressDoc.ContainsKey("Scene"))
+            if (GameManager.gameManager.progressDoc ==null)
             {
                 InActiveLoadBtn();
             }
     }
-
-    public async void NewGame()
+    public void OnNewGameButtonClick()
     {
         if (isOperating)
             return;
+        if (GameManager.gameManager.progressDoc != null)
+        {
+            panelNewGame.gameObject.SetActive(true);
+        }
+        else
+            NewGame();
+    }
+    public async void NewGame()
+    {
         isOperating = true;
         //New Game
         DocumentReference docRef = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.Uid}");
@@ -85,7 +92,7 @@ public class StartScenario : MonoBehaviour
     }
     public void SettingBtnClick()
     {
-        SettingManager.settingManager.SettingBtnClick();
+        SettingManager.settingManager.settingUi.gameObject.SetActive(true);
     }
     private void LanguageChange()
     {

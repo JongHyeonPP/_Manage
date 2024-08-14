@@ -34,7 +34,7 @@ public class InventorySlot : SlotBase
         imageItem.gameObject.SetActive(true);
         ci = _ci;
         Sprite gradeSprite;
-        if (_ci.item.weaponType == ItemType.Food)
+        if (_ci.item.itemType == ItemType.Food)
         {
             PokerCombination pokerCombination = ((FoodClass)_ci.item).pokerCombination;
             switch (pokerCombination)
@@ -76,7 +76,7 @@ public class InventorySlot : SlotBase
         }
         imageGrade.sprite = gradeSprite;
         Sprite itemSprite;
-        switch (ci.item.weaponType)
+        switch (ci.item.itemType)
         {
             default:
                 ci.item.SetSpriteToImage(imageItem);
@@ -110,7 +110,7 @@ public class InventorySlot : SlotBase
             textAmount.text = ci.amount.ToString();
         }
 
-        if (ci.item.weaponType == ItemType.Ingredient)
+        if (ci.item.itemType == ItemType.Ingredient)
         {
             textPokerNum.transform.parent.gameObject.SetActive(true);
             IngredientClass ingredient = (IngredientClass)ci.item;
@@ -240,11 +240,11 @@ public class InventorySlot : SlotBase
                 return;
             }
         CountableItem curCi = ci;
-        if (ci.item.weaponType == ItemType.Weapon)
+        if (ci.item.itemType == ItemType.Weapon)
         {
             SetSlot( new(targetSlot.item));
         }
-        else if (ci.item.weaponType == ItemType.Skill)
+        else if (ci.item.itemType == ItemType.Skill)
         {
             if (targetSlot.item != null)//교체하기
             {
@@ -289,8 +289,8 @@ public class InventorySlot : SlotBase
                 targetCharacter.ChangeWeapon(curCi.item as WeaponClass);
                 break;
             case ItemType.Skill:
-                targetCharacter.skillAsIItems[targetSlot.index] = curCi.item as SkillAsItem;
-                if (!targetCharacter.skillAsIItems.Contains(null))
+                targetCharacter.skillAsItems[targetSlot.index] = curCi.item as SkillAsItem;
+                if (!targetCharacter.skillAsItems.Contains(null))
                 {
                     ItemManager.itemManager.inventoryUi.jobSlot.buttonExclaim.SetActive(true);
                 }
@@ -370,7 +370,7 @@ public class InventorySlot : SlotBase
             // 우클릭 감지
             if (pointerData.button == PointerEventData.InputButton.Right)
             {
-                switch (ci.item.weaponType)
+                switch (ci.item.itemType)
                 {
                     case ItemType.Weapon:
                         ItemManager.itemManager.inventoryUi.targetEquipSlot = ItemManager.itemManager.inventoryUi.equipSlots[2];

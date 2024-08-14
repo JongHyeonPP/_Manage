@@ -21,7 +21,7 @@ public class CharacterData:MonoBehaviour
     public float speed;
     public int gridIndex;
     public Dictionary<EffectType, float> PermEffects { get; private set; }//º¸·ù
-    public SkillAsItem[] skillAsIItems;
+    public SkillAsItem[] skillAsItems;
     public int[] exp;
     public WeaponClass weapon;
     public CharacterHierarchy characterHierarchy;
@@ -40,7 +40,7 @@ public class CharacterData:MonoBehaviour
         resist = _resist;
         speed = _speed;
         gridIndex = _gridIndex;
-        skillAsIItems = _skillasItems;
+        skillAsItems = _skillasItems;
         exp = _exp;
         characterHierarchy = transform.GetChild(0).GetComponent<CharacterHierarchy>();
         weapon = _weapon;
@@ -71,14 +71,14 @@ public class CharacterData:MonoBehaviour
             { "JobId", jobClass.jobId},
             {"Exp", exp }
         };
-        if (skillAsIItems[0] != null)
+        if (skillAsItems[0] != null)
         {
-            string id = skillAsIItems[0].itemId + ":::" + skillAsIItems[0].itemGrade;
+            string id = skillAsItems[0].itemId + ":::" + skillAsItems[0].itemGrade;
             setDict.Add("Skill_0", id);
         }
-        if (skillAsIItems[1] != null)
+        if (skillAsItems[1] != null)
         {
-            string id = skillAsIItems[1].itemId + ":::" + skillAsIItems[1].itemGrade;
+            string id = skillAsItems[1].itemId + ":::" + skillAsItems[1].itemGrade;
             setDict.Add("Skill_1", id);
         }
         await DataManager.dataManager.SetDocumentData(setDict, $"Progress/{GameManager.gameManager.Uid}/Characters",docId);

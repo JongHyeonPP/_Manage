@@ -22,9 +22,9 @@ public class CharacterInBattle : BaseInBattle
         speed = _data.speed;
         resist = _data.resist;
         Hp = _data.hp;
-        for (int i = 0; i < _data.skillAsIItems.Length; i++)
+        for (int i = 0; i < _data.skillAsItems.Length; i++)
         {
-            SkillAsItem asItem = _data.skillAsIItems[i];
+            SkillAsItem asItem = _data.skillAsItems[i];
             if (asItem != null)
             {
                 Skill skill = LoadManager.loadManager.skillsDict[asItem.itemId];

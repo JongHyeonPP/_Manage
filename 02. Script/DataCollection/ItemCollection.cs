@@ -24,7 +24,7 @@ namespace ItemCollection
 
     public abstract class Item//무기, 요리, 스킬
     {
-        public ItemType weaponType;
+        public ItemType itemType;
         public string itemId;//DB에 셋하기 위함
         public ItemGrade itemGrade;
         public Dictionary<Language, string> name;
@@ -36,7 +36,7 @@ namespace ItemCollection
         protected Item(ItemType _itemType, string _itemId, ItemGrade _itemGrade,
             Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position)
         {
-            weaponType = _itemType;
+            itemType = _itemType;
             itemId = _itemId;
             itemGrade = _itemGrade;
             name = _name;
@@ -59,7 +59,7 @@ namespace ItemCollection
 
         public IngredientClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType,_itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
-            weaponType = _itemType;
+            itemType = _itemType;
             itemId = _itemId;
             itemGrade = _itemGrade;
             name = _name;
@@ -96,7 +96,7 @@ namespace ItemCollection
 
         public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
         {
-            weaponType = _itemType;
+            itemType = _itemType;
             itemId = _itemId;
             itemGrade = _itemGrade;
             name = _name;
@@ -170,19 +170,17 @@ namespace ItemCollection
         public float cooltime;
         public List<List<SkillEffect>> effectsList;
         public bool isAnim;
-        public List<VisualEffect> visualEffects;
         public bool isPre;
         public Dictionary<Language, string> name;
         public List<Dictionary<Language, string>> explain;
         public Sprite skillSprite;
-        public Skill(string _skillId, SkillCategori _categori, float _cooltime, List<List<SkillEffect>> _effectsList, bool _isAnim, List<VisualEffect> _visualEffect, bool _isPre, Dictionary<Language, string> _name, List<Dictionary<Language, string>> _explain, Sprite _skillSprite)
+        public Skill(string _skillId, SkillCategori _categori, float _cooltime, List<List<SkillEffect>> _effectsList, bool _isAnim, bool _isPre, Dictionary<Language, string> _name, List<Dictionary<Language, string>> _explain, Sprite _skillSprite)
         {
             skillId = _skillId;
             categori = _categori;
             cooltime = _cooltime;
             effectsList = _effectsList;
             isAnim = _isAnim;
-            visualEffects = _visualEffect;
             isPre = _isPre;
             name = _name;
             explain = _explain;
@@ -197,12 +195,7 @@ namespace ItemCollection
         }
         public SkillInBattle GetInBattle(int _level)
         {
-            VisualEffect visualEffect;
-            if (visualEffects!=null&&_level<visualEffects.Count)
-                visualEffect = visualEffects[_level];
-            else
-                visualEffect = null;
-            SkillInBattle skillInBattle = new SkillInBattle(cooltime, effectsList[_level], isAnim, visualEffect, isPre, categori);
+            SkillInBattle skillInBattle = new SkillInBattle(cooltime, effectsList[_level], isPre, categori);
             return skillInBattle;
         }
 
@@ -217,7 +210,7 @@ namespace ItemCollection
                 Dictionary<Language, string> originDict = explain[_index];
                 Dictionary<Language, string> explainDict = new();
                 List<Language> allLangauge = new() { Language.Ko, Language.En };
-                List<string> allField = new() { "Value", "Count", "Vamp" };
+                List<string> allField = new() { "Value", "Count", "Vamp","Duration", "Probability" };
                 foreach (var language in allLangauge)
                 {
                     string replacedStr = originDict[language];
@@ -236,6 +229,10 @@ namespace ItemCollection
                     switch (_field)
                     {
                         default://Value
+                            fontColor = "#FFFFFF";
+                            fontSize = "100%";
+                            break;
+                        case "Value"://Value
                             fontColor = "#0096FF";
                             fontSize = "120%";
                             break;
@@ -271,6 +268,12 @@ namespace ItemCollection
                                     break;
                                 case "Vamp":
                                     value = skillEffects[index].vamp;
+                                    break;
+                                case "Duration":
+                                    value = skillEffects[index].duration;
+                                    break;
+                                case "Probability":
+                                    value = skillEffects[index].probability;
                                     break;
                             }
                             if (isPercent)

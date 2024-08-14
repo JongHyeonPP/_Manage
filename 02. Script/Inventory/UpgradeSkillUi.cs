@@ -124,10 +124,10 @@ public class UpgradeSkillUi : MonoBehaviour
         CharacterData character = ItemManager.itemManager.selectedCharacter;
         if (skillExpBar.CalcGradeExp(out ItemGrade itemGrade, out int exp))
         {
-            SkillAsItem currentSkill = character.skillAsIItems[skillIndex];
+            SkillAsItem currentSkill = character.skillAsItems[skillIndex];
             Skill newSkill = LoadManager.loadManager.skillsDict[currentSkill.itemId];
             SkillAsItem newSkillAsItem = newSkill.GetAsItem((int)itemGrade);
-            character.skillAsIItems[skillIndex] = newSkillAsItem;
+            character.skillAsItems[skillIndex] = newSkillAsItem;
             inventoryUi.equipSlots[skillIndex].SetSlot(newSkillAsItem);
         }
         inventoryUi.equipSlots[skillIndex].SetExp(exp);

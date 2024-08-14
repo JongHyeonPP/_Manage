@@ -106,13 +106,13 @@ public class InventoryUi : MonoBehaviour
         {
             characterSelectFocus[i].SetActive(i == _index);
         }
-        equipSlots[0].SetSlot(character.skillAsIItems[0]);
-        equipSlots[1].SetSlot(character.skillAsIItems[1]);
+        equipSlots[0].SetSlot(character.skillAsItems[0]);
+        equipSlots[1].SetSlot(character.skillAsItems[1]);
         equipSlots[2].SetSlot(character.weapon);
         if (character.jobClass.jobId != "000")
             for (int i = 0; i < 2; i++)
             {
-                if (character.skillAsIItems[i] == null)
+                if (character.skillAsItems[i] == null)
                     continue;
                 equipSlots[i].expBar.SetActive(true);
                 equipSlots[i].SetExp(character.exp[i]);
@@ -171,7 +171,7 @@ public class InventoryUi : MonoBehaviour
                 if (slot.ci == null)
                     isActive = true;
                 else
-                    isActive = slot.ci.item.weaponType == type;
+                    isActive = slot.ci.item.itemType == type;
             }
             slot.SetSelected(isActive);
         }
@@ -181,7 +181,7 @@ public class InventoryUi : MonoBehaviour
         foreach (InventorySlot slot in inventorySlots)
         {
             bool isActive = false;
-            if (slot.ci != null && slot.ci.item.weaponType == ItemType.Skill && ((SkillAsItem)slot.ci.item).categori == _skillCategori)
+            if (slot.ci != null && slot.ci.item.itemType == ItemType.Skill && ((SkillAsItem)slot.ci.item).categori == _skillCategori)
             {
                 isActive = true;
                 slot.textAmount.text = slot.ci.amount.ToString();
@@ -219,7 +219,7 @@ public class InventoryUi : MonoBehaviour
         }
 
         List<CountableItem> sortedWeaponList = ciList
-            .Where(data => data.item.weaponType == ItemType.Weapon)
+            .Where(data => data.item.itemType == ItemType.Weapon)
             .Select(data => new { CountableItem = data, Weapon = (WeaponClass)data.item })
             .OrderBy(data => data.Weapon.itemGrade)
             .ThenBy(data => data.Weapon.weaponType)
@@ -227,7 +227,7 @@ public class InventoryUi : MonoBehaviour
             .ToList();
 
         List<CountableItem> sortedSkillList = ciList
-    .Where(data => data.item.weaponType == ItemType.Skill)
+    .Where(data => data.item.itemType == ItemType.Skill)
     .Select(data => new { CountableItem = data, Skill = (SkillAsItem)data.item })
     .OrderBy(data => data.Skill.categori)
     .ThenByDescending(data => data.CountableItem.amount)
@@ -235,7 +235,7 @@ public class InventoryUi : MonoBehaviour
     .ToList();
 
         List<CountableItem> sortedIngredientList = ciList
-    .Where(data => data.item.weaponType == ItemType.Ingredient)
+    .Where(data => data.item.itemType == ItemType.Ingredient)
     .Select(data => new { CountableItem = data, Ingredient = (IngredientClass)data.item })
     .OrderBy(data => data.Ingredient.ingredientType)
     .ThenBy(data => data.Ingredient.itemGrade)
@@ -244,7 +244,7 @@ public class InventoryUi : MonoBehaviour
     .ToList();
 
         List<CountableItem> sortedFoodList = ciList
-    .Where(data => data.item.weaponType == ItemType.Food)
+    .Where(data => data.item.itemType == ItemType.Food)
     .Select(data => new { CountableItem = data, Food = (FoodClass)data.item })
     .OrderBy(data => data.Food.pokerCombination)
     .Select(data => data.CountableItem)

@@ -46,6 +46,7 @@ public class BattleScenario : MonoBehaviour
     public StatusExplain_Battle statusExplain;
     public TMP_Text damagePrefab;
 
+    public static float battleProgress = 0f;
     private void Awake()
     {
         if (!GameManager.gameManager)
@@ -65,7 +66,7 @@ public class BattleScenario : MonoBehaviour
 
                 if (hpBarInUI)
                 {
-                    hpBarInUI.InitHpBarInUi(data.skillAsIItems, data.characterHierarchy);
+                    hpBarInUI.InitHpBarInUi(data.skillAsItems, data.characterHierarchy);
                     //hpBarInUI.SetHp(characterAtBattle.Hp, characterAtBattle.armor, characterAtBattle.maxHp);
                     characterAtBattle.Hp = characterAtBattle.Hp;
                 }
@@ -147,11 +148,14 @@ public class BattleScenario : MonoBehaviour
         battleTooltip.gameObject.SetActive(false);
         statusExplain.gameObject.SetActive(false);
     }
-    public static async Task Init_BattleSetAsync(System.IProgress<float> progress)
+
+    public static async Task Init_BattleSetAsync()
     {
-        float totalSteps = 3; // 총 단계 수
-        float currentStep = 0;
+        float totalSteps = 5; // 총 단계 수
+        battleProgress = 0f;
+
         battlePatern = BattlePatern.OnReady;
+
         if (enemies.Count == 0)
         {
             List<EnemyPiece> selectedCase = MakeEnemies(); // 적 생성
@@ -161,33 +165,24 @@ public class BattleScenario : MonoBehaviour
                 for (int i = 0; i < selectedCase.Count; i++)
                 {
                     Dictionary<string, object> enemyDict = new()
-                {
-                    { "Id", selectedCase[i].id },
-                    { "GridIndex", selectedCase[i].index }
-                };
+                    {
+                        { "Id", selectedCase[i].id },
+                        { "GridIndex", selectedCase[i].index }
+                    };
                     DataManager.dataManager.SetDocumentData(enemyDict, $"Progress/{GameManager.gameManager.Uid}/Enemies");
+                    battleProgress += 1f / totalSteps; // 진행률 업데이트
                 }
                 return Task.CompletedTask;
             });
-
-            currentStep++;
-            progress?.Report(currentStep / totalSteps);
         }
+        battleProgress = 4 / 5; // 진행률 업데이트
         // 캐릭터 초기화
         CharacterAtBattleInit(); // Data -> Base
-        currentStep++;
-        progress?.Report(currentStep / totalSteps);
 
-        List<CharacterData> characters = GameManager.gameManager.characterList;
-        for (int i = 0; i < characters.Count; i++)
-        {
-            CharacterInBattle characterAtBattle = characters[i].characterAtBattle;
-            // 캐릭터 초기화 로직 추가 가능
-        }
-
-        currentStep++;
-        progress?.Report(currentStep / totalSteps);
+        battleProgress = 1f; // 진행률 업데이트
+        Debug.Log("Battle Load Complete");
     }
+
 
     public static List<BaseInBattle> GetTargetsByRange(EffectRange _range, BaseInBattle _target)
     {
@@ -197,7 +192,7 @@ public class BattleScenario : MonoBehaviour
         {
             case EffectRange.Dot://가장 가까운 대상
             case EffectRange.Self:
-                targets = new() { _target };
+                targets = new List<BaseInBattle>() { _target };
                 break;
             case EffectRange.Row:
                 targets = targetsBase.Where(item => item.grid.index / 3 == _target.grid.index / 3).ToList();
@@ -216,6 +211,9 @@ public class BattleScenario : MonoBehaviour
                     targets = targetsBase.Where(item => item.grid.index % 3 < _target.grid.index % 3).ToList();
                 else
                     targets = targetsBase.Where(item => item.grid.index % 3 > _target.grid.index % 3).ToList();
+                break;
+            case EffectRange.TargetsAllies:
+                targets = targetsBase;
                 break;
         }
         return targets;
@@ -269,8 +267,23 @@ public class BattleScenario : MonoBehaviour
         {
             _startGrid.owner = null;
         }
+        TargetRefreshAll();
     }
-
+    public void TargetRefreshAll()
+    {
+        List<BaseInBattle> enemiesBase = enemies.Where(item => item && !item.isDead).ToList();
+        List<BaseInBattle> charactersBase = characters.Where(item => item && !item.isDead).ToList();
+        foreach (BaseInBattle x in enemiesBase)
+        {
+            x.FindNewTargetAlly();
+            x.FindNewTargetOpponent();
+        }
+        foreach (BaseInBattle x in charactersBase)
+        {
+            x.FindNewTargetAlly();
+            x.FindNewTargetOpponent();
+        }
+    }
     private  static void CharacterAtBattleInit()
     {
         List<CharacterData> characterDataList = GameManager.gameManager.characterList;
@@ -348,7 +361,7 @@ public class BattleScenario : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1f);
             if (regularEffect != null)
                 regularEffect();
         }
@@ -370,6 +383,14 @@ public class BattleScenario : MonoBehaviour
     {
         Debug.Log("StageClear");
         GameManager.battleScenario.StopAllCoroutines();
+        foreach (var x in characters)
+        {
+            x.StopAllCoroutines();
+        }
+        foreach (var x in enemies)
+        {
+            x.StopAllCoroutines();
+        }
         battlePatern = BattlePatern.OnReady;
         StageScenarioBase.nodes.Add(null);
         List<CharacterData> dataList = GameManager.gameManager.characterList;
@@ -436,7 +457,7 @@ public class BattleScenario : MonoBehaviour
     {
         foreach (var x in enemies)
         {
-            //x.StartBattle();
+            x.StartBattle();
         }
         foreach (var x in characters)
         {
@@ -589,8 +610,16 @@ public class BattleScenario : MonoBehaviour
     }
     public static float CalcResist(float _resist)
     {
-        float damagePercentage = 100f / (100f + _resist);
-        return damagePercentage;
+        if (_resist >= 0)
+        {
+            // 저항력이 0 이상일 때는 기존 공식 사용
+            return 100f / (100f + _resist);
+        }
+        else
+        {
+            // 저항력이 음수일 때는 피해 증가 공식 사용
+            return 2f - 100f / (100f - _resist);
+        }
     }
 
     public void PassiveReconnect()
@@ -624,5 +653,28 @@ public class BattleScenario : MonoBehaviour
         canvasBattle.gameObject.SetActive(false);
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
 
+    }
+    public BaseInBattle GetTarget(SkillEffect effectForm, BaseInBattle _caster)
+    {
+        BaseInBattle effectTarget;
+        switch (effectForm.isTargetEnemy)
+        {
+            case true:
+                effectTarget = _caster.targetOpponent;
+                break;
+            case false:
+                switch (effectForm.range)
+                {
+                    default:
+                        effectTarget = _caster;
+                        break;
+                    case EffectRange.Dot:
+                        effectTarget = _caster.targetAlly;
+                        break;
+                }
+                break;
+        }
+
+        return effectTarget;
     }
 }

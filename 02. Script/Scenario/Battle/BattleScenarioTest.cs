@@ -49,6 +49,14 @@ public class BattleScenarioTest : MonoBehaviour
             if (x)
                 x.StopBattle();
         }
+        foreach (var x in BattleScenario.characters)
+        {
+            x.StopAllCoroutines();
+        }
+        foreach (var x in BattleScenario.enemies)
+        {
+            x.StopAllCoroutines();
+        }
         await battleScenario.StageClearAsync();
     }
     public void GameOverTest()

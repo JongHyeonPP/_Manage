@@ -7,10 +7,11 @@ using EnumCollection;
 public class InventoryTooltip : MonoBehaviour
 {
     public Image itemImage;
-    public TMP_Text itemName;
-    public TMP_Text categori;
-    public TMP_Text grade;
-    public TMP_Text explain;
+    public TMP_Text textItemName;
+    public TMP_Text textCategori;
+    public TMP_Text textGrade;
+    public TMP_Text textCooltime;
+    public TMP_Text textExplain;
     public StatusSlot_I hpSlot;
     public StatusSlot_I abilitySlot;
     public StatusSlot_I resistSlot;
@@ -28,9 +29,9 @@ public class InventoryTooltip : MonoBehaviour
     public void SetTooltipInfo(Item _item, Vector3 _localPosition)
     {
         _item.SetSpriteToImage(itemImage);
-        itemName.text = _item.name[GameManager.language];
+        textItemName.text = _item.name[GameManager.language];
         string categoriStr = "";
-        switch (_item.weaponType)
+        switch (_item.itemType)
         {
             case ItemType.Weapon:
                 categoriStr = (GameManager.language == Language.Ko) ? "무기" : "Weapon";
@@ -60,42 +61,64 @@ public class InventoryTooltip : MonoBehaviour
                 break;
         }
         string categoriColor = string.Empty;
-        if (_item.weaponType == ItemType.Skill)
+        if (_item.itemType == ItemType.Skill)
         {
-            switch (((SkillAsItem)_item).categori)
+            SkillAsItem asSkill = (SkillAsItem)_item;
+            switch (asSkill.categori)
             {
                 case SkillCategori.Power:
                     categoriColor = "<color=#FF3E3D>";
                     break;
                 case SkillCategori.Util:
-                    categoriColor =  "<color=#63FF00>";
+                    categoriColor = "<color=#63FF00>";
                     break;
                 case SkillCategori.Sustain:
                     categoriColor = "<color=#F2F200>";
                     break;
             }
             categoriStr = categoriColor + categoriStr;
+
+            if (asSkill.cooltime == 0f)
+            {
+                textCooltime.gameObject.SetActive(false);
+            }
+            else
+            {
+                string cooltimeStr = asSkill.cooltime.ToString("F0");
+                cooltimeStr += (GameManager.language == Language.Ko) ? "초" : "S";
+                textCooltime.text = cooltimeStr;
+                textCooltime.gameObject.SetActive(true);
+            }
         }
-        categori.text = categoriStr;
-        string gradeStr = string.Empty;
-        if (_item.weaponType != ItemType.Ingredient)
+        else
         {
+            textCooltime.gameObject.SetActive(false);
+        }
+        textCategori.text = categoriStr;
+        string gradeStr = string.Empty;
+        if (_item.itemType != ItemType.Ingredient)
+        {
+            string gradeColor;
             switch (_item.itemGrade)
             {
                 default:
-                    gradeStr = "<color=#ABABAB>" + ((GameManager.language == Language.Ko) ? "기본" : "Default");
+                    gradeColor = "#ABABAB";
+                    gradeStr = $"<color={gradeColor}>{(GameManager.language == Language.Ko ? "기본" : "Default")}";
                     break;
                 case ItemGrade.Normal:
-                    gradeStr = "<color=#FFAF26>" + ((GameManager.language == Language.Ko) ? "노말" : "Normal");
+                    gradeColor = "#FFAF26";
+                    gradeStr = $"<color={gradeColor}>{(GameManager.language == Language.Ko ? "노말" : "Normal")}";
                     break;
                 case ItemGrade.Rare:
-                    gradeStr = "<color=#25FFF8>" + ((GameManager.language == Language.Ko) ? "레어" : "Rare");
+                    gradeColor = "#25FFF8";
+                    gradeStr = $"<color={gradeColor}>{(GameManager.language == Language.Ko ? "레어" : "Rare")}";
                     break;
                 case ItemGrade.Unique:
-                    gradeStr = "<color=#FF25EA>" + ((GameManager.language == Language.Ko) ? "유니크" : "Unique");
+                    gradeColor = "#FF25EA";
+                    gradeStr = $"<color={gradeColor}>{(GameManager.language == Language.Ko ? "유니크" : "Unique")}";
                     break;
             }
-
+            textItemName.text = $"<color={gradeColor}>" + textItemName.text;
         }
         else
         {
@@ -114,16 +137,24 @@ public class InventoryTooltip : MonoBehaviour
                     gradeStr = (GameManager.language == Language.Ko) ? "야채" : "Vegetiable";
                     break;
                 case IngredientType.Special:
-                    
+
                     break;
             }
         }
-        grade.text = gradeStr;
-        explain.text = _item.explain[GameManager.language];
+        if (_item.itemType == ItemType.Skill)
+        {
+
+        }
+        else
+        {
+            
+        }
+        textGrade.text = gradeStr;
+        textExplain.text = _item.explain[GameManager.language];
         float width = rectTransform.rect.width;
-        float height = baseHeight + explain.preferredHeight;
-        float yCorrection = explain.preferredHeight;
-        if (_item.weaponType == ItemType.Weapon)
+        float height = baseHeight + textExplain.preferredHeight;
+        float yCorrection = textExplain.preferredHeight;
+        if (_item.itemType == ItemType.Weapon)
         {
             WeaponClass _weapon = (WeaponClass)_item;
             hpSlot.SetValue(_weapon.hp);
@@ -143,7 +174,7 @@ public class InventoryTooltip : MonoBehaviour
         Canvas.ForceUpdateCanvases();
 
         rectTransform.sizeDelta = new Vector2(width, height);
-        parentStatus.localPosition = new Vector2(0f,-(explain.preferredHeight + verticalSpace));
+        parentStatus.localPosition = new Vector2(0f,-(textExplain.preferredHeight + verticalSpace));
         transform.localPosition = _localPosition + Vector3.up * yCorrection;
     }
 }

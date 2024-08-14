@@ -18,6 +18,8 @@ public class StatusSlot_Equip : MonoBehaviour, IPointerEnterHandler, IPointerExi
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition;
         CharacterData data =  ItemManager.itemManager.selectedCharacter;
+        if (data == null)
+            return;
         switch (statusType)
         {
             case StatusType.Hp:

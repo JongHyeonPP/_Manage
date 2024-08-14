@@ -403,8 +403,10 @@ public class StageBaseCanvas : MonoBehaviour
         }
         string choiseNode = string.Empty;
         bool isStore = false;
-        if(StageScenarioBase.phase != 5)
-           isStore = GameManager.CalculateProbability(1);
+        if (StageScenarioBase.phase != 5)
+            if (currentNode.nodeType != null)
+                if (currentNode.nodeType.backgroundType != BackgroundType.Store)
+                    isStore = GameManager.CalculateProbability(0.5f);
         int storeIndex = -1;
         if (isStore)
         {

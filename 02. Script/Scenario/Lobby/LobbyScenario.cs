@@ -1,3 +1,4 @@
+using DefaultCollection;
 using EnumCollection;
 using Firebase.Firestore;
 using ItemCollection;
@@ -369,7 +370,11 @@ public class LobbyScenario : MonoBehaviour
             }
 
             string weaponId = $"{weaponTypeStr}:::Default";
-            List<string> talentStrs = _slot.talents.Select(item => item.talentId).ToList();
+            List<string> talentStrs = new();
+            foreach (TalentClass talent in _slot.talents)
+            {
+                talentStrs.Add(talent.talentId + ":::" + talent.effectLevel);
+            }
             Dictionary<string, object> characterDict = new()
             {
                 { "MaxHp", _slot.Hp },
@@ -396,6 +401,7 @@ public class LobbyScenario : MonoBehaviour
             characterDataList[i] = data;
 
             CharacterInBattle characterAtBattle = _slot.templateObject.AddComponent<CharacterInBattle>();
+            characterAtBattle.InitCharacter(data, BattleScenario.CharacterGrids[gridIndex]);
             BattleScenario.characters.Add(characterAtBattle);
             data.characterAtBattle = characterAtBattle;
             data.name = "Character_" + i;

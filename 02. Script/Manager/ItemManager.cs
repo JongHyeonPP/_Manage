@@ -118,7 +118,7 @@ public class ItemManager : MonoBehaviour
                 main.Add(ci);
             }
             IngredientType ingredientType = IngredientType.Meat;
-            switch (StageScenarioBase.stageBaseCanvas.currentNode.backGroundType)
+            switch (StageScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType)
             {
                 case BackgroundType.Plains:
                 case BackgroundType.MysteriousForest:
@@ -153,7 +153,7 @@ public class ItemManager : MonoBehaviour
                 AddCiToArr(sub, ci);
             }
         }
-        main = main.OrderBy(data => data.item.weaponType).ToList();
+        main = main.OrderBy(data => data.item.itemType).ToList();
         sub = sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
         int gold = Random.Range(10, 13);
         GameManager.gameManager.SetGold(gold);
@@ -173,7 +173,7 @@ public class ItemManager : MonoBehaviour
         {
             InventorySlot existingSlot = null;
 
-            if (ci.item.weaponType != ItemType.Weapon)
+            if (ci.item.itemType != ItemType.Weapon)
             {
                 existingSlot = GetExistingSlot(ci.item);
             }
@@ -232,7 +232,7 @@ public class ItemManager : MonoBehaviour
             if (ci == null)
                 continue;
             string typeStr;
-            switch (ci.item.weaponType)
+            switch (ci.item.itemType)
             {
                 default:
                     typeStr = "Weapon";
@@ -248,7 +248,7 @@ public class ItemManager : MonoBehaviour
                     break;
             }
             string itemId;
-            switch (ci.item.weaponType)
+            switch (ci.item.itemType)
             {
                 default:
                     itemId = ci.item.itemId;
@@ -421,36 +421,15 @@ public class ItemManager : MonoBehaviour
     {
         CharacterData character = GameManager.gameManager.characterList.Where(data => data != null).FirstOrDefault();
         
-        SkillAsItem[] skills = character.skillAsIItems;
+        SkillAsItem[] skills = character.skillAsItems;
         WeaponClass weapon = character.weapon;
         inventoryUi.SetEquipSlot(skills[0], 0);
         inventoryUi.SetEquipSlot(skills[1], 1);
         inventoryUi.SetEquipSlot(weapon, 2);
     }
-    public void SetCategoriCharAtText(SkillCategori _categori, TMP_Text _text)
-    {
-        switch (_categori)
-        {
-            default:
-                _text.text = "P";
-                _text.color = powerColor;
-                _text.GetComponent<RectTransform>().anchoredPosition = new Vector3(1.13f, 0.49f, 0f);
-                break;
-            case SkillCategori.Util:
-                _text.text = "U";
-                _text.color = utilColor;
-                _text.GetComponent<RectTransform>().anchoredPosition = new Vector3(0.4300003f, 0.3599997f, 0f);
-                break;
-            case SkillCategori.Sustain:
-                _text.text = "S";
-                _text.color = sustainColor;
-                _text.GetComponent<RectTransform>().anchoredPosition = new Vector3(0.02999973f, 0.32f, 0f);
-                break;
-        }
-    }
     public void SetJobAtSelectedCharacter()
     {
-        JobClass job = GameManager.gameManager.GetJob(selectedCharacter.skillAsIItems[0].itemId, selectedCharacter.skillAsIItems[1].itemId);
+        JobClass job = GameManager.gameManager.GetJob(selectedCharacter.skillAsItems[0].itemId, selectedCharacter.skillAsItems[1].itemId);
         selectedCharacter.jobClass = job;
         selectedCharacter.characterHierarchy.SetJobSprite(job);
         if (GameManager.gameManager.characterList.IndexOf(selectedCharacter) == 0)

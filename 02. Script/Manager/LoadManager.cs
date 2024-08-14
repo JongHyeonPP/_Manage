@@ -16,6 +16,7 @@ using UnityEngine;
 public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼­ ÀúÀåÇÏ°í ÀÖ´Â ½ºÅ©¸³Æ®
 {
     public static LoadManager loadManager;
+    public float dbProgress = 0f;
     public bool isInit = false;
     public Dictionary<string, Skill> skillsDict = new();//Key´Â DocumentÀÇ ID
     public Dictionary<string, JobClass> jobsDict = new();//Key´Â ½ºÅ³ÀÇ Index. Ex)200, 101
@@ -45,25 +46,34 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
 
     public async Task LoadDbBaseData()
     {
+        float totalSteps = 4; // ÃÑ ´Ü°è ¼ö
+        dbProgress = 0f;
+
+        // Visual Effect ÃÊ±âÈ­
         await LoadVisualEffect();
-        await InitSkill();
-        //await Task.WhenAll(InitUserDoc(), InitJob(), InitEnemy(), InitUpgrade(), InitTalent(),
-        //    InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
-        //    InitNodeType());
-        await InitUpgrade();//InitUserDocº¸´Ù À§¿¡ ÀÖ¾î¾ßÇÔ
-        await InitUserDoc();
-        await InitJob();
-        await InitEnemy();
-        await InitTalent();
-        await InitEnemyCase();
-        await InitWeapon();
-        await InitIngredient();
-        await InitFood();
-        await InitNodeType();
-        InitBodyPart(); InitEye(); InitFaceHair(); InitHair();
+        dbProgress += 1f / totalSteps; // ÁøÇà·ü ¾÷µ¥ÀÌÆ®
+
+        // Skill ¹× Upgrade ÃÊ±âÈ­
+        await Task.WhenAll(InitSkill(), InitUpgrade());
+        dbProgress += 1f / totalSteps; // ÁøÇà·ü ¾÷µ¥ÀÌÆ®
+
+        // ³ª¸ÓÁö ÃÊ±âÈ­ ÀÛ¾÷
+        await Task.WhenAll(InitUserDoc(), InitJob(), InitEnemy(), InitTalent(),
+                           InitEnemyCase(), InitWeapon(), InitIngredient(), InitFood(),
+                           InitNodeType());
+        dbProgress += 1f / totalSteps; // ÁøÇà·ü ¾÷µ¥ÀÌÆ®
+
+        // ³ª¸ÓÁö ÃÊ±âÈ­ ÀÛ¾÷ (ºü¸¥ ÀÛ¾÷)
+        InitBodyPart();
+        InitEye();
+        InitFaceHair();
+        InitHair();
+        dbProgress =1f; // ÁøÇà·ü ¾÷µ¥ÀÌÆ®
+
         isInit = true;
-        Debug.Log("LoadComplete");
+        Debug.Log("DB Load Complete");
     }
+
 
     async Task LoadVisualEffect()
     {
@@ -187,7 +197,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             if (skillDict.TryGetValue("Cooltime", out obj))
                 cooltime = GetFloatValue(obj);
             else
-                cooltime = 8f;
+                cooltime = 0f;
 
             //IsAnim
             bool isAnim;
@@ -220,7 +230,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             sprite = sprites.Where(item => item.name == doc.Id).FirstOrDefault();
 
 
-            Skill skill = new Skill(doc.Id, categori, cooltime, effectsList, isAnim, visualEffect, isPre, name, explains, sprite);
+            Skill skill = new Skill(doc.Id, categori, cooltime, effectsList, isAnim, isPre, name, explains, sprite);
 
             skillsDict.Add(doc.Id, skill);
         }
@@ -243,6 +253,9 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             bool isPassive;
             bool isTargetEnemy;
             float vamp;
+            float duration;
+            float probability;
+            VisualEffect visualEffect;
             //Value
             object obj;
             if (effectDict.TryGetValue("Value", out obj))
@@ -284,16 +297,17 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 success = Enum.TryParse((string)obj, out effectType);
                 if (!success)
                 {
-                    Debug.LogError("Invalid Parse");
+                    Debug.LogError("Invalid Parse" + (string)obj);
                 }
             }
-
+            //IsTargetEnemy
             if (effectDict.TryGetValue("IsTargetEnemy", out obj))
                 isTargetEnemy = (bool)obj;
             else
             {
                 isTargetEnemy = true;
             }
+            //IsPassive
             if (effectDict.TryGetValue("IsPassive", out obj))
                 isPassive = (bool)obj;
             else
@@ -303,6 +317,19 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 vamp = GetFloatValue(obj);
             else
                 vamp = 0f;
+            //Duration
+            if (effectDict.TryGetValue("Duration", out obj))
+                duration = GetFloatValue(obj);
+            else
+                duration = -99f;
+
+            //Probability
+            if (effectDict.TryGetValue("Probability", out obj))
+                probability = GetFloatValue(obj);
+            else
+                probability = 1f;
+
+
             SkillEffect effect;
             switch (isPassive)
             {
@@ -313,18 +340,32 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         byAtt = (bool)obj;
                     else
                         byAtt = false;
-                    effect = new PassiveEffect(count, true, value, effectType, effectRange, valueBase, isTargetEnemy, vamp, byAtt);
+                    effect = new PassiveEffect(count, true, value, effectType, effectRange, valueBase, isTargetEnemy, vamp, duration, probability).SetByAtt(byAtt);
                     break;
                 case false:
                     float delay;
+                    bool isAnim;
+
                     //Delay
                     if (effectDict.TryGetValue("Delay", out obj))
                         delay = GetFloatValue(obj);
                     else
                         delay = 0f;
-                    effect = new ActiveEffect(count, false, value, effectType, effectRange, valueBase, isTargetEnemy, vamp, delay);
-                    break;
+                    //VisualEffect
+                    if (effectDict.TryGetValue("VisualEffect", out obj))
+                        visualEffect = skillVisualEffectDict[(string)obj];
+                    else
+                        visualEffect = null;
+                    //IsAnim
+                    if (effectDict.TryGetValue("IsAnim", out obj))
+                        isAnim = (bool)obj;
+                    else
+                        isAnim = false;
 
+                    //Set
+                    effect = new ActiveEffect(count, false, value, effectType, effectRange, valueBase, isTargetEnemy, vamp, duration, probability)
+                        .SetDelay(delay).SetVisualEffect(visualEffect).SetIsAnim(isAnim);
+                    break;
             }
 
             //Set
@@ -347,6 +388,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             Dictionary<Language, string> effectExplain = new();
             Dictionary<ClothesPart, Sprite> spriteDict = new();
             Skill jobSkill = null;
+            float duration;
             //Name
             Dictionary<string, object> nameObj = dict["Name"] as Dictionary<string, object>;
             name.Add(Language.Ko, (string)nameObj["Ko"]);
@@ -388,7 +430,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         success = Enum.TryParse((string)obj, out effectType);
                         if (!success)
                         {
-                            Debug.LogError("Invalid Parse");
+                            Debug.LogError("Invalid Parse" + (string)obj);
                         }
                     }
                     //Value
@@ -432,11 +474,18 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                     }
                     else
                         isTargetEnemy = false;
+                    //Duration
+                    if (effectDict.TryGetValue("Duration", out obj))
+                    {
+                        duration = GetFloatValue(obj);
+                    }
+                    else
+                        duration = -1f;
                     //Set
-                    SkillEffect skillEffect = new PassiveEffect(1, true, value, effectType, effectRange, valueBase, false, 0f, byAtt);
+                    SkillEffect skillEffect = new PassiveEffect(1, true, value, effectType, effectRange, valueBase, false, 0f, duration, 1f);
                     effects.Add(skillEffect);
                 }
-                jobSkill = new Skill("Default", SkillCategori.Default, 0f, new() { effects }, false, null, false, name, new() { effectExplain }, null);
+                jobSkill = new Skill("Default", SkillCategori.Default, 0f, new() { effects }, false, false, name, new() { effectExplain },null);
             }
             //Sprite
             Sprite[] clothesSprites = Resources.LoadAll<Sprite>($"Texture/Clothes/{doc.Id}");

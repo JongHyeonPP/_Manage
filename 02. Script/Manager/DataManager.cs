@@ -39,6 +39,8 @@ public class DataManager : MonoBehaviour
                 return (string)gameData.soundSetting[_key];
             case DataSection.Language:
                 return (string)gameData.language[_key];
+            case DataSection.Screen:
+                return (string)gameData.screen[_key];
             default:
                 return null;
         }
@@ -121,6 +123,9 @@ public class DataManager : MonoBehaviour
                 case DataSection.Language:
                     UpdateDict(gameData.language, "Language");
                     break;
+                case DataSection.Screen:
+                    UpdateDict(gameData.language, "Screen");
+                    break;
             }
 
         void UpdateDict(Dictionary<string, object> _dict, string _sectionName)
@@ -144,15 +149,14 @@ public class DataManager : MonoBehaviour
         return targetDictionary;
     }
 }
-internal class GameData
+public class GameData
 {
-    public Dictionary<string, object> soundSetting;
-    public Dictionary<string, object> language;
+    public Dictionary<string, object> soundSetting = new();
+    public Dictionary<string, object> language = new();
+    public Dictionary<string, object> screen = new();
     Dictionary<string, object> curDict;
-    internal GameData()
+    public GameData()
     {
-        soundSetting = new();
-        language = new();
         string path = Path.Combine(Application.dataPath.Replace("/", "\\"), "config.ini");
         string[] lines;
         try
@@ -176,7 +180,9 @@ internal class GameData
                     case "Language":
                         curDict = language;
                         break;
-
+                    case "Screen":
+                        curDict = screen;
+                        break;
                 }
             }
             else if (!string.IsNullOrEmpty(line))

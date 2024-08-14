@@ -9,20 +9,20 @@ public class HpBarBase : MonoBehaviour
     public Image armorBar;
     public Image hpBar_Back;
     private float backSpeed = 0.3f;
-    public void SetHp(float _hp, float _armor, float _maxHp)
+    public IEnumerator SetHp(float _hp, float _armor, float _maxHp)
     {
         float hpUpper = (_hp + _armor > _maxHp) ? _hp + _armor : _maxHp;
         
-        armorBar.fillAmount = (_hp + _armor) / hpUpper;
         if (BattleScenario.battlePatern == BattlePatern.Battle)
         {
             if (gameObject.activeSelf)
-                StartCoroutine(GradualDown(hpBar, hpBar.fillAmount, _hp / hpUpper));
+                yield return StartCoroutine(GradualDown(hpBar, hpBar.fillAmount, _hp / hpUpper));
         }
         else
         {
             hpBar.fillAmount = _hp / hpUpper;
         }
+        armorBar.fillAmount = (_hp + _armor) / hpUpper;
     }
 
     IEnumerator GradualDown(Image _bar, float _startAmount, float _endAmount)

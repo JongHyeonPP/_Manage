@@ -14,7 +14,6 @@ public class MainLootSlot : MonoBehaviour
     //Skill
     public GameObject panelSkill;
     public Image imageSkill;
-    public TMP_Text textCategori;
     //Frame
     public GameObject panelFrame;
     public List<GameObject> frames;
@@ -30,13 +29,13 @@ public class MainLootSlot : MonoBehaviour
     public void SetMainLootSlot(Item _item)
     {
         nameDict = _item.name;
-        if (_item.weaponType == ItemType.Weapon)
+        if (_item.itemType == ItemType.Weapon)
         {
             panelWeapon.gameObject.SetActive(true);
             panelSkill.gameObject.SetActive(false);
             SetWeaponAtSlot(_item);
         }
-        else if (_item.weaponType == ItemType.Skill)
+        else if (_item.itemType == ItemType.Skill)
         {
             panelWeapon.gameObject.SetActive(false);
             panelSkill.gameObject.SetActive(true);
@@ -74,9 +73,22 @@ public class MainLootSlot : MonoBehaviour
     private void SetSkillAtSlot(Item _item)
     {
         imageSkill.sprite = _item.sprite;
-        ItemManager.itemManager.SetCategoriCharAtText(((SkillAsItem)_item).categori, textCategori);
         if (nameDict != null)
             textName.text = $"{((GameManager.language == Language.En) ? "Skill" : "½ºÅ³")} : {nameDict[GameManager.language]}";
+        Sprite nameSprite;
+        switch (_item.itemGrade)
+        {
+            default:
+                nameSprite = ItemManager.itemManager.name_Normal;
+                break;
+            case ItemGrade.Rare:
+                nameSprite = ItemManager.itemManager.name_Rare;
+                break;
+            case ItemGrade.Unique:
+                nameSprite = ItemManager.itemManager.name_Unique;
+                break;
+        }
+        panelName.sprite = nameSprite;
     }
 
 

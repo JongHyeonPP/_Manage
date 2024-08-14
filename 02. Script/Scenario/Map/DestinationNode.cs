@@ -3,6 +3,7 @@ using StageCollection;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -153,10 +154,24 @@ public class DestinationNode : MonoBehaviour
             gameObject.SetActive(true);
             imageObject.sprite = nodeType.objectSprite;
             imageObject.SetNativeSize();
-            RectTransform gradientRect = imageGradient.GetComponent<RectTransform>();
+            RectTransform rectTransform = imageObject.GetComponent<RectTransform>();
             if (imageObject.sprite)
-                gradientRect.sizeDelta = new(imageObject.sprite.rect.width, imageObject.sprite.rect.height);
+            {
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+                // 위치 초기화
+                rectTransform.anchoredPosition = Vector2.zero;
+                imageGradient.rectTransform.sizeDelta = imageObject.rectTransform.sizeDelta;
+            }
         }
     }
-    public void SetNameText() => textName.text = nodeType.name[GameManager.language];
+    public void SetNameText()
+    {
+        textName.text = nodeType.name[GameManager.language];
+        RectTransform rectTransform = imageName.rectTransform;
+        Canvas.ForceUpdateCanvases();
+        rectTransform.sizeDelta = new Vector2(Mathf.Max(180f, textName.preferredWidth + 100) , rectTransform.sizeDelta.y);
+    }
 }

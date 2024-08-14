@@ -10,13 +10,15 @@ namespace DefaultCollection
     [Serializable]
     public class TalentClass
     {
+        //DB 필드
         public Dictionary<Language, string> name;
         public Dictionary<Language, string> explain;
         public int ableLevel;
         public List<TalentEffect> effects;
         public Sprite sprite;
-        public int effectLevel;
         public string talentId;
+        //인게임
+        public int effectLevel;
 
         public TalentClass(string _talentId, Dictionary<Language, string> _name, int _ableLevel, Dictionary<Language, string> _explain, List<TalentEffect> _effects, Sprite _sprite)
         {
@@ -104,5 +106,33 @@ namespace DefaultCollection
         public Sprite front;
         public Sprite back;
     }
+    public class SettingSet
+    {
+        public Language language;
+        public Dictionary<VolumeType, float> volume;
+        public Dictionary<VolumeType, bool> onOff;
+        public FullScreenMode fullScreenMode;
+        public int resolutionIndex;
+        public SettingSet(Language _language, Dictionary<VolumeType, float> _volume, Dictionary<VolumeType, bool> _onOff, FullScreenMode _fullScreenMode, int _resolutionIndex)
+        {
+            language = _language;
+            volume = _volume;
+            onOff = _onOff;
+            fullScreenMode = _fullScreenMode;
+            resolutionIndex = _resolutionIndex;
+        }
+        public SettingSet GetDeepCopySet()
+        {
+            Dictionary<VolumeType, float> newVolume = new();
+            Dictionary<VolumeType, bool> newOnOff = new();
+            foreach (VolumeType type in SettingManager.volumeTypes)
+            {
+                newVolume.Add( type, volume[type]);
+                newOnOff.Add(type ,onOff[type]);
+            }
+            SettingSet newSet = new(language, newVolume, newOnOff, fullScreenMode, resolutionIndex);
+            return newSet;
+        }
 
+    }
 }

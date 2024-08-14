@@ -4,9 +4,10 @@ using ItemCollection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using UnityEngine;
 using UnityEngine.UI;
-using static BattleCollection.ActiveEffect;
+using UnityEngine.Video;
 
 abstract public class BaseInBattle : MonoBehaviour
 {
@@ -15,19 +16,18 @@ abstract public class BaseInBattle : MonoBehaviour
     public float maxHpInBattle;
     public float maxHp;
     [SerializeField] private float hp;
-    protected ShowDamageText damageInBattle;
+    public ShowDamage showDamage;
     public float Hp {
         get { return hp; }
         set
         {
-            Debug.Log("_Hp Value : " + value);
             hp = Mathf.Clamp(value, 0, maxHpInBattle);
             if (!GameManager.battleScenario)
                 return;
             if (hpBarInScene.gameObject)
-                hpBarInScene.SetHp(hp, armor, maxHpInBattle);
+                StartCoroutine(hpBarInScene.SetHp(hp, armor, maxHpInBattle));
             if (hpBarInUi)
-                hpBarInUi.SetHp(hp, armor, maxHpInBattle);
+                StartCoroutine(hpBarInUi.SetHp(hp, armor, maxHpInBattle));
 
             if (hp <= 0 && !isDead && BattleScenario.battlePatern == BattlePatern.Battle)
                 OnDead();
@@ -45,7 +45,7 @@ abstract public class BaseInBattle : MonoBehaviour
     public WeaponClass weapon;
     private HpBarBase hpBarInScene;
     public HpBarInUi hpBarInUi;
-    public Dictionary<EffectType, float> TempEffects = new();//전투동안 지속되는 효과
+    public Dictionary<EffectType, List<TempEffect>> tempEffectsDict = new();//전투동안 지속되는 효과
     public Dictionary<EffectType, float> EffectsByAtt = new();//대미지를 입히면 적용시키는 효과, 비중첩
     public BaseInBattle targetOpponent;
     public BaseInBattle targetAlly;
@@ -63,8 +63,6 @@ abstract public class BaseInBattle : MonoBehaviour
     public Transform rootTargetTransform;
     public Transform skillTargetTransform;
     public GameObject fireObj;
-    private ShowDamageText showDamageText;
-
     public abstract void SetAnimParam();
     protected void InitBase(GridObject _grid)
     {
@@ -79,7 +77,7 @@ abstract public class BaseInBattle : MonoBehaviour
             animator = GetComponent<Animator>();
         else
             animator = transform.GetComponentInChildren<Animator>();
-        showDamageText = gameObject.AddComponent<ShowDamageText>();
+        showDamage = Instantiate(GameManager.gameManager.showDamageObject, transform).GetComponent<ShowDamage>();
     }
     public void InBattleFieldZero()
     {
@@ -94,22 +92,6 @@ abstract public class BaseInBattle : MonoBehaviour
         else
             isInstant = true;
         float distance = Mathf.Abs(grid.index / 3 - _grid.index / 3) + Mathf.Abs(grid.index % 3 - _grid.index % 3);
-
-        if (grid != _grid)
-        {
-            //모든 캐릭터들 패시브 재적용
-            //해야함!
-            foreach (BaseInBattle x in IsEnemy ? BattleScenario.characters : BattleScenario.enemies)
-            {
-                if (x)
-                    x.FindNewTargetOpponent();
-            }
-            foreach (BaseInBattle x in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
-            {
-                if (x)
-                    x.FindNewTargetAlly();
-            }
-        }
 
         if (moveCoroutine != null)
         {
@@ -166,102 +148,144 @@ abstract public class BaseInBattle : MonoBehaviour
         }
 
     }
+    private IEnumerator UpdateTempEffects()
+    {
+        while (true)
+        {
+            // 모든 TempEffect의 duration을 0.1씩 줄임
+            foreach (List<TempEffect> effectList in tempEffectsDict.Values)
+            {
+                for (int i = effectList.Count - 1; i >= 0; i--)
+                {
+                    if (effectList[i].duration == -99f)
+                        continue;
+                    effectList[i].duration -= 0.1f;
+                    Debug.Log("Remain Duration : " + effectList[i].duration);
+                    // duration이 0 이하이면 리스트에서 제거
+                    
+                    if (effectList[i].duration <= 0)
+                    {
+                        effectList.RemoveAt(i);
+                    }
+                    
+                }
+            }
+            // 0.1초 대기
+            yield return new WaitForSeconds(0.1f);
+
+        }
+    }
     public abstract void OnDead();
-    public float GetRegularValue(EffectType _type)
+    public float GetTempValue(EffectType _type)
     {
         float returnValue = 0f;
-        if (TempEffects.TryGetValue(_type, out float value))
+        if (tempEffectsDict.TryGetValue(_type, out List<TempEffect> tempEffects))
         {
-            returnValue += value;
+            if (tempEffects.Count > 0)
+            {
+                foreach (TempEffect x in tempEffects)
+                {
+                    float temp = x.value;
+                    switch (x.valueBase)
+                    {
+                        case ValueBase.Ability:
+                            temp *= x.caster.abilityInBattle;
+                            break;
+                        case ValueBase.Resist:
+                            temp *= x.caster.resistInBattle;
+                            break;
+                    }
+                    if (temp > returnValue)
+                        returnValue = temp;
+                }
+            }
         }
         return returnValue;
     }
-    public void ActiveRegularEffect()
+public void ActiveRegularEffect()
     {
-        float bleedValue = GetRegularValue(EffectType.Bleed);
+        float bleedValue = GetTempValue(EffectType.Bleed);
         if (bleedValue > 0)
         {
-            Hp -= bleedValue;
+            ApplyValue(bleedValue, EffectType.Damage);
+            //Hp -= bleedValue;
+            StartCoroutine(ColorChangeCoroutine(Color.red));
         }
     }
-    public void ApplyValue(float _value, EffectType _effectType, bool _byAtt = false)
+    public TempEffect ApplyPassiveEffect(float _value, EffectType _effectType, ValueBase _valueBase, BaseInBattle _caster, float _duration = -99f)
     {
-        if (_byAtt)
+        if (!tempEffectsDict.ContainsKey(_effectType))
         {
-            if (!EffectsByAtt.ContainsKey(_effectType))
-            {
-                EffectsByAtt.Add(_effectType, new());
-            }
-            EffectsByAtt[_effectType] += _value;
+            tempEffectsDict.Add(_effectType, new());
         }
-        else
+        TempEffect tempEffect = new TempEffect(_value, _duration, _valueBase, _caster);
+        tempEffectsDict[_effectType].Add(tempEffect);
+        tempEffect.SetBelongedList(tempEffectsDict[_effectType]);
+        return tempEffect;
+    }
+    public void ApplyValue(float _value, EffectType _effectType, ValueBase _valueBase = ValueBase.Const, BaseInBattle _caster = null, float _duration = -99f)
+    {
+        //Debug.Log(_effectType + " : " + _value);
+        switch (_effectType)
         {
-            switch (_effectType)
-            {
-                default:
-                    if (!TempEffects.ContainsKey(_effectType))
-                    {
-                        TempEffects.Add(_effectType, new());
-                    }
-                    TempEffects[_effectType] += _value;
-                    break;
-                case EffectType.Necro:
-                case EffectType.BleedTransfer:
-                case EffectType.CorpseExplo:
-                    if (!TempEffects.ContainsKey(_effectType))
-                    {
-                        TempEffects.Add(_effectType, new());
-                    }
-                    TempEffects[_effectType] = Mathf.Max(TempEffects[_effectType], _value);
-                    break;
-                case EffectType.Damage:
-                    float temp = armor - _value;
-                    if (temp < 0)
-                    {
-                        armor = 0f;
-                        Hp += temp;
-                    }
-                    else
-                    {
-                        armor = temp;
-                    }
-                    break;
-                case EffectType.Curse:
-                    hp -= _value;
-                    break;
-                case EffectType.Heal:
-                    Hp = Mathf.Min(Hp + _value, maxHpInBattle);
-                    break;
-                case EffectType.Armor:
-                    armor += _value;
-                    break;
-                case EffectType.AbilityVamp:
-                    abilityInBattle -= _value * abilityInBattle;
-                    Debug.Log("피격자 : " + abilityInBattle);
-                    break;
-                case EffectType.Restoration:
-                    Hp += (maxHpInBattle - Hp) * _value;
-                    break;
-                case EffectType.AbilityAscend:
-                    abilityInBattle *= 1 + _value;
-                    break;
+            default:
+                if (!tempEffectsDict.ContainsKey(_effectType))
+                {
+                    tempEffectsDict.Add(_effectType, new());
+                }
+                tempEffectsDict[_effectType].Add(new TempEffect(_value, _duration, _valueBase, _caster));
+                break;
+            case EffectType.Damage:
+                float temp = armor - _value;
+                if (temp < 0)
+                {
+                    armor = 0f;
+                    Hp += temp;
+                }
+                else
+                {
+                    armor = temp;
+                }
 
-                case EffectType.ResistAscend:
-                    resistInBattle += _value * (1 + GetRegularValue(EffectType.ResistAscend));
-                    break;
-                case EffectType.ResistDescend:
-                    resistInBattle -= _value;
-                    break;
-                case EffectType.SpeedAscend:
-                    speedInBattle *= 1 + _value;
-                    break;
-                case EffectType.SpeedDescend:
-                    speedInBattle *= Mathf.Max(1 - _value, 0.1f);
-                    break;
-                case EffectType.RewardAscend:
-                    GameManager.battleScenario.RewardAscend += _value;
-                    break;
-            }
+                break;
+            case EffectType.Heal:
+                Hp = Mathf.Min(Hp + _value, maxHpInBattle);
+                break;
+            case EffectType.Armor:
+                armor += _value;
+                Hp += 0;
+                break;
+            case EffectType.AbilityVamp:
+                abilityInBattle -= _value * abilityInBattle;
+                break;
+            case EffectType.AbilityAscend:
+                abilityInBattle *= 1 + _value;
+                break;
+
+            case EffectType.ResistAscend:
+                resistInBattle += _value * (1 + GetTempValue(EffectType.ResistAscend));
+                break;
+            case EffectType.ResistDescend:
+                resistInBattle -= _value;
+                break;
+            case EffectType.SpeedAscend:
+                speedInBattle *= 1 + _value;
+                break;
+            case EffectType.SpeedDescend:
+                speedInBattle *= Mathf.Max(1 - _value, 0.1f);
+                break;
+            case EffectType.RewardAscend:
+                GameManager.battleScenario.RewardAscend += _value;
+                break;
+        }
+        switch (_effectType)
+        {
+            case EffectType.Damage:
+                showDamage.StartShowTextsStatus(_value, true);
+                break;
+            case EffectType.Heal:
+                showDamage.StartShowTextsStatus(_value, false);
+                break;
         }
     }
     protected IEnumerator OnDead_Base()
@@ -269,24 +293,10 @@ abstract public class BaseInBattle : MonoBehaviour
         StopBattle();
         animator.SetTrigger("Die");
         isDead = true;
-        NewTargetForOther();
+        GameManager.battleScenario.TargetRefreshAll();
 
-        StartCoroutine(FadeOutCoroutine());
-        yield return new WaitForSeconds(3f);
-
-        foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
-        {
-            if (!ally)
-                continue;
-            float value = ally.GetRegularValue(EffectType.Revive);
-            if (value > 0)
-            {
-                ally.TempEffects.Remove(EffectType.Revive);
-                ReviveMethod(value);
-                yield break;
-            }
-        }
-        float bleedTransfer = GetRegularValue(EffectType.BleedTransfer);
+        Coroutine coroutine = showDamage.StartCoroutine(FadeOutCoroutine());
+        float bleedTransfer = GetTempValue(EffectType.BleedTransfer);
         List<BaseInBattle> characters = new();
         if (bleedTransfer > 0)
         {
@@ -296,71 +306,35 @@ abstract public class BaseInBattle : MonoBehaviour
                     characters.Add(character);
             }
             BaseInBattle target = characters[Random.Range(0, characters.Count)];
-            target.ApplyValue(GetRegularValue(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
+            target.ApplyValue(GetTempValue(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
             Debug.Log("BleedTransfer : " + target.grid.index);
         }
-        float exploValue = GetRegularValue(EffectType.CorpseExplo);
-        characters = new(IsEnemy ? BattleScenario.enemies : BattleScenario.characters);
-        if (exploValue > 0)
+        foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
         {
-            foreach (BaseInBattle character in characters)
+            if (ally.tempEffectsDict.ContainsKey(EffectType.Revive) && ally.tempEffectsDict[EffectType.Revive].Count>0)
             {
-                if (character != this)
-                {
-                    character.ApplyValue(maxHpInBattle * exploValue, EffectType.Damage);
-                }
-            }
-        }
-        float necro = GetRegularValue(EffectType.Necro);
-        if (necro > 0)
-        {
-            grid.owner = null;
-            List<GridObject> gridCandiBase = IsEnemy ? BattleScenario.CharacterGrids : BattleScenario.EnemyGrids;
-            List<GridObject> gridCandi = gridCandiBase.Where(item => item.owner == null).ToList();
-            if (gridCandi.Count > 0)
-            {
-                StopAllCoroutines();
-                ReviveMethod(necro);
-                Vector3 temp = transform.GetChild(0).rotation.eulerAngles;
-                temp.y += 180f;
-                transform.GetChild(0).rotation = Quaternion.Euler(temp);
+                TempEffect tempEffect = ally.tempEffectsDict[EffectType.Revive][0];
+                tempEffect.RemoveFromList();
+                yield return new WaitForSeconds(2f);
+                Debug.Log("Revive From " + ally);
+                StopCoroutine(coroutine);
+                SetAlphaToOne();
+                isDead = false;
+                animator.SetTrigger("Revive");
+                Hp = maxHpInBattle * tempEffect.value;
+                GameManager.battleScenario.TargetRefreshAll();
                 yield break;
             }
         }
+        yield return new WaitForSeconds(3f);
+
         //Dead
         if(passiveEffects!=null)
         foreach (var passive in passiveEffects)
         {
-            passive.RemoveToTarget();
+            passive.RemoveTempEffectToTarget();
         }
         gameObject.SetActive(false);
-
-        ///////////////////////////
-        void ReviveMethod(float value)
-        {
-            animator.SetTrigger("Revive");
-            isDead = false;
-            maxHpInBattle = Hp = maxHpInBattle * value;
-            abilityInBattle = ability * value;
-            NewTargetForOther();
-            FindNewTargetAlly();
-            FindNewTargetOpponent();
-
-        }
-        void NewTargetForOther()
-        {
-            List<BaseInBattle> enemiesBase = BattleScenario.enemies.Where(item =>item&& !item.isDead).ToList();
-            List<BaseInBattle> charactersBase = BattleScenario.characters.Where(item => item&& !item.isDead).ToList();
-            foreach (BaseInBattle x in IsEnemy ? enemiesBase : charactersBase)
-            {
-                if (x != this)
-                    x.FindNewTargetAlly();
-            }
-            foreach (BaseInBattle x in IsEnemy ? charactersBase : enemiesBase)
-            {
-                x.FindNewTargetOpponent();
-            }
-        }
     }
 
 
@@ -371,10 +345,8 @@ abstract public class BaseInBattle : MonoBehaviour
         speedInBattle = speed;
         resistInBattle = resist;
         passiveEffects = new();
-        List<SkillActiveForm> SkillActiveForms = new()
-        {
-            new SkillActiveForm(this)
-        };
+        List<SkillActiveForm> skillActiveForms = new();
+            skillActiveForms.Add(new SkillActiveForm(this));//Default Attack
         int cooldownIndex = 0;
         for (int i = 0; i < skillInBattles.Count; i++)
         {
@@ -390,8 +362,8 @@ abstract public class BaseInBattle : MonoBehaviour
                 }
             }
             SkillActiveForm skillActiveForm = new SkillActiveForm(this, skillInBattle, targetCooldownSlot);
-            if (skillActiveForm.effectActiveForms.Count > 0)
-                SkillActiveForms.Add(skillActiveForm);
+            if (skillActiveForm.activeEffects.Count > 0)
+                skillActiveForms.Add(skillActiveForm);
             if (!IsEnemy)
             {
                 List<PassiveEffect> passiveEffect = skillInBattle.GetPassiveEffects(this);
@@ -399,10 +371,11 @@ abstract public class BaseInBattle : MonoBehaviour
                     passiveEffects.AddRange(passiveEffect);
             }
         }
-        for (int i = 0; i < SkillActiveForms.Count; i++)
+        for (int i = 0; i < skillActiveForms.Count; i++)
         {
-            StartCoroutine(StartQueueCycle(SkillActiveForms[i]));
+            StartCoroutine(StartQueueCycle(skillActiveForms[i]));
         }
+        StartCoroutine(UpdateTempEffects());
     }
 
     IEnumerator StartQueueCycle(SkillActiveForm _skillActiveForm)
@@ -417,7 +390,7 @@ abstract public class BaseInBattle : MonoBehaviour
 
     IEnumerator QueueCycle(SkillActiveForm _skillActiveForm)
     {
-        yield return StartCoroutine(_skillActiveForm.ActiveSkill());
+        yield return StartCoroutine(_skillActiveForm.ApplySkill());
 
         // 코루틴이 완료된 후의 작업 수행
         skillQueue.Remove(_skillActiveForm);
@@ -448,7 +421,6 @@ abstract public class BaseInBattle : MonoBehaviour
         List<BaseInBattle> targetsBase = (IsEnemy ? BattleScenario.characters : BattleScenario.enemies).Where(item => item!=null&& !item.isDead).ToList();
         if (targetsBase.Count == 0)
         {
-            targetOpponent = null;
             return;
         }
         if (IsEnemy)
@@ -541,15 +513,25 @@ abstract public class BaseInBattle : MonoBehaviour
             yield return new WaitForSeconds(0.05f);
             timer += 0.05f;
         }
-
-        // 코루틴 종료 후 모든 SpriteRenderer를 비활성화
+        gameObject.SetActive(false);
+    }
+    private void SetAlphaToOne()
+    {
+        SpriteRenderer[] spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
+        Image[] images = hpBarInScene.GetComponentsInChildren<Image>();
         foreach (SpriteRenderer spriteRenderer in spriteRenderers)
         {
-            if (spriteRenderer)
-                spriteRenderer.gameObject.SetActive(false);
+            Color color = spriteRenderer.color;
+            color.a = 1f;
+            spriteRenderer.color = color;
+        }
+        foreach (Image image in images)
+        {
+            Color color = image.color;
+            color.a = 1f;
+            image.color = color;
         }
     }
-
 
     public static List<BaseInBattle> GetTargetsByRange(EffectRange _range, BaseInBattle _target, bool _isTargetEnemy)
     {
@@ -586,32 +568,32 @@ abstract public class BaseInBattle : MonoBehaviour
         switch (_type)//Value 보정값 설정
         {
             case EffectType.Damage:
-                calcValue += GetRegularValue(EffectType.Enchant);
-                float incrementValue = GetRegularValue(EffectType.AttAscend) - GetRegularValue(EffectType.AttDescend);
+                calcValue += GetTempValue(EffectType.Enchant);
+                float incrementValue = GetTempValue(EffectType.AttAscend) - GetTempValue(EffectType.AttDescend);
                 calcValue *= Mathf.Max(1 + incrementValue, 0);
-                if (GameManager.CalculateProbability(GetRegularValue(EffectType.Critical)))
+                if (GameManager.CalculateProbability(GetTempValue(EffectType.Critical)))
                 {
                     //치명타 판정
                     calcValue *= 2;
                 }
                 break;
             case EffectType.Bleed:
-                calcValue *= 1 + GetRegularValue(EffectType.AttAscend);
-                calcValue *= 1 - GetRegularValue(EffectType.AttDescend);
+                calcValue *= 1 + GetTempValue(EffectType.AttAscend);
+                calcValue *= 1 - GetTempValue(EffectType.AttDescend);
                 break;
             case EffectType.Heal:
-                calcValue *= 1 + GetRegularValue(EffectType.HealAscend);
-                calcValue *= 1 + GetRegularValue(EffectType.ResilienceAscend);
+                calcValue *= 1 + GetTempValue(EffectType.HealAscend);
+                calcValue *= 1 + GetTempValue(EffectType.ResilienceAscend);
                 break;
 
             case EffectType.AttAscend:
             case EffectType.ResistAscend:
             case EffectType.Enchant:
-                calcValue *= 1 + GetRegularValue(EffectType.BuffAscend);
+                calcValue *= 1 + GetTempValue(EffectType.BuffAscend);
                 break;
             case EffectType.AttDescend:
             case EffectType.ResistDescend:
-                calcValue *= 1 + GetRegularValue(EffectType.DebuffAscend);
+                calcValue *= 1 + GetTempValue(EffectType.DebuffAscend);
                 break;
         }
 
@@ -621,9 +603,56 @@ abstract public class BaseInBattle : MonoBehaviour
     {
         foreach (var passive in passiveEffects)
         {
-            passive.RemoveToTarget();
-            passive.SetTargets(this);
-            passive.ApplyToTarget();
+            passive.RemoveTempEffectToTarget();
+            passive.ApplyTempEffectToTarget();
+        }
+    }
+
+    public IEnumerator ColorChangeCoroutine(Color _color)
+    {
+        var renderers = GetComponentsInChildren<SpriteRenderer>();
+        Color startColor = new Color(1, 1, 1);
+        Color targetColor = _color;
+        float duration = 0.5f;
+
+        MaterialPropertyBlock block = new MaterialPropertyBlock();
+
+        // Lerp from startColor to targetColor over 0.5 seconds
+        float elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            Color currentColor = Color.Lerp(startColor, targetColor, t);
+
+            foreach (var renderer in renderers)
+            {
+                if (!renderer)
+                    continue;
+                renderer.GetPropertyBlock(block);
+                block.SetColor("_Color", currentColor);
+                renderer.SetPropertyBlock(block);
+            }
+            yield return null;
+        }
+
+        // Lerp back from targetColor to startColor over 0.5 seconds
+        elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            Color currentColor = Color.Lerp(targetColor, startColor, t);
+
+            foreach (var renderer in renderers)
+            {
+                if (!renderer)
+                    continue;
+                renderer.GetPropertyBlock(block);
+                block.SetColor("_Color", currentColor);
+                renderer.SetPropertyBlock(block);
+            }
+            yield return null;
         }
     }
 }
