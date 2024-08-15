@@ -8,6 +8,7 @@ using System.Security;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using static UnityEngine.GraphicsBuffer;
 
 abstract public class BaseInBattle : MonoBehaviour
 {
@@ -77,7 +78,7 @@ abstract public class BaseInBattle : MonoBehaviour
             animator = GetComponent<Animator>();
         else
             animator = transform.GetComponentInChildren<Animator>();
-        showDamage = Instantiate(GameManager.gameManager.showDamageObject, transform).GetComponent<ShowDamage>();
+        showDamage = Instantiate(GameManager.gameManager.showDamagePrefab, transform).GetComponent<ShowDamage>();
     }
     public void InBattleFieldZero()
     {
@@ -176,7 +177,7 @@ abstract public class BaseInBattle : MonoBehaviour
         }
     }
     public abstract void OnDead();
-    public float GetTempValue(EffectType _type)
+    public float GetTempValue_Max(EffectType _type)
     {
         float returnValue = 0f;
         if (tempEffectsDict.TryGetValue(_type, out List<TempEffect> tempEffects))
@@ -202,14 +203,47 @@ abstract public class BaseInBattle : MonoBehaviour
         }
         return returnValue;
     }
-public void ActiveRegularEffect()
+    public float GetTempValue_Sum(EffectType _type)
     {
-        float bleedValue = GetTempValue(EffectType.Bleed);
+        float returnValue = 0f;
+        if (tempEffectsDict.TryGetValue(_type, out List<TempEffect> tempEffects))
+        {
+            if (tempEffects.Count > 0)
+            {
+                foreach (TempEffect x in tempEffects)
+                {
+                    float temp = x.value;
+                    switch (x.valueBase)
+                    {
+                        case ValueBase.Ability:
+                            temp *= x.caster.abilityInBattle;
+                            break;
+                        case ValueBase.Resist:
+                            temp *= x.caster.resistInBattle;
+                            break;
+                        case ValueBase.HpMax_Caster:
+                            temp *= x.caster.maxHpInBattle;
+                            break;
+                    }
+                        returnValue += temp;
+                }
+            }
+        }
+        return returnValue;
+    }
+    public void ActiveRegularEffect()
+    {
+        float bleedValue = GetTempValue_Sum(EffectType.Bleed);
         if (bleedValue > 0)
         {
             ApplyValue(bleedValue, EffectType.Damage);
-            //Hp -= bleedValue;
             StartCoroutine(ColorChangeCoroutine(Color.red));
+        }
+        float restoreValue = GetTempValue_Sum(EffectType.Restore);
+        if (restoreValue > 0)
+        {
+            Debug.Log(restoreValue);
+            ApplyValue(restoreValue, EffectType.Heal);
         }
     }
     public TempEffect ApplyPassiveEffect(float _value, EffectType _effectType, ValueBase _valueBase, BaseInBattle _caster, float _duration = -99f)
@@ -226,6 +260,7 @@ public void ActiveRegularEffect()
     public void ApplyValue(float _value, EffectType _effectType, ValueBase _valueBase = ValueBase.Const, BaseInBattle _caster = null, float _duration = -99f)
     {
         //Debug.Log(_effectType + " : " + _value);
+
         switch (_effectType)
         {
             default:
@@ -236,6 +271,9 @@ public void ActiveRegularEffect()
                 tempEffectsDict[_effectType].Add(new TempEffect(_value, _duration, _valueBase, _caster));
                 break;
             case EffectType.Damage:
+                _value *= BattleScenario.CalcResist(resistInBattle);
+                _value *= 1 + GetTempValue_Sum(EffectType.DefDescend) - GetTempValue_Sum(EffectType.DefAscend);
+                _value = Mathf.Max(0, _value);
                 float temp = armor - _value;
                 if (temp < 0)
                 {
@@ -246,7 +284,6 @@ public void ActiveRegularEffect()
                 {
                     armor = temp;
                 }
-
                 break;
             case EffectType.Heal:
                 Hp = Mathf.Min(Hp + _value, maxHpInBattle);
@@ -263,7 +300,7 @@ public void ActiveRegularEffect()
                 break;
 
             case EffectType.ResistAscend:
-                resistInBattle += _value * (1 + GetTempValue(EffectType.ResistAscend));
+                resistInBattle += _value;
                 break;
             case EffectType.ResistDescend:
                 resistInBattle -= _value;
@@ -296,7 +333,7 @@ public void ActiveRegularEffect()
         GameManager.battleScenario.TargetRefreshAll();
 
         Coroutine coroutine = showDamage.StartCoroutine(FadeOutCoroutine());
-        float bleedTransfer = GetTempValue(EffectType.BleedTransfer);
+        float bleedTransfer = GetTempValue_Max(EffectType.BleedTransfer);
         List<BaseInBattle> characters = new();
         if (bleedTransfer > 0)
         {
@@ -306,7 +343,7 @@ public void ActiveRegularEffect()
                     characters.Add(character);
             }
             BaseInBattle target = characters[Random.Range(0, characters.Count)];
-            target.ApplyValue(GetTempValue(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
+            target.ApplyValue(GetTempValue_Sum(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
             Debug.Log("BleedTransfer : " + target.grid.index);
         }
         foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
@@ -364,12 +401,9 @@ public void ActiveRegularEffect()
             SkillActiveForm skillActiveForm = new SkillActiveForm(this, skillInBattle, targetCooldownSlot);
             if (skillActiveForm.activeEffects.Count > 0)
                 skillActiveForms.Add(skillActiveForm);
-            if (!IsEnemy)
-            {
                 List<PassiveEffect> passiveEffect = skillInBattle.GetPassiveEffects(this);
                 if (passiveEffect != null)
                     passiveEffects.AddRange(passiveEffect);
-            }
         }
         for (int i = 0; i < skillActiveForms.Count; i++)
         {
@@ -568,32 +602,37 @@ public void ActiveRegularEffect()
         switch (_type)//Value 보정값 설정
         {
             case EffectType.Damage:
-                calcValue += GetTempValue(EffectType.Enchant);
-                float incrementValue = GetTempValue(EffectType.AttAscend) - GetTempValue(EffectType.AttDescend);
+                calcValue += GetTempValue_Sum(EffectType.Enchant);
+                float incrementValue = GetTempValue_Sum(EffectType.AttAscend) - GetTempValue_Sum(EffectType.AttDescend);
                 calcValue *= Mathf.Max(1 + incrementValue, 0);
-                if (GameManager.CalculateProbability(GetTempValue(EffectType.Critical)))
+                if (GameManager.CalculateProbability(GetTempValue_Sum(EffectType.Critical)))
                 {
                     //치명타 판정
                     calcValue *= 2;
                 }
                 break;
             case EffectType.Bleed:
-                calcValue *= 1 + GetTempValue(EffectType.AttAscend);
-                calcValue *= 1 - GetTempValue(EffectType.AttDescend);
+                calcValue *= 1 + GetTempValue_Sum(EffectType.AttAscend);
+                calcValue *= 1 - GetTempValue_Sum(EffectType.AttDescend);
                 break;
             case EffectType.Heal:
-                calcValue *= 1 + GetTempValue(EffectType.HealAscend);
-                calcValue *= 1 + GetTempValue(EffectType.ResilienceAscend);
+            case EffectType.Restore:
+                calcValue *= 1 + GetTempValue_Sum(EffectType.HealAscend);
                 break;
 
             case EffectType.AttAscend:
             case EffectType.ResistAscend:
+            case EffectType.AbilityAscend:
+            case EffectType.DefAscend:
             case EffectType.Enchant:
-                calcValue *= 1 + GetTempValue(EffectType.BuffAscend);
+            case EffectType.SpeedAscend:
+                calcValue *= 1 + GetTempValue_Sum(EffectType.BuffAscend);
                 break;
             case EffectType.AttDescend:
             case EffectType.ResistDescend:
-                calcValue *= 1 + GetTempValue(EffectType.DebuffAscend);
+            case EffectType.DefDescend:
+            case EffectType.SpeedDescend:
+                calcValue *= 1 + GetTempValue_Sum(EffectType.DebuffAscend);
                 break;
         }
 

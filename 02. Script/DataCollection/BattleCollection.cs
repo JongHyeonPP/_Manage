@@ -40,8 +40,6 @@ namespace BattleCollection
                     continue;
                 PassiveEffect passiveEffect = (PassiveEffect)effect;
                 passiveEffect.SetCaster(_caster);
-                passiveEffect.SetCalcValue();
-                passiveEffect.value = _caster.CalcEffectValueByType(passiveEffect.value, effect.effectType);
                 passiveEffect.ApplyTempEffectToTarget();
                 passiveEffects.Add(passiveEffect);
             }
@@ -99,32 +97,24 @@ namespace BattleCollection
             byAtt = _byAtt;
             return this;
         } 
-        public PassiveEffect SetCalcValue()
-        {
-            calcValue = value;
-            switch (valueBase)
-            {
-                case ValueBase.Ability:
-                    calcValue *= caster.abilityInBattle;
-                    break;
-                case ValueBase.HpMax_Caster:
-                    calcValue *= caster.maxHp;
-                    break;
-                case ValueBase.Resist:
-                    break;
-            }
-            calcValue = caster.CalcEffectValueByType(calcValue, effectType);
-            return this;
-        }
         internal void ApplyTempEffectToTarget()
         {
             tempEffects = new();
             BaseInBattle effectTarget = GameManager.battleScenario.GetTarget(this, caster);
             List<BaseInBattle> targets = BattleScenario.GetTargetsByRange(range, effectTarget);
-            foreach (BaseInBattle target in targets)
+            switch (effectType)
             {
-                TempEffect tempEffect = target.ApplyPassiveEffect(value, effectType, valueBase, caster, duration);
-                tempEffects.Add(tempEffect);
+                default:
+                    float calcedValue = caster.CalcEffectValueByType(value, effectType);
+                    foreach (BaseInBattle target in targets)
+                    {
+                        TempEffect tempEffect = target.ApplyPassiveEffect(calcedValue, effectType, valueBase, caster, duration);
+                        tempEffects.Add(tempEffect);
+                    }
+                    break;
+                case EffectType.RewardAscend:
+                    GameManager.battleScenario.RewardAscend += value;
+                    break;
             }
         }
 
@@ -186,21 +176,6 @@ namespace BattleCollection
                     break;
             }
             calcValue = caster.CalcEffectValueByType(calcValue, effectType);
-            float calcTemp = calcValue;
-
-            calcValue = calcTemp;
-            switch (effectType)
-            {
-                case EffectType.Damage://Å¸°Ù¿¡ ´ëÇÑ º¸Á¤°ª
-                    calcValue *= BattleScenario.CalcResist(target.resistInBattle);
-                    calcValue -= target.GetTempValue(EffectType.Reduce);
-                    calcValue = Mathf.Max(calcValue, 0);
-                    foreach (KeyValuePair<EffectType, float> kvp in caster.EffectsByAtt)
-                    {
-                        target.ApplyValue(kvp.Value, kvp.Key);
-                    }
-                    break;
-            }
             calcValue *= _valueRate;
             caster.StartCoroutine(RoopEffect(calcValue, target, valueBase, caster));
         }
@@ -219,20 +194,20 @@ namespace BattleCollection
                 //´ë¹ÌÁö ÈÄ¼ÓÀÛ¾÷
                 if (effectType == EffectType.Damage)
                 {
-                    float vampValue = vamp + caster.GetTempValue(EffectType.Vamp);
-                    vampValue *= 1 + caster.GetTempValue(EffectType.ResilienceAscend);
+                    float vampValue = vamp + caster.GetTempValue_Sum(EffectType.Vamp);
                     //Èí¼öÇÏ´Â Ã¤·Â
                     if (vampValue > 0)
                     {
                         caster.ApplyValue(vampValue * _calcedValue, EffectType.Heal);
                     }
                     //Èí¼öµÇ´Â ´É·ÂÄ¡
-                    if (_target.GetTempValue(EffectType.ResistByDamage) > 0)
+                    float resisbyDamage = _target.GetTempValue_Sum(EffectType.ResistByDamage);
+                    if (resisbyDamage > 0)
                     {
-                        caster.resistInBattle -= _target.GetTempValue(EffectType.ResistByDamage);
-                        _target.resistInBattle += _target.GetTempValue(EffectType.ResistByDamage);
+                        caster.resistInBattle -= resisbyDamage;
+                        _target.resistInBattle += resisbyDamage;
                     }
-                    if (_target.GetTempValue(EffectType.Reflect) > 0)
+                    if (_target.GetTempValue_Sum(EffectType.Reflect) > 0)
                          _target.StartCoroutine(ReflectCoroutine(_calcedValue, _target));
                 }
                 yield return new WaitForSeconds(delay);
@@ -242,19 +217,21 @@ namespace BattleCollection
         private IEnumerator ReflectCoroutine(float calcValue, BaseInBattle _target)
         {
             yield return new WaitForSeconds(0.5f);
-                caster.ApplyValue(calcValue * _target.GetTempValue(EffectType.Reflect), EffectType.Damage);
+                caster.ApplyValue(calcValue * _target.GetTempValue_Max(EffectType.Reflect), EffectType.Damage);
         }
     }
     public class JobClass
     {
         public Dictionary<Language, string> name = null;
+        public Dictionary<Language, string> skillName = null;
         public Skill jobSkill;
         public Dictionary<ClothesPart, Sprite> spriteDict;
         public string jobId;
         public Sprite jobIcon;
-        public JobClass(Dictionary<Language, string> _name, Skill _jobSkill, Dictionary<ClothesPart, Sprite> _spriteDict, string _jobId, Sprite _jobIcon)
+        public JobClass(string _jobId, Dictionary<Language, string> _name,Dictionary<Language, string> _skillName, Skill _jobSkill, Dictionary<ClothesPart, Sprite> _spriteDict, Sprite _jobIcon)
         {
             name = _name;
+            skillName = _skillName;
             jobSkill = _jobSkill;
             spriteDict = _spriteDict;
             jobId = _jobId;
@@ -387,14 +364,14 @@ namespace BattleCollection
             BaseInBattle confusedTarget = null;
             bool isConfuse = false;
             bool isParalyze = false;
-            float confuseProb = caster.GetTempValue(EffectType.Confuse);
+            float confuseProb = caster.GetTempValue_Max(EffectType.Confuse);
             if (GameManager.CalculateProbability(confuseProb))
             {
                 isConfuse = true;
             }
             else
             {
-                float paralyzeProb = caster.GetTempValue(EffectType.Paralyze);
+                float paralyzeProb = caster.GetTempValue_Max(EffectType.Paralyze);
                 isParalyze = GameManager.CalculateProbability(paralyzeProb);
             }
 
@@ -435,83 +412,81 @@ namespace BattleCollection
                         yield return new WaitForSeconds(3f);
                     }
                     //Pre
-                    float repeatValue = caster.GetTempValue(EffectType.Repeat);
+                    float repeatValue = caster.GetTempValue_Max(EffectType.Repeat);
 
+                    foreach (var x in activeEffects)
                     {
-
-                        foreach (var x in activeEffects)
-                        {
-                            if (x.isAnim)
-                                CharacterAnim();
-                        }
-                        if (caster.weapon == null)
-                        {
-                            yield return new WaitForSeconds(0.75f);
-                        }
-                        else
-                        {
-                                yield return new WaitForSeconds(GetPreDelay(caster.weapon.weaponType));//¼±µô
-
-                        }
-                        if (caster.weapon != null)
-                        {
-                            foreach (var x in activeEffects)
-                                if (x.isAnim)
-                                    WeaponVisualEffect();
-                        }
-                        foreach (ActiveEffect activeEffect in activeEffects)
-                        {
-                            BaseInBattle effectTarget;
-
-                            effectTarget = GameManager.battleScenario.GetTarget(activeEffect,caster);
-                            if (effectTarget == null)
-                            {
-                                yield break;
-                            }
-                            if (isConfuse && effectTarget == caster.targetOpponent)
-                            {
-                                effectTarget = caster.targetAlly;
-                                string message = GameManager.language == Language.Ko ? "È¥¶õ!" : "Confused!";
-                                caster.showDamage.StartShowText(message, Color.white);
-                            }
-                            List<BaseInBattle> targets = BattleScenario.GetTargetsByRange(activeEffect.range, effectTarget);
-
-                            if (GameManager.CalculateProbability(activeEffect.probability))
-                                foreach (BaseInBattle target in targets)
-                                {
-
-                                    if (target.gameObject.activeSelf)
-                                    {
-                                        int count = ((repeatValue > 0) ? 2 : 1);
-                                        for (int i = 0; i < count; i++)
-                                        {
-                                            float valueRate;
-                                            {
-                                                if (i == 0)
-                                                {
-                                                    valueRate = 1f;
-                                                }
-                                                else
-                                                {
-                                                    valueRate = repeatValue;
-                                                }
-                                            }
-                                            activeEffect.ActiveEffect0nTarget(target, valueRate);/////ÇÙ½É
-                                        }
-                                    }
-                                    if (activeEffect.visualEffect != null)
-                                        GameManager.battleScenario.CreateVisualEffect(activeEffect.visualEffect, target, true);
-                                }
-                        }
-                        if (caster.weapon == null)
-                        {
-                            yield return new WaitForSeconds(0.75f);
-                        }
-                        else
-                        {
-                                yield return new WaitForSeconds(GetPostDelay(caster.weapon.weaponType));//ÈÄµô
-                        }
+                        if (x.isAnim)
+                            CharacterAnim();
                     }
+                    if (caster.weapon == null)
+                    {
+                        yield return new WaitForSeconds(0.75f);
+                    }
+                    else
+                    {
+                        yield return new WaitForSeconds(GetPreDelay(caster.weapon.weaponType));//¼±µô
+
+                    }
+                    if (caster.weapon != null)
+                    {
+                        foreach (var x in activeEffects)
+                            if (x.isAnim)
+                                WeaponVisualEffect();
+                    }
+                    foreach (ActiveEffect activeEffect in activeEffects)
+                    {
+                        BaseInBattle effectTarget;
+
+                        effectTarget = GameManager.battleScenario.GetTarget(activeEffect, caster);
+                        if (effectTarget == null)
+                        {
+                            yield break;
+                        }
+                        if (isConfuse && effectTarget == caster.targetOpponent)
+                        {
+                            effectTarget = caster.targetAlly;
+                            string message = GameManager.language == Language.Ko ? "È¥¶õ!" : "Confused!";
+                            caster.showDamage.StartShowText(message, Color.white);
+                        }
+                        List<BaseInBattle> targets = BattleScenario.GetTargetsByRange(activeEffect.range, effectTarget);
+
+                        if (GameManager.CalculateProbability(activeEffect.probability))
+                            foreach (BaseInBattle target in targets)
+                            {
+
+                                if (target.gameObject.activeSelf)
+                                {
+                                    int count = ((repeatValue > 0) ? 2 : 1);
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        float valueRate;
+                                        {
+                                            if (i == 0)
+                                            {
+                                                valueRate = 1f;
+                                            }
+                                            else
+                                            {
+                                                valueRate = repeatValue;
+                                            }
+                                        }
+                                        activeEffect.ActiveEffect0nTarget(target, valueRate);/////ÇÙ½É
+                                    }
+                                }
+                                if (activeEffect.visualEffect != null)
+                                    GameManager.battleScenario.CreateVisualEffect(activeEffect.visualEffect, target, true);
+                            }
+                    }
+                    if (caster.weapon == null)
+                    {
+                        yield return new WaitForSeconds(0.75f);
+                    }
+                    else
+                    {
+                        yield return new WaitForSeconds(GetPostDelay(caster.weapon.weaponType));//ÈÄµô
+                    }
+
 
                     if (skillInBattle.isPre)
                         foreach (GridObject x in preGrids)

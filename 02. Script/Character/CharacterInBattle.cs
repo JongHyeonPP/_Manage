@@ -12,7 +12,6 @@ public class CharacterInBattle : BaseInBattle
 {
     public static readonly Color TARGET_COLOR = new(0f, 0f, 1f, 0.5f);
     public bool isAct = false;
-    public List<TalentClass> talents;
 
     public void SynchronizeCharacterData(CharacterData _data)
     {
@@ -22,6 +21,24 @@ public class CharacterInBattle : BaseInBattle
         speed = _data.speed;
         resist = _data.resist;
         Hp = _data.hp;
+        job = _data.jobClass;
+        //Talent
+        List<List<SkillEffect>> effectsList = new();
+        foreach (TalentClass talent in _data.talents)
+        {
+            List<SkillEffect> effects = new();
+            foreach (TalentEffect x in talent.effects)
+            {
+                PassiveEffect skillEffect = new PassiveEffect(1, true, x.value[talent.effectLevel], x.type, EffectRange.Self, ValueBase.Const, false, 0f, -99f, 1f);
+                effects.Add(skillEffect);
+            }
+            effectsList.Add(effects);
+            skillInBattles.Add(new Skill(string.Empty, default, -99, effectsList, false, false, null, null, null).GetInBattle(0));
+        }
+        //Job
+        if (job.jobSkill != null)
+            skillInBattles.Add(job.jobSkill.GetInBattle(0));
+        //Skill
         for (int i = 0; i < _data.skillAsItems.Length; i++)
         {
             SkillAsItem asItem = _data.skillAsItems[i];
@@ -31,9 +48,6 @@ public class CharacterInBattle : BaseInBattle
                 skillInBattles.Add(skill.GetInBattle((int)(asItem.itemGrade)));
             }
         }
-        job = _data.jobClass;
-        if (job.jobSkill != null)
-            skillInBattles.Add(job.jobSkill.GetInBattle(0));
 
         weapon = _data.weapon;
 

@@ -35,7 +35,7 @@ public class BattleScenario : MonoBehaviour
     public Transform panelHpUi;
     public static List<GridObject> CharacterGrids { get; private set; } = new();
     public static List<GridObject> EnemyGrids { get; private set; } = new();
-    public float RewardAscend = 0;
+    public float RewardAscend = 0f;
     public static readonly float gridCorrection = 20f;
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
@@ -155,12 +155,11 @@ public class BattleScenario : MonoBehaviour
         battleProgress = 0f;
 
         battlePatern = BattlePatern.OnReady;
-
         if (enemies.Count == 0)
         {
             List<EnemyPiece> selectedCase = MakeEnemies(); // Àû »ý¼º
 
-            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
+            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async Transaction =>
             {
                 for (int i = 0; i < selectedCase.Count; i++)
                 {
@@ -385,7 +384,8 @@ public class BattleScenario : MonoBehaviour
         GameManager.battleScenario.StopAllCoroutines();
         foreach (var x in characters)
         {
-            x.StopAllCoroutines();
+            if (x)
+                x.StopAllCoroutines();
         }
         foreach (var x in enemies)
         {
@@ -401,10 +401,10 @@ public class BattleScenario : MonoBehaviour
                 if (!data)
                     continue;
                 CharacterInBattle atBattle = data.characterAtBattle;
-                data.hp = atBattle.Hp;
+                data.hp = Mathf.Max(1, atBattle.Hp);
                 data.gridIndex = atBattle.grid.index;
                 Dictionary<string, object> dict = new();
-                dict.Add("Hp", Mathf.Max(data.hp, 1));
+                dict.Add("Hp", data.hp);
                 dict.Add("GridIndex", data.gridIndex);
                 DataManager.dataManager.SetDocumentData(dict, string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
             }
@@ -476,7 +476,7 @@ public class BattleScenario : MonoBehaviour
         List<EnemyPiece> enemyPieces = LoadEnemiesByCase(caseStr);
         return enemyPieces;
     }
-    public async Task ClearEnemyAsync()
+    public static async Task ClearEnemyAsync()
     {
         ClearEnemyObject();
         List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
@@ -486,7 +486,7 @@ public class BattleScenario : MonoBehaviour
         }
     }
 
-    private void ClearEnemyObject()
+    private static void ClearEnemyObject()
     {
         foreach (var x in enemies)
         {

@@ -17,16 +17,15 @@ namespace EnumCollection
         //발동류
         Damage, Heal, Armor, Bleed, AbilityVamp,
         //효과류
-        AttAscend, ResistAscend, HealAscend, DebuffAscend, Reduce,
-        AttDescend, ResistDescend, SpeedAscend, SpeedDescend,
+        AttAscend, DefAscend, ResistAscend, HealAscend, DebuffAscend, Reduce,
+        AttDescend, DefDescend, ResistDescend, SpeedAscend, SpeedDescend,
         Confuse, BleedTransfer, Reflect, Paralyze,
         Enchant, Repeat,
          AbilityAscend,
         ResistByDamage, Vamp, Critical, Revive,
         FameAscend, GoldAscend,
         BuffAscend, RewardAscend,
-        ResilienceAscend
-
+        Restore
     }
     public enum UpgradeEffectType : byte
     {

@@ -47,11 +47,10 @@ public class BattleScenarioTest : MonoBehaviour
         foreach (BaseInBattle x in BattleScenario.characters)
         {
             if (x)
+            {
                 x.StopBattle();
-        }
-        foreach (var x in BattleScenario.characters)
-        {
-            x.StopAllCoroutines();
+                x.StopAllCoroutines();
+            }
         }
         foreach (var x in BattleScenario.enemies)
         {

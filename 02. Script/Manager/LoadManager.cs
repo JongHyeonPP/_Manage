@@ -385,6 +385,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             JobClass jobClass;
             List<SkillEffect> effects = new();
             Dictionary<Language, string> name = new();
+            Dictionary<Language, string> skillName = new();
             Dictionary<Language, string> effectExplain = new();
             Dictionary<ClothesPart, Sprite> spriteDict = new();
             Skill jobSkill = null;
@@ -393,6 +394,10 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             Dictionary<string, object> nameObj = dict["Name"] as Dictionary<string, object>;
             name.Add(Language.Ko, (string)nameObj["Ko"]);
             name.Add(Language.En, (string)nameObj["En"]);
+            //SkillName
+            Dictionary<string, object> skillNameObj = dict["Name"] as Dictionary<string, object>;
+            skillName.Add(Language.Ko, (string)skillNameObj["Ko"]);
+            skillName.Add(Language.En, (string)skillNameObj["En"]);
             //EffectExplain
             if (dict.TryGetValue("EffectExplain", out obj))
             {
@@ -480,7 +485,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                         duration = GetFloatValue(obj);
                     }
                     else
-                        duration = -1f;
+                        duration = -99f;
                     //Set
                     SkillEffect skillEffect = new PassiveEffect(1, true, value, effectType, effectRange, valueBase, false, 0f, duration, 1f);
                     effects.Add(skillEffect);
@@ -529,7 +534,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 spriteDict.Add(clothesPart, sprite);
             }
             Sprite jobIcon = jobIconSpirtes.Where(item => item.name == doc.Id).FirstOrDefault();
-            jobClass = new(name, jobSkill, spriteDict, doc.Id, jobIcon);
+            jobClass = new(doc.Id, name, skillName,jobSkill, spriteDict, jobIcon);
 
             jobsDict.Add(doc.Id, jobClass);
         }

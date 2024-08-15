@@ -32,7 +32,7 @@ public class JobSlot : MonoBehaviour
         statusExplain.transform.parent = transform.parent;
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition;
-        statusExplain.SetExplain(job.name[GameManager.language], job.jobSkill.explain[0][GameManager.language]);
+        statusExplain.SetExplain(job.name[GameManager.language] + " - " + job.skillName[GameManager.language], job.jobSkill.explain[0][GameManager.language]);
     }
     public void OnPointerExit()
     {

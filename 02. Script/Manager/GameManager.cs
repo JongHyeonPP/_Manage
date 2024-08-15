@@ -80,7 +80,7 @@ public class GameManager : MonoBehaviour
     public int destinationNum;
     public int bossNum;
     public int foodNum;
-    public GameObject showDamageObject;
+    public GameObject showDamagePrefab;
 
     void Awake()//매니저 세팅은 Awake
     {
@@ -226,8 +226,13 @@ public class GameManager : MonoBehaviour
             await LoadCharacter();
             if (progressDoc.ContainsKey("Inventory"))
                 ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
-            StageScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
-            StageScenarioBase.nodeTypes = ((List<object>)progressDoc["NodeTypes"]).Select(item => item?.ToString()).ToArray();
+            if (progressDoc.ContainsKey("Nodes"))
+                StageScenarioBase.nodes = (List<object>)progressDoc["Nodes"];
+            else
+                StageScenarioBase.nodes = new();
+            if (progressDoc.ContainsKey("NodeTypes"))
+                StageScenarioBase.nodeTypes = ((List<object>)progressDoc["NodeTypes"]).Select(item => item?.ToString()).ToArray();
+            
             StageScenarioBase.stageNum = (int)(long)progressDoc["StageNum"];
             //Score
             enemyNum = (int)(long)progressDoc["EnemyNum"];
@@ -641,22 +646,20 @@ public class GameManager : MonoBehaviour
         scene = null;
         progressDoc = null;
     }
-    public static float GetRandomNumber(float _mean, float _standardDeviation)
-    {
-        System.Random random = new();
-        double u1 = 1.0 - random.NextDouble(); // 난수 생성
-        double u2 = 1.0 - random.NextDouble();
-        double randStdNormal = System.Math.Sqrt(-2.0 * System.Math.Log(u1)) * System.Math.Sin(2.0 * System.Math.PI * u2); // 정규 분포를 따르는 값 생성
-        float randNormal = _mean + _standardDeviation * (float)randStdNormal; // 평균과 표준 편차 적용
-
-        // 평균 값의 최소 50%, 최대 200%로 값을 제한
-        randNormal = Mathf.Clamp(randNormal, _mean * 0.5f, _mean * 2f);
-
-        return randNormal;
-    }
     public void SetPopUp(string _content, string _emphasizeStr = "")
     {
         StartCoroutine(popupUi.SetContent(_content, _emphasizeStr));
     }
-
+    public void OnSettingButtonClick()
+    {
+        SettingUi settingUi = SettingManager.settingManager.settingUi;
+        if (settingUi.gameObject.activeSelf)
+        {
+            settingUi.OnCancelBtnClick();
+        }
+        else
+        {
+            settingUi.gameObject.SetActive(true);
+        }
+    }
 }

@@ -145,7 +145,8 @@ public class ItemManager : MonoBehaviour
                     ingredientType = IngredientType.Special;
                     break;
             }
-            for (int i = 0; i < Random.Range(3, 5); i++)//재료는 3개나 4개
+            int ingredientNum = Mathf.RoundToInt(Random.Range(3, 5) * (1 + GameManager.battleScenario.RewardAscend));
+            for (int i = 0; i < ingredientNum; i++)//재료는 3개나 4개
             {
                 string ingredientId = GetRandomIngredientId(ingredientType);
                 Item ingredientItem = GetItemClass(ItemType.Ingredient, ingredientId);
@@ -156,6 +157,7 @@ public class ItemManager : MonoBehaviour
         main = main.OrderBy(data => data.item.itemType).ToList();
         sub = sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
         int gold = Random.Range(10, 13);
+        gold  = Mathf.RoundToInt(gold * (1 + GameManager.battleScenario.RewardAscend));
         GameManager.gameManager.SetGold(gold);
         List<CountableItem> addMainSub = new(main);
         addMainSub.AddRange(sub);

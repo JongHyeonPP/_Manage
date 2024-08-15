@@ -291,11 +291,25 @@ public class ApplicantSlot : MonoBehaviour
     }
     private float GetStatus(float _defaultStatus, float _standardDeviation)
     {
-        float returnValue = GameManager.GetRandomNumber(_defaultStatus, _standardDeviation);
+        float returnValue = GetRandomNumber(_defaultStatus, _standardDeviation);
         if (GameManager.gameManager.upgradeValueDict.TryGetValue(UpgradeEffectType.StatusUp, out float statusUp))
         {
             returnValue *= 1f + statusUp;
         }
         return returnValue;
     }
+    public float GetRandomNumber(float _mean, float _standardDeviation)
+    {
+        System.Random random = new();
+        double u1 = 1.0 - random.NextDouble(); // 난수 생성
+        double u2 = 1.0 - random.NextDouble();
+        double randStdNormal = System.Math.Sqrt(-2.0 * System.Math.Log(u1)) * System.Math.Sin(2.0 * System.Math.PI * u2); // 정규 분포를 따르는 값 생성
+        float randNormal = _mean + _standardDeviation * (float)randStdNormal; // 평균과 표준 편차 적용
+
+        // 평균 값의 최소 50%, 최대 200%로 값을 제한
+        randNormal = Mathf.Clamp(randNormal, _mean * 0.5f, _mean * 2f);
+
+        return randNormal;
+    }
+
 }
