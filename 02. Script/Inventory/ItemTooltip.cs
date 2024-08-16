@@ -4,7 +4,7 @@ using TMPro;
 using ItemCollection;
 using EnumCollection;
 
-public class InventoryTooltip : MonoBehaviour
+public class ItemTooltip : MonoBehaviour
 {
     public Image itemImage;
     public TMP_Text textItemName;
@@ -17,10 +17,11 @@ public class InventoryTooltip : MonoBehaviour
     public StatusSlot_I resistSlot;
     public StatusSlot_I speedSlot;
     public Transform parentStatus; 
-    RectTransform rectTransform;
+    public RectTransform rectTransform;
     GridLayoutGroup parentStatus_Glg;
     readonly float baseHeight = 170f;
     readonly float verticalSpace = 20f;
+    [SerializeField] bool isInventory;
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -28,6 +29,8 @@ public class InventoryTooltip : MonoBehaviour
     }
     public void SetTooltipInfo(Item _item, Vector3 _localPosition)
     {
+        if (_item == null)
+            return;
         _item.SetSpriteToImage(itemImage);
         textItemName.text = _item.name[GameManager.language];
         string categoriStr = "";
@@ -153,7 +156,7 @@ public class InventoryTooltip : MonoBehaviour
         textExplain.text = _item.explain[GameManager.language];
         float width = rectTransform.rect.width;
         float height = baseHeight + textExplain.preferredHeight;
-        float yCorrection = textExplain.preferredHeight;
+        float yCorrection =  textExplain.preferredHeight;
         if (_item.itemType == ItemType.Weapon)
         {
             WeaponClass _weapon = (WeaponClass)_item;
@@ -175,6 +178,8 @@ public class InventoryTooltip : MonoBehaviour
 
         rectTransform.sizeDelta = new Vector2(width, height);
         parentStatus.localPosition = new Vector2(0f,-(textExplain.preferredHeight + verticalSpace));
+        if (!isInventory)
+            yCorrection = 0f;
         transform.localPosition = _localPosition + Vector3.up * yCorrection;
     }
 }

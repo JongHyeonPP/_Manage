@@ -15,12 +15,13 @@ public class MainLootSlot : MonoBehaviour
     public GameObject panelSkill;
     public Image imageSkill;
     //Frame
-    public GameObject panelFrame;
     public List<GameObject> frames;
     //Name
     public Image panelName;
     public TMP_Text textName;
     private Dictionary<Language, string> nameDict;
+    //Item
+    Item curItem;
 
     private void Awake()
     {
@@ -42,7 +43,7 @@ public class MainLootSlot : MonoBehaviour
             SetSkillAtSlot(_item);
         }
         SetFrameByGrade(_item.itemGrade);
-
+        curItem = _item;
     }
 
     private void SetWeaponAtSlot(Item _item)
@@ -115,5 +116,19 @@ public class MainLootSlot : MonoBehaviour
     private void OnLanguageChange()
     {
         textName.text = nameDict[GameManager.language];
+    }
+    public void OnPointerEnterSlot()
+    {
+        ItemTooltip tooltip = GameManager.battleScenario.battleTooltip;
+        tooltip.transform.parent = transform;
+        tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+        tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+        tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
+        tooltip.SetTooltipInfo(curItem, new Vector2(52f,0f));
+        tooltip.gameObject.SetActive(true);
+    }
+    public void OnPointerExitSlot()
+    {
+        GameManager.battleScenario.battleTooltip.gameObject.SetActive(false);
     }
 }

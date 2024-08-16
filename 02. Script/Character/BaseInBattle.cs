@@ -18,6 +18,7 @@ abstract public class BaseInBattle : MonoBehaviour
     public float maxHp;
     [SerializeField] private float hp;
     public ShowDamage showDamage;
+    public ShowBuffSlots showBuffSlots;
     public float Hp {
         get { return hp; }
         set
@@ -78,7 +79,9 @@ abstract public class BaseInBattle : MonoBehaviour
             animator = GetComponent<Animator>();
         else
             animator = transform.GetComponentInChildren<Animator>();
-        showDamage = Instantiate(GameManager.gameManager.showDamagePrefab, transform).GetComponent<ShowDamage>();
+        GameObject obj = Instantiate(GameManager.gameManager.showDamagePrefab, transform);
+        showDamage = obj.GetComponent<ShowDamage>();
+        showBuffSlots = obj.GetComponent<ShowBuffSlots>();
     }
     public void InBattleFieldZero()
     {
@@ -252,9 +255,8 @@ abstract public class BaseInBattle : MonoBehaviour
         {
             tempEffectsDict.Add(_effectType, new());
         }
-        TempEffect tempEffect = new TempEffect(_value, _duration, _valueBase, _caster);
+        TempEffect tempEffect = new TempEffect(_value, _duration, _valueBase, _caster, this, _effectType);
         tempEffectsDict[_effectType].Add(tempEffect);
-        tempEffect.SetBelongedList(tempEffectsDict[_effectType]);
         return tempEffect;
     }
     public void ApplyValue(float _value, EffectType _effectType, ValueBase _valueBase = ValueBase.Const, BaseInBattle _caster = null, float _duration = -99f)
@@ -268,7 +270,7 @@ abstract public class BaseInBattle : MonoBehaviour
                 {
                     tempEffectsDict.Add(_effectType, new());
                 }
-                tempEffectsDict[_effectType].Add(new TempEffect(_value, _duration, _valueBase, _caster));
+                tempEffectsDict[_effectType].Add(new TempEffect(_value, _duration, _valueBase, _caster, this, _effectType));
                 break;
             case EffectType.Damage:
                 _value *= BattleScenario.CalcResist(resistInBattle);

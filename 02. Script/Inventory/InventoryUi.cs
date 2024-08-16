@@ -24,7 +24,7 @@ public class InventoryUi : MonoBehaviour
     public TMP_Text resistText;
     public TMP_Text speedText;
     public List<GameObject> characterSelectFocus = new();
-    public InventoryTooltip tooltip;
+    public ItemTooltip tooltip;
     public StatusExplain statusExplain;
     public List<EquipSlot> equipSlots;//스킬 0, 스킬 1, 무기
     public Transform parentItemTypeSelect;

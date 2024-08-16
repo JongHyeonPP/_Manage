@@ -88,6 +88,7 @@ namespace BattleCollection
         public float calcValue;
         public List<TempEffect> tempEffects;
 
+
         public PassiveEffect(int _count, bool _isPassive, float _value, EffectType _type, EffectRange _range, ValueBase _valueBase, bool _isTargetEnemy, float _vamp, float _duration, float _probability) : base(_count, _isPassive, _value, _type, _range, _valueBase, _isTargetEnemy, _vamp, _duration, _probability)
         {
         }
@@ -587,24 +588,23 @@ namespace BattleCollection
         public float duration;
         public ValueBase valueBase;
         public BaseInBattle caster;
-        public List<TempEffect> belongedList;
+        public BaseInBattle target;
+        public EffectType effectType;
 
-        public TempEffect(float _value, float _duration, ValueBase _valueBase, BaseInBattle _caster)
+        public TempEffect(float _value, float _duration, ValueBase _valueBase, BaseInBattle _caster, BaseInBattle _target, EffectType _effectType)
         {
             value = _value;
             duration = _duration;
             valueBase = _valueBase;
             caster = _caster;
-        }
-        public TempEffect SetBelongedList(List<TempEffect> _belongedList)
-        {
-            belongedList = _belongedList;
-            return this;
+            target = _target;
+            effectType = _effectType;
+            _target.showBuffSlots.SetBuff(_effectType);
         }
         public void RemoveFromList()
         {
-            belongedList.Remove(this);
-            belongedList = null;
+            target.tempEffectsDict[effectType].Remove(this);
+            target.showBuffSlots.RemoveBuff(effectType);
         }
     }
 }

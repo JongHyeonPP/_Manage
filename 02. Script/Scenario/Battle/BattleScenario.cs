@@ -40,7 +40,7 @@ public class BattleScenario : MonoBehaviour
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
     public static BackgroundType currentBackground;
-    public BattleTooltip battleTooltip;
+    public ItemTooltip battleTooltip;
     public string visualEffectStr;
     public float visualEffectDur;
     public StatusExplain_Battle statusExplain;
@@ -282,6 +282,7 @@ public class BattleScenario : MonoBehaviour
             x.FindNewTargetAlly();
             x.FindNewTargetOpponent();
         }
+        PassiveReconnect();
     }
     private  static void CharacterAtBattleInit()
     {

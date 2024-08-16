@@ -12,7 +12,7 @@ public class ShowDamage : MonoBehaviour
     private float moveSpeed = 3f;
     private List<IEnumerator> coroutineQueue = new List<IEnumerator>();
     private Queue<TMP_Text> textPool = new Queue<TMP_Text>(); // TMP_Text 오브젝트 풀
-
+    [SerializeField] Transform parentDamageText;
     private void Awake()
     {
         transform.localPosition = new Vector3(0f, 60f);
@@ -25,7 +25,7 @@ public class ShowDamage : MonoBehaviour
 
     private TMP_Text CreateNewText()
     {
-        TMP_Text newText = Instantiate(damageTextPrefab, transform);
+        TMP_Text newText = Instantiate(damageTextPrefab, parentDamageText);
         newText.gameObject.SetActive(false);
         textPool.Enqueue(newText);
         return newText;
