@@ -266,6 +266,7 @@ public class BattleScenario : MonoBehaviour
         {
             _startGrid.owner = null;
         }
+        if(battlePatern != BattlePatern.OnReady)
         TargetRefreshAll();
     }
     public void TargetRefreshAll()

@@ -49,6 +49,8 @@ public class GridObject : MonoBehaviour
 
     public void OnGridPointerDrag()
     {
+        if (isEnemy)
+            return;
         if (!owner) return;
         if (!GameManager.battleScenario.isDragging) return;
         Vector2 mousePosition = Input.mousePosition;
@@ -81,7 +83,13 @@ public class GridObject : MonoBehaviour
 
     public void OnGridPointerEnter()
     {
-        if (GameManager.battleScenario.isDragging&&!isEnemy)
+        if (owner != null)
+        {
+            owner.showBuffSlots.parentBuffSlot.gameObject.SetActive(true);
+        }
+        if (isEnemy)
+            return;
+        if (GameManager.battleScenario.isDragging)
         {
             GameManager.battleScenario.gridOnPointer = this;
             imageRect.enabled = true;
@@ -101,6 +109,10 @@ public class GridObject : MonoBehaviour
 
     public void OnGridPointerExit()
     {
+        if (owner != null)
+        {
+            owner.showBuffSlots.parentBuffSlot.gameObject.SetActive(false);
+        }
         GameManager.battleScenario.statusExplain.gameObject.SetActive(false);
         GameManager.battleScenario.gridOnPointer = null;
         imageRect.enabled = false;
@@ -122,7 +134,6 @@ public class GridObject : MonoBehaviour
             if (BattleScenario.battlePatern != BattlePatern.OnReady)
             {
                 GameManager.battleScenario.moveGauge = 0f;
-                GameManager.battleScenario.PassiveReconnect();
             }
         }
 
