@@ -352,7 +352,8 @@ public class InventorySlot : SlotBase
             tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
             tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
             tooltip.gameObject.SetActive(true);
-            tooltip.SetTooltipInfo(ci.item, new Vector2(xOffset,yOffset));
+            tooltip.transform.localPosition = new Vector2(xOffset, yOffset);
+            tooltip.SetTooltipInfo(ci.item);
         }
     }
 

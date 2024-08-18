@@ -95,6 +95,8 @@ public class InventorySlot_Store : SlotBase
         imageGrade.transform.SetParent(storeUi.transform, true);
         storeUi.draggingSlot = this;
         storeUi.imageSell.gameObject.SetActive(true);
+        GameManager.storeScenario.storeTooltip.gameObject.SetActive(false);
+        storeUi.sellReady = false;
     }
     public void OnEndDrag()
     {
@@ -105,6 +107,10 @@ public class InventorySlot_Store : SlotBase
         imageGrade.transform.localPosition = Vector3.zero;
         storeUi.imageSell.gameObject.SetActive(false);
         HighlightOff();
+        if (storeUi.sellReady)
+        {
+            storeUi.SetSellUi(this);
+        }
     }
     public void OnEnterSlot()
     {
@@ -121,40 +127,55 @@ public class InventorySlot_Store : SlotBase
                 switch (column)
                 {
                     case 4:
-                        xOffset -= 40f;
+                        xOffset -= 30f;
                         break;
                     case 5:
-                        xOffset -= 80f;
+                        xOffset -= 60f;
                         break;
                 }
                 switch (row)
                 {
                     case 4:
-                        yOffset += 40f;
+                        yOffset += 1f;
                         break;
                     case 5:
-                        yOffset += 80f;
+                        yOffset += 2f;
                         break;
                 }
-                var tooltip = GameManager.storeScenario.storeTooltip;
-                RectTransform inventoryRectTransform = storeUi.GetComponent<RectTransform>();
-                RectTransformUtility.ScreenPointToWorldPointInRectangle(
-        GetComponent<RectTransform>(),
-        transform.position,
-        GameManager.startScenario.uiCamera,
-        out var worldPoint
-        );
-                tooltip.transform.parent = transform;
+                ItemTooltip tooltip = GameManager.storeScenario.storeTooltip;
                 tooltip.gameObject.SetActive(true);
-                tooltip.SetTooltipInfo(connectedSlot.ci.item, new Vector2(xOffset, yOffset));
+
+                // 마우스 위치를 로컬 좌표로 변환
+                RectTransform tooltipRectTransform = tooltip.GetComponent<RectTransform>();
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    storeUi.GetComponent<RectTransform>(),
+                    Input.mousePosition,
+                    GameManager.storeScenario.overlayCamera,
+                    out var localPoint
+                );
+
+                // 로컬 좌표 기반으로 Tooltip 위치 설정
+                tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+                tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+                tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
+                tooltip.rectTransform.localPosition = localPoint + new Vector2(xOffset, yOffset);
+
+                tooltip.SetTooltipInfo(connectedSlot.ci.item);
             }
         }
     }
+
     public void OnExitSlot()
     {
         if (storeUi.draggingSlot == null)
         {
             HighlightOff();
+            GameManager.storeScenario.storeTooltip.gameObject.SetActive(false);
         }
+    }
+
+    internal void SetAmountResult(int amount)
+    {
+        throw new NotImplementedException();
     }
 }

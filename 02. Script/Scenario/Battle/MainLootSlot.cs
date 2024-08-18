@@ -124,7 +124,8 @@ public class MainLootSlot : MonoBehaviour
         tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
         tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
         tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
-        tooltip.SetTooltipInfo(curItem, new Vector2(52f,0f));
+        tooltip.transform.localPosition = new Vector2(52f, 0f);
+        tooltip.SetTooltipInfo(curItem);
         tooltip.gameObject.SetActive(true);
     }
     public void OnPointerExitSlot()

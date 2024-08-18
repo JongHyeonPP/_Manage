@@ -195,7 +195,8 @@ public class InventoryUi : MonoBehaviour
     {
         tooltip.transform.SetParent(_parent);
         tooltip.gameObject.SetActive(true);
-        tooltip.SetTooltipInfo(_item, _localPosition);
+        tooltip.transform.localPosition = _localPosition;
+        tooltip.SetTooltipInfo(_item);
     }
     public void EnterThrowZone()
     {

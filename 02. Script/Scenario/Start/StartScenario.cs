@@ -18,7 +18,6 @@ public class StartScenario : MonoBehaviour
 
     private bool isOperating;
     public PanelNewGame panelNewGame;
-    public Camera uiCamera;
 
     private void Awake()
     {

@@ -9,13 +9,16 @@ public class StoreUi : MonoBehaviour
 {
     private List<InventorySlot_Store> inventorySlots;
     [SerializeField] Transform parentSlot;
+    public Image imageSell;
     public List<SelectButton> selectButtons = new();
     private SelectButton currentSelectButton;
     public InventorySlot_Store draggingSlot;
-    public Image imageSell;
+    public bool sellReady;
+    [SerializeField] SellUi sellUi;
     private void Awake()
     {
         imageSell.gameObject.SetActive(false);
+        sellUi.gameObject.SetActive(false);
     }
     private void OnEnable()
     {
@@ -59,5 +62,19 @@ public class StoreUi : MonoBehaviour
             }
             slot.SetSelected(isActive);
         }
+    }
+    public void OnPointerEnterOnImageSell()
+    {
+        sellReady = true;
+
+    }
+    public void OnPointerExitOnImageSell()
+    {
+        sellReady = false;
+    }
+    public void SetSellUi(InventorySlot_Store _slot)
+    {
+        sellUi.SetInventorySlot(_slot);
+        sellUi.gameObject.SetActive(true);
     }
 }

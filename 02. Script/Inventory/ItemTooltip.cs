@@ -26,7 +26,7 @@ public class ItemTooltip : MonoBehaviour
     {
         parentStatus_Glg = parentStatus.GetComponent<GridLayoutGroup>();
     }
-    public void SetTooltipInfo(Item _item, Vector3 _localPosition)
+    public void SetTooltipInfo(Item _item)
     {
         if (_item == null)
             return;
@@ -179,6 +179,6 @@ public class ItemTooltip : MonoBehaviour
         parentStatus.localPosition = new Vector2(0f,-(textExplain.preferredHeight + verticalSpace));
         if (!isInventory)
             yCorrection = 0f;
-        transform.localPosition = _localPosition + Vector3.up * yCorrection;
+        transform.localPosition += Vector3.up * yCorrection;
     }
 }
