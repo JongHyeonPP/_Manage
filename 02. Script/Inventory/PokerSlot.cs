@@ -96,13 +96,13 @@ public class PokerSlot : SlotBase
     public void OnPointerEnter()
     {
         if (ingredient != null)
-            HightlightOn();
+            HighlightOn();
     }
     public void OnPointerExit()
     {
         if (ingredient == null)
             SetHighLightAlphaZero();
         else
-            HightlightOff();
+            HighlightOff();
     }
 }

@@ -24,7 +24,6 @@ public class ItemTooltip : MonoBehaviour
     [SerializeField] bool isInventory;
     private void Awake()
     {
-        rectTransform = GetComponent<RectTransform>();
         parentStatus_Glg = parentStatus.GetComponent<GridLayoutGroup>();
     }
     public void SetTooltipInfo(Item _item, Vector3 _localPosition)

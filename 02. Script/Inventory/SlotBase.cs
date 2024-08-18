@@ -65,7 +65,7 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
     }
 
 
-    public void HightlightOn()
+    public void HighlightOn()
     {
             if (highlightCoroutine != null)
             {
@@ -75,7 +75,7 @@ public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
         highlightCoroutine = StartCoroutine(HighlightFadeInRoutine());
     }
 
-    public void HightlightOff()
+    public void HighlightOff()
     {
         if (highlightCoroutine != null)
         {

@@ -21,7 +21,7 @@ public class StatusExplain : MonoBehaviour
         statusExplain.text = (GameManager.language == Language.Ko) ?
             $"<b><color=#FF4545><size=120%>{_maxHp:F0}</size></color></b>의 체력 중\n<b><color=#FF8A45><size=120%>{_hp:F0}</size></color></b>이 남았습니다." :
             $"Out of <b><color=#FF4545><size=120%>{_maxHp:F0}</size></color></b> health points,\n<b><color=#FF8A45><size=120%>{_hp:F0}</size></color></b> are remaining.";
-        SetSize();
+        SetSize(250f);
     }
 
     public void SetAbilityExplain(float _ability)
@@ -30,7 +30,7 @@ public class StatusExplain : MonoBehaviour
         statusExplain.text = (GameManager.language == Language.Ko) ?
             $"스킬과 기본공격이\n<b><color=#FAF75C><size=120%>{_ability:F0}</size></color></b>만큼 강해집니다." :
             $"Skills and default attack\nbecome <b><color=#FAF75C><size=120%>{_ability:F0}</size></color></b> stronger.";
-        SetSize();
+        SetSize(250f);
     }
 
     public void SetResistExplain(float _resist)
@@ -40,7 +40,7 @@ public class StatusExplain : MonoBehaviour
         statusExplain.text = (GameManager.language == Language.Ko) ?
             $"받는 피해가 <b><color=#45FF63><size=120%>{calcedResist:F1}%</size></color></b>\n만큼 감소합니다." :
             $"The damage taken is\nreduced by <b><color=#45FF63><size=120%>{calcedResist:F1}%</size></color></b>";
-        SetSize();
+        SetSize(250f);
     }
 
     public void SetSpeedExplain(float _speed)
@@ -49,17 +49,17 @@ public class StatusExplain : MonoBehaviour
         statusExplain.text = (GameManager.language == Language.Ko) ?
             $"시전 속도가 <b><color=#1429E6><size=120%>{_speed:F1}배</size></color></b>\n빨라집니다." :
             $"The casting speed becomes <b><color=#1429E6><size=120%>{{_speed\r\n}}times</size></color></b> faster.";
-        SetSize();
+        SetSize(250f);
     }
     public void SetExplain(string _name, string _explain)
     {
         statusName.text = _name;
         statusExplain.text = _explain;
-        SetSize();
+        SetSize(330f);
     }
-    private void SetSize()
+    private void SetSize(float _width)
     {
-        rectTransform.sizeDelta = new Vector2(Mathf.Max(250f, statusName.preferredWidth + 50f), Mathf.Max(150f, statusExplain.preferredHeight + 20f));
-        imageLine.sizeDelta = new Vector2(Mathf.Max( statusName.preferredWidth, 187.4f), imageLine.sizeDelta.y);
+        rectTransform.sizeDelta = new Vector2(_width, Mathf.Max(150f, statusExplain.preferredHeight + 100f));
+        imageLine.sizeDelta = new Vector2(_width*0.8f, imageLine.sizeDelta.y);
     }
 }

@@ -14,6 +14,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static UnityEngine.EventSystems.EventTrigger;
@@ -154,6 +155,19 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
         Dictionary<string, object> docDict = new();
+        if (_arg0.name != "Awake" && _arg0.name != "Start")
+        {
+            var mainCameraData = Camera.main.GetComponent<UniversalAdditionalCameraData>();
+            var uiCameraData = uiCamera.GetComponent<UniversalAdditionalCameraData>();
+            if (mainCameraData != null && uiCameraData != null)
+            {
+                // Overlay 카메라의 Render Type을 Overlay로 설정
+                uiCameraData.renderType = CameraRenderType.Overlay;
+
+                // Base 카메라의 Stack에 Overlay 카메라 추가
+                mainCameraData.cameraStack.Add(uiCamera);
+            }
+        }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Loading"&& _arg0.name != "Lobby")
         {
             if (_arg0.name.Contains("Stage"))

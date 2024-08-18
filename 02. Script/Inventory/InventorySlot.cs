@@ -7,23 +7,21 @@ using ItemCollection;
 using EnumCollection;
 using System;
 using UnityEngine.EventSystems;
-using static UnityEngine.EventSystems.EventTrigger;
-using static UnityEngine.UI.GridLayoutGroup;
-using System.Security.Cryptography;
 using System.Linq;
 
 public class InventorySlot : SlotBase
 {
     public CountableItem ci;
-
+    public int slotIndex;
+    public bool isSelected;
+    //Ui
     public Transform panelBack;
     public Image imageGrade;
     public Image imageItem;
     public TMP_Text textAmount;
-    public int slotIndex;
     public GameObject imageNoSelect;
     public TMP_Text textPokerNum;
-    public bool isSelected;
+
     private new void Awake()
     {
         base.Awake();
@@ -157,11 +155,15 @@ public class InventorySlot : SlotBase
         if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
         if (ci == null) return;
+        imageGrade.transform.SetParent(ItemManager.itemManager.inventoryUi.transform, true);
         ItemManager.itemManager.inventoryUi.throwReady = false;
         imageGrade.raycastTarget = false;
         imageItem.raycastTarget = false;
         imageHighlight.raycastTarget=false;
         ItemManager.itemManager.inventoryUi.draggingSlot = this;
+        Canvas canvas =  imageGrade.gameObject.AddComponent<Canvas>();
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = 10;
     }
 
     public void OnDrag()
@@ -169,8 +171,6 @@ public class InventorySlot : SlotBase
         if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
 
-        // 부모를 ItemManager.itemManager.inventoryUi로 변경
-        imageGrade.transform.SetParent(ItemManager.itemManager.inventoryUi.transform, true);
 
         // 마우스의 현재 위치를 기준으로 이동
         Vector3 mousePosition = Input.mousePosition;
@@ -193,6 +193,7 @@ public class InventorySlot : SlotBase
     {
         if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
+        Destroy(panelBack.GetComponent<Canvas>());
         //인벤토리에서 교환
         if (ItemManager.itemManager.inventoryUi.targetInventorySlot)
         {
@@ -208,7 +209,7 @@ public class InventorySlot : SlotBase
                 ClearSlot();
             }
             targetSlot.SetSlot(curCi);
-            targetSlot.HightlightOff();
+            targetSlot.HighlightOff();
         }
         //장비칸과 교환
         else if (ItemManager.itemManager.inventoryUi.targetEquipSlot)
@@ -297,7 +298,7 @@ public class InventorySlot : SlotBase
                 break;
         }
 
-        targetSlot.HightlightOff();
+        targetSlot.HighlightOff();
 
     }
 
@@ -311,7 +312,8 @@ public class InventorySlot : SlotBase
     {
         if (!isSelected)
             return;
-        HightlightOn();
+        HighlightOn();
+
         if (ItemManager.itemManager.inventoryUi.draggingSlot != null)
         {
             ItemManager.itemManager.inventoryUi.targetInventorySlot = this;
@@ -320,24 +322,37 @@ public class InventorySlot : SlotBase
         {
             ItemManager.itemManager.inventoryUi.targetInventorySlot = null;
         }
-        int row = slotIndex / 6;
-
-        int column = slotIndex % 6;
-        float xOffset = 0f;
-        switch (column)
-        {
-            case 4:
-                xOffset -= 40f;
-                break;
-            case 5:
-                xOffset -= 80f;
-                break;
-        }
-
         if (ci != null && !ItemManager.itemManager.inventoryUi.draggingSlot)
         {
-
-            ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector2(xOffset, 40f), ci.item);
+            ItemTooltip tooltip = ItemManager.itemManager.inventoryUi.tooltip;
+            int row = slotIndex / 6;
+            int column = slotIndex % 6;
+            float xOffset = 0f;
+            float yOffset = 0f;
+            switch (column)
+            {
+                case 4:
+                    xOffset -= 40f;
+                    break;
+                case 5:
+                    xOffset -= 80f;
+                    break;
+            }
+            switch (row)
+            {
+                case 4:
+                    yOffset += 40f;
+                    break;
+                case 5:
+                    yOffset += 80f;
+                    break;
+            }
+            tooltip.transform.parent = transform;
+            tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+            tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+            tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
+            tooltip.gameObject.SetActive(true);
+            tooltip.SetTooltipInfo(ci.item, new Vector2(xOffset,yOffset));
         }
     }
 
@@ -347,7 +362,7 @@ public class InventorySlot : SlotBase
     {
         if (!isSelected)
             return;
-        HightlightOff();
+        HighlightOff();
         ItemManager.itemManager.inventoryUi.tooltip.gameObject.SetActive(false);
     }
     public void SetSelected(bool _isSelect)

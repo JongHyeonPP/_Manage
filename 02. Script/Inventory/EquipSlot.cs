@@ -30,25 +30,25 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
         if (expBar.activeSelf)
         {
             ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector3(50f,30f), item);
-            HightlightOn();
+            HighlightOn();
         }
         else
         {
             InventorySlot draggingSlot = ItemManager.itemManager.inventoryUi.draggingSlot;
             if (item != null)
             {
-                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector3(50f, 30f), item);
+                ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector3(50f, 50f), item);
             }
             if (!draggingSlot || draggingSlot.ci.item.itemType != itemType)
                 return;
-            HightlightOn();
+            HighlightOn();
             ItemManager.itemManager.inventoryUi.targetEquipSlot = this;
         }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        HightlightOff();
+        HighlightOff();
         ItemManager.itemManager.inventoryUi.tooltip.gameObject.SetActive(false);
         ItemManager.itemManager.inventoryUi.targetEquipSlot = null;
     }

@@ -9,9 +9,13 @@ public class SelectButton : MonoBehaviour
     public GameObject imageHighlight;
     public GameObject imageHighlight_All;
     public ItemType type;
+    [SerializeField] bool isInStore;//true : Inventory, false : Store
     public void OnClicked()
     {
-        ItemManager.itemManager.inventoryUi.SelectButtonSelect(this);
+        if (isInStore)
+            GameManager.storeScenario.storeUi.SelectButtonSelect(this);
+        else
+            ItemManager.itemManager.inventoryUi.SelectButtonSelect(this);
     }
 
     public void ActiveHighlight(bool _isaActive)

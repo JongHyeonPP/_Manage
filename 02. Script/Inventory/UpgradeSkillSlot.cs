@@ -76,7 +76,7 @@ public class UpgradeSkillSlot :SlotBase
     {
         if (ci != null)
         {
-            HightlightOn();
+            HighlightOn();
             float xOffset = 40f;
             float yOffset = 100f;
             ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform ,new Vector3(xOffset, yOffset), ci.item);
@@ -84,7 +84,7 @@ public class UpgradeSkillSlot :SlotBase
     }
     public void OnPointerExit()
     {
-        HightlightOff();
+        HighlightOff();
         ItemManager.itemManager.inventoryUi.tooltip.gameObject.SetActive(false);
     }
     public void OnPointerClick()

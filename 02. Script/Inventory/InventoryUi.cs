@@ -223,6 +223,7 @@ public class InventoryUi : MonoBehaviour
             .Select(data => new { CountableItem = data, Weapon = (WeaponClass)data.item })
             .OrderBy(data => data.Weapon.itemGrade)
             .ThenBy(data => data.Weapon.weaponType)
+            .ThenBy(data => data.Weapon.itemId)
             .Select(data => data.CountableItem)
             .ToList();
 
@@ -230,7 +231,7 @@ public class InventoryUi : MonoBehaviour
     .Where(data => data.item.itemType == ItemType.Skill)
     .Select(data => new { CountableItem = data, Skill = (SkillAsItem)data.item })
     .OrderBy(data => data.Skill.categori)
-    .ThenByDescending(data => data.CountableItem.amount)
+    .ThenBy(data => data.Skill.itemId)
     .Select(data => data.CountableItem)
     .ToList();
 
@@ -247,6 +248,7 @@ public class InventoryUi : MonoBehaviour
     .Where(data => data.item.itemType == ItemType.Food)
     .Select(data => new { CountableItem = data, Food = (FoodClass)data.item })
     .OrderBy(data => data.Food.pokerCombination)
+    .ThenBy(data => data.Food.itemId)
     .Select(data => data.CountableItem)
     .ToList();
         sortedList.AddRange(sortedWeaponList);
