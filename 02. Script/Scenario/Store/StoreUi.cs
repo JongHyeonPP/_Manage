@@ -1,4 +1,5 @@
 using EnumCollection;
+using ItemCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,15 +16,25 @@ public class StoreUi : MonoBehaviour
     public InventorySlot_Store draggingSlot;
     public bool sellReady;
     [SerializeField] SellUi sellUi;
+    [SerializeField] SellConfirmUi sellConfirmUi;
+    [SerializeField] List<GoodsPanel> goodsPanels;
     private void Awake()
     {
         imageSell.gameObject.SetActive(false);
         sellUi.gameObject.SetActive(false);
+        sellConfirmUi.gameObject.SetActive(false);
     }
     private void OnEnable()
     {
         SetnventorySlots();
         SelectButtonSelect(selectButtons[0]);
+        GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = false;
+    }
+    private void OnDisable()
+    {
+        GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = true;
+        sellUi.gameObject.SetActive(false);
+        sellConfirmUi.gameObject.SetActive(false);
     }
     private void SetnventorySlots()
     {
@@ -76,5 +87,18 @@ public class StoreUi : MonoBehaviour
     {
         sellUi.SetInventorySlot(_slot);
         sellUi.gameObject.SetActive(true);
+    }
+
+    public void SetGoods()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            goodsPanels[i].SetGoods(i);
+        }
+    }
+    public void OnGoodsSlotClick(Item _item, int _price)
+    {
+        sellConfirmUi.SetItemPrice(_item,_price);
+        sellConfirmUi.gameObject.SetActive(true);
     }
 }

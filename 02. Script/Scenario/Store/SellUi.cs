@@ -1,3 +1,4 @@
+using EnumCollection;
 using ItemCollection;
 using System;
 using System.Collections;
@@ -9,17 +10,23 @@ public class SellUi : MonoBehaviour
 {
     private InventorySlot_Store slot;
     private int amount;
-
+    public int sellPrice;
     [SerializeField] TMP_Text textExplain;
     [SerializeField] TMP_Text textReturn;
     [SerializeField] TMP_Text textConfirm;
+    [SerializeField] TMP_Text textTotalPrice;
     [SerializeField] TMP_InputField inputFieldAmount;
+
     
     public void SetInventorySlot(InventorySlot_Store _slot)
     {
         slot = _slot;
         amount = slot.connectedSlot.ci.amount;
-        inputFieldAmount.text = amount.ToString();
+        float price = 0;
+        Item item = slot.connectedSlot.ci.item;
+        price = StoreScenario.GetGoodsPrice(item);
+        sellPrice = Mathf.RoundToInt(price * 0.7f);
+        ModifyValueToInputField();
     }
     public void OnPlusButtonClick()
     {
@@ -50,70 +57,15 @@ public class SellUi : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
-    public void OnConfirmButtonClick()
+    public async void OnConfirmButtonClick()
     {
         if (amount == 0)
             return;
         gameObject.SetActive(false);
         slot.SetAmountResult(amount);
-        float price = 0;
-        Item item = slot.connectedSlot.ci.item;
-        switch (item.itemType)
-        {
-            case EnumCollection.ItemType.Weapon:
-                switch (item.itemGrade)
-                {
-                    case EnumCollection.ItemGrade.Normal:
-                        break;
-                    case EnumCollection.ItemGrade.Rare:
-                        break;
-                    case EnumCollection.ItemGrade.Unique:
-                        break;
-                    case EnumCollection.ItemGrade.None:
-                        break;
-                }
-                break;
-            case EnumCollection.ItemType.Skill:
-                switch (item.itemGrade)
-                {
-                    case EnumCollection.ItemGrade.Normal:
-                        break;
-                    case EnumCollection.ItemGrade.Rare:
-                        break;
-                    case EnumCollection.ItemGrade.Unique:
-                        break;
-                }
-                break;
-            case EnumCollection.ItemType.Food:
-                var food = (FoodClass)item;
-                switch (food.pokerCombination)
-                {
-                    case EnumCollection.PokerCombination.NoCard:
-                        break;
-                    case EnumCollection.PokerCombination.HighCard:
-                        break;
-                    case EnumCollection.PokerCombination.OnePair:
-                        break;
-                    case EnumCollection.PokerCombination.TwoPair:
-                        break;
-                    case EnumCollection.PokerCombination.ThreeOfAKind:
-                        break;
-                    case EnumCollection.PokerCombination.Straight:
-                        break;
-                    case EnumCollection.PokerCombination.Flush:
-                        break;
-                    case EnumCollection.PokerCombination.FullHouse:
-                        break;
-                    case EnumCollection.PokerCombination.FourOfAKind:
-                        break;
-                    case EnumCollection.PokerCombination.StraightFlush:
-                        break;
-                }
-                break;
-            case EnumCollection.ItemType.Ingredient:
-                price = StoreScenario.ingredientPrice;
-                break;
-        }
+
+        GameManager.gameManager.ChangeGold(sellPrice * amount);
+        await ItemManager.itemManager.SetInventoryAtDb();
     }
     private void ModifyValueToInputField()
     {
@@ -124,5 +76,6 @@ public class SellUi : MonoBehaviour
             amount = slot.connectedSlot.ci.amount;
         }
         inputFieldAmount.text = amount.ToString();
+        textTotalPrice.text = (amount * sellPrice).ToString("F0");
     }
 }

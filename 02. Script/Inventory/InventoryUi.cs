@@ -49,11 +49,6 @@ public class InventoryUi : MonoBehaviour
     private void OnEnable()
     {
         currentSelectButton = selectButtons[0];
-        GameManager.gameManager.uiRaycastBlock.SetActive(true);
-    }
-    private void OnDisable()
-    {
-        GameManager.gameManager.uiRaycastBlock.SetActive(false);
     }
     private void Start()
     {

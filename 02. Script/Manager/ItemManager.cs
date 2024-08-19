@@ -158,7 +158,7 @@ public class ItemManager : MonoBehaviour
         sub = sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
         int gold = Random.Range(10, 13);
         gold  = Mathf.RoundToInt(gold * (1 + GameManager.battleScenario.RewardAscend));
-        GameManager.gameManager.SetGold(gold);
+        GameManager.gameManager.ChangeGold(gold);
         List<CountableItem> addMainSub = new(main);
         addMainSub.AddRange(sub);
         AddCiesToInventory(addMainSub);

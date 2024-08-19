@@ -174,8 +174,16 @@ public class InventorySlot_Store : SlotBase
         }
     }
 
-    internal void SetAmountResult(int amount)
+    public void SetAmountResult(int _amount)
     {
-        throw new NotImplementedException();
+        connectedSlot.ChangeCiAmount(-_amount);
+        if (connectedSlot.ci == null)
+        {
+            panelBack.gameObject.SetActive(false);
+        }
+        else
+        {
+            textAmount.text = connectedSlot.ci.amount.ToString();
+        }
     }
 }

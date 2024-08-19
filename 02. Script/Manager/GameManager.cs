@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     public Dictionary<string, object> userDoc;
     public Dictionary<string, object> progressDoc;
     public int fame;
-    public float gold;
+    public int gold;
     public float fameAscend = 0f;
     public float goldAscend = 0f;
     public Dictionary<string, int> upgradeLevelDict = new();//DocId : Level
@@ -69,12 +69,11 @@ public class GameManager : MonoBehaviour
     public GameObject[] stageBaseCanvases;
     #endregion
     //Menu
-    public GameObject buttonSetting;
-    public GameObject buttonInventory;
+    public Button buttonSetting;
+    public Button buttonInventory;
     public TMP_Text textGold;
     public TMP_Text textFame;
     public PopUpUi popupUi;
-    public GameObject uiRaycastBlock;
 
     //Score
     public int enemyNum;
@@ -96,9 +95,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
             uiCamera.gameObject.SetActive(true);
-            buttonInventory.SetActive(true);
+            buttonInventory.gameObject.SetActive(true);
             popupUi.gameObject.SetActive(false);
-            uiRaycastBlock.SetActive(false);
             DontDestroyOnLoad(GameObject.FindWithTag("CANVASGROUP"));
         }
     }
@@ -178,12 +176,12 @@ public class GameManager : MonoBehaviour
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby" && _arg0.name != "Battle")
         {
-            buttonInventory.SetActive(true);
+            buttonInventory.gameObject.SetActive(true);
             textGold.transform.parent.gameObject.SetActive(true);
         }
         else
         {
-            buttonInventory.SetActive(false);
+            buttonInventory.gameObject.SetActive(false);
             textGold.transform.parent.gameObject.SetActive(false);
         }
         if (_arg0.name == "Lobby")
@@ -198,7 +196,7 @@ public class GameManager : MonoBehaviour
             StageScenarioBase.state = StateInMap.NeedPhase;
         if (StageScenarioBase.stageBaseCanvas)
             StageScenarioBase.stageBaseCanvas.gameObject.SetActive(_arg0.name.Contains("Stage"));
-       buttonSetting.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
+       buttonSetting.gameObject.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
     }
     private void InitGrids()
     {
@@ -235,8 +233,8 @@ public class GameManager : MonoBehaviour
         scene = (string)progressDoc["Scene"];
         if (scene != "Lobby")
         {
-            float gold = GetFloatValue(progressDoc["Gold"]);
-            SetGold(gold);
+            int gold = (int)(long)progressDoc["Gold"];
+            ChangeGold(gold);
             await LoadCharacter();
             if (progressDoc.ContainsKey("Inventory"))
                 ItemManager.itemManager.LoadInventory(progressDoc["Inventory"]);
@@ -274,7 +272,7 @@ public class GameManager : MonoBehaviour
         LoadingScenario.LoadScene(scene);
     }
 
-    public void SetGold(float _gold)
+    public void ChangeGold(int _gold)
     {
         gold += _gold;
         textGold.text = gold.ToString("F0");
@@ -284,7 +282,7 @@ public class GameManager : MonoBehaviour
     {
         //temp
         stage = 0;
-        gold = 0f;
+        gold = 0;
         StageScenarioBase.nodes = new();
         Dictionary<string, object> dict = new()
         {
