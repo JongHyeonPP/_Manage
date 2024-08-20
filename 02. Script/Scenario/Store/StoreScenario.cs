@@ -1,6 +1,8 @@
 using EnumCollection;
+using Firebase.Firestore;
 using ItemCollection;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
@@ -18,7 +20,7 @@ public class StoreScenario : MonoBehaviour
     public static readonly List<int> weaponPrices = new() {10, 30,100,300 };
     public static readonly List<int> foodPrices = new() {25,30,35,40,45,50,55,60,65 };
     public Camera overlayCamera;
-    private void Awake()
+    private async void Awake()
     {
         GameManager.storeScenario = this;
         cookUi.gameObject.SetActive(false);
@@ -26,7 +28,17 @@ public class StoreScenario : MonoBehaviour
         raycastBlock.SetActive(false);
         storeUi.gameObject.SetActive(false);
         storeTooltip.gameObject.SetActive(false);
-        storeUi.SetGoods();
+        Dictionary<string, object> goodsDoc = await DataManager.dataManager.GetField($"Progress/{GameManager.gameManager.Uid}/Store","Data");
+        if (goodsDoc == null)
+        {
+            storeUi.SetNewGoods();
+            SetStoreAtDb();
+        }
+        else
+        {
+            storeUi.SetExistingSlot(goodsDoc);
+        }
+        
     }
     private void Start()
     {
@@ -42,11 +54,16 @@ public class StoreScenario : MonoBehaviour
         // 그런 다음 카메라 스택의 가장 마지막에 다시 추가 (즉, 가장 위로 올림)
         baseCameraData.cameraStack.Add(overlayCamera);
     }
-    public void NextButtonClicked()
+    public async void NextButtonClicked()
     {
+        await ClearStoreAtDb();
         SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
     }
-
+    private async Task ClearStoreAtDb()
+    {
+        DocumentReference reference = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.Uid}/Store/Data");
+        await reference.DeleteAsync();
+    }
     public void OnMediumClicked(StoreCase _storeCase)
     {
         selectLight.SetActive(false);
@@ -150,5 +167,14 @@ public class StoreScenario : MonoBehaviour
                 break;
         }
         return price;
+    }
+    public async void SetStoreAtDb()
+    {
+
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        {
+            for (int i = 0; i < 3; i++)
+                storeUi.goodsPanels[i].SetGoodsAtDb();
+        });
     }
 }

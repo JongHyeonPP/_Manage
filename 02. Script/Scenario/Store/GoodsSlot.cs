@@ -8,11 +8,23 @@ using UnityEngine.UI;
 
 public class GoodsSlot : SlotBase
 {
-    private Item item;
-    private int price;
+    public Item item;
+    public int price;
+    public bool isSoldOut;
     [SerializeField] Image imageGrade;
     [SerializeField] Image imageItem;
+    [SerializeField] GameObject imageSoldOut;
     [SerializeField] TMP_Text textPrice;
+    private ItemTooltip tooltip;
+    private RectTransform rectTransform;
+
+
+    private void Start()
+    {
+        imageSoldOut.SetActive(false);
+        tooltip = GameManager.storeScenario.storeTooltip;
+        rectTransform = GetComponent<RectTransform>();
+    }
     public void SetItem(Item _item, int _price)
     {
         item = _item;
@@ -63,14 +75,37 @@ public class GoodsSlot : SlotBase
     }
     public void OnPointerEnter()
     {
+        tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+        tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+        tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
+        tooltip.transform.position = transform.position;
+        tooltip.transform.localPosition += new Vector3(rectTransform.sizeDelta.x / 2f + 3f, 0f);
+        tooltip.SetTooltipInfo(item);
+        tooltip.gameObject.SetActive(true);
         HighlightOn();
+
     }
     public void OnPointerExit()
     {
+        tooltip.gameObject.SetActive(false);
         HighlightOff();
     }
-    public void OnButtonClick()
+    public void OnPointerClick()
     {
-        GameManager.storeScenario.storeUi.OnGoodsSlotClick(item, price);
+        if (GameManager.gameManager.gold < price)
+        {
+            string popUpMessage = GameManager.language == Language.Ko ? "골드가 부족합니다." : "Not enough gold.";
+            GameManager.gameManager.SetPopUp(popUpMessage);
+        }
+        else
+        {
+            GameManager.storeScenario.storeUi.OnGoodsSlotClick(this);
+            tooltip.gameObject.SetActive(false);
+        }
+    }
+    public void SoldOut()
+    {
+        isSoldOut = true;
+        imageSoldOut.SetActive(true);
     }
 }

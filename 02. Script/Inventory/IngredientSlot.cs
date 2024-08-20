@@ -2,6 +2,7 @@ using ItemCollection;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,5 +44,12 @@ public class IngredientSlot : SlotBase
             textAmount.text = ci.amount.ToString();
         }
     }
-
+    public void OnPointerEnter()
+    {
+        HighlightOn();
+    }
+    public void OnPointerExit()
+    {
+        HighlightOff();
+    }
 }

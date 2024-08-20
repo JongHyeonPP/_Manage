@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD310\uB9E4\uD558\uAE30"
+  m_text: "\uAD6C\uB9E4\uD558\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
   m_sharedMaterial: {fileID: -6556917279671221155, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
@@ -792,7 +792,7 @@ GameObject:
   - component: {fileID: 3888000839063603902}
   - component: {fileID: 2982884982832650163}
   m_Layer: 5
-  m_Name: SellConfirmUi
+  m_Name: BuyConfirmUi
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -867,14 +867,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3581710100542565007}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8133ba5c8b53e649ad26073b093cea8, type: 3}
+  m_Script: {fileID: 11500000, guid: e26ae0b754bd6b3498388d8120605027, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   textExplain: {fileID: 2153658110866719437}
   textName: {fileID: 923854385011701253}
   textPrice: {fileID: 4504416733701604421}
-  textConfirm: {fileID: 5428529891859756639}
-  textReturn: {fileID: 3934150097841783107}
+  textConfirm: {fileID: 3934150097841783107}
+  textReturn: {fileID: 5428529891859756639}
   imageGrade: {fileID: 7726575615032533531}
   imageItem: {fileID: 4884688508849801345}
 --- !u!1 &3687516375823002354
@@ -1441,9 +1441,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 3581710100542565007}
-        m_TargetAssemblyTypeName: SellUi, Assembly-CSharp
-        m_MethodName: 
+      - m_Target: {fileID: 2982884982832650163}
+        m_TargetAssemblyTypeName: SellConfirmUi, Assembly-CSharp
+        m_MethodName: OnConfirmButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

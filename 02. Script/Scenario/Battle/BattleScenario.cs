@@ -25,6 +25,8 @@ public class BattleScenario : MonoBehaviour
     public LootUi lootUi;
     public GameObject buttonNext;
     public CanvasGameOver canvasGameOver;
+    [SerializeField] GameObject buttonStartBattle;
+    [SerializeField] BattleTimer battleTimer;
     #endregion
     private Dictionary<TMP_Text, Dictionary<Language, string>> texts;
     private BattleScenarioTest battleScenarioTest;
@@ -47,6 +49,8 @@ public class BattleScenario : MonoBehaviour
     public TMP_Text damagePrefab;
 
     public static float battleProgress = 0f;
+    public static readonly float battleTime = 30f;
+    public static float damageRatio = 1f;
     private void Awake()
     {
         if (!GameManager.gameManager)
@@ -97,7 +101,8 @@ public class BattleScenario : MonoBehaviour
     {
         GameManager.gameManager.canvasGrid.gameObject.SetActive(true);
         GameManager.gameManager.canvasGrid.GetComponent<Canvas>().worldCamera = Camera.main;
-
+        buttonStartBattle.gameObject.SetActive(true);
+        battleTimer.gameObject.SetActive(false);
         canvasGameOver.gameObject.SetActive(false);
         canvasBattle.gameObject.SetActive(true);
         canvasClear.gameObject.SetActive(false);
@@ -466,10 +471,12 @@ public class BattleScenario : MonoBehaviour
             if (x)
                 x.StartBattle();
         }
-        canvasBattle.GetChild(0).gameObject.SetActive(false);
+        buttonStartBattle.SetActive(false);
         StartCoroutine(ActiveRegualrEffect());
         battlePatern = BattlePatern.Battle;
         StartCoroutine(MoveGaugeCor());
+        battleTimer.gameObject.SetActive(true);
+        battleTimer.TimerStart();
     }
     private static List<EnemyPiece> MakeEnemies()
     {

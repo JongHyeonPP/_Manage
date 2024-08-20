@@ -518,8 +518,8 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 347936190892013058}
-          m_TargetAssemblyTypeName: SlotBase, Assembly-CSharp
-          m_MethodName: HightlightOn
+          m_TargetAssemblyTypeName: IngredientSlot, Assembly-CSharp
+          m_MethodName: OnPointerEnter
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -534,8 +534,8 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 347936190892013058}
-          m_TargetAssemblyTypeName: SlotBase, Assembly-CSharp
-          m_MethodName: HightlightOff
+          m_TargetAssemblyTypeName: IngredientSlot, Assembly-CSharp
+          m_MethodName: OnPointerExit
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}

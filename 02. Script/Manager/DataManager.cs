@@ -66,7 +66,10 @@ public class DataManager : MonoBehaviour
         DocumentReference documentRef = db.Collection(_collectionRef).Document(_documentId);
         DocumentSnapshot documentSnapshot = await documentRef.GetSnapshotAsync();
         if (documentSnapshot != null)
-            return documentSnapshot.ToDictionary();
+        {
+            Dictionary<string, object> returnDict = documentSnapshot.ToDictionary();
+            return returnDict;
+        }
         else
         {
             Debug.Log("DocumentSnapshot Null");

@@ -132,8 +132,8 @@ namespace EnumCollection
     {
         Enemy, Destination, Boss, Food, Total
     }
-    public enum PetPattern
+    public enum GoodsType
     {
-        Following, Attack, Return
+        Weapon, Skill, Premium
     }
 }

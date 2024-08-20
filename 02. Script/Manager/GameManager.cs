@@ -54,6 +54,7 @@ public class GameManager : MonoBehaviour
     #region CanvasGrid
     public Transform canvasGrid;
     public GameObject prefabGridObject;
+    public GameObject prefabMoveGaugeBar;
     public GameObject prefabHpBarInScene;
     public GameObject prefabFire0;
     public GameObject gridPre;
@@ -88,14 +89,13 @@ public class GameManager : MonoBehaviour
         {
             gameManager = this;
             //Until Steam API
-            uid = "Xp1RrEgUPPIK7kwziyOA";
+            uid = "KF5U1XMs5cy7n13dgKjF";
             SceneManager.sceneLoaded += OnSceneLoaded;
             DontDestroyOnLoad(gameObject);
             DontDestroyOnLoad(uiCamera);
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
             uiCamera.gameObject.SetActive(true);
-            buttonInventory.gameObject.SetActive(true);
             popupUi.gameObject.SetActive(false);
             DontDestroyOnLoad(GameObject.FindWithTag("CANVASGROUP"));
         }
@@ -176,12 +176,12 @@ public class GameManager : MonoBehaviour
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby" && _arg0.name != "Battle")
         {
-            buttonInventory.gameObject.SetActive(true);
+            buttonInventory.transform.parent.gameObject.SetActive(true);
             textGold.transform.parent.gameObject.SetActive(true);
         }
         else
         {
-            buttonInventory.gameObject.SetActive(false);
+            buttonInventory.transform.parent.gameObject.SetActive(false);
             textGold.transform.parent.gameObject.SetActive(false);
         }
         if (_arg0.name == "Lobby")
@@ -257,6 +257,7 @@ public class GameManager : MonoBehaviour
                 case "Battle":
                     await BattleScenario.LoadEnemy();
                     break;
+
             }
             StageBaseCanvas canvas = StageScenarioBase.MakeCanvas(StageScenarioBase.stageNum);
             if (scene == "Stage")
@@ -674,4 +675,36 @@ public class GameManager : MonoBehaviour
             settingUi.gameObject.SetActive(true);
         }
     }
+    public static IEnumerator FadeUi(MaskableGraphic _ui, float _duration, bool _isFadeIn)
+    {
+        _ui.gameObject.SetActive(true);
+        Color originalColor = _ui.color;
+
+        float startAlpha = _isFadeIn ? 0f : 1f;
+        float endAlpha = _isFadeIn ? 1f : 0f;
+
+        originalColor.a = startAlpha;
+        _ui.color = originalColor;
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < _duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / _duration);
+            _ui.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            yield return null;
+        }
+
+        // 확실히 alpha가 설정된 값으로 되도록 보장
+        originalColor.a = endAlpha;
+        _ui.color = originalColor;
+
+        // 페이드 아웃이 끝났을 때 UI를 비활성화
+        if (!_isFadeIn)
+        {
+            _ui.gameObject.SetActive(false);
+        }
+    }
+
 }

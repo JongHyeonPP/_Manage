@@ -18,14 +18,10 @@ public class ItemTooltip : MonoBehaviour
     public StatusSlot_I speedSlot;
     public Transform parentStatus; 
     public RectTransform rectTransform;
-    GridLayoutGroup parentStatus_Glg;
+    [SerializeField]GridLayoutGroup parentStatus_Glg;
     readonly float baseHeight = 170f;
     readonly float verticalSpace = 20f;
     [SerializeField] bool isInventory;
-    private void Awake()
-    {
-        parentStatus_Glg = parentStatus.GetComponent<GridLayoutGroup>();
-    }
     public void SetTooltipInfo(Item _item)
     {
         if (_item == null)
@@ -142,14 +138,6 @@ public class ItemTooltip : MonoBehaviour
 
                     break;
             }
-        }
-        if (_item.itemType == ItemType.Skill)
-        {
-
-        }
-        else
-        {
-            
         }
         textGrade.text = gradeStr;
         textExplain.text = _item.explain[GameManager.language];

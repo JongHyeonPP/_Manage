@@ -62,7 +62,7 @@ public class SellUi : MonoBehaviour
         if (amount == 0)
             return;
         gameObject.SetActive(false);
-        slot.SetAmountResult(amount);
+        slot.SetAmountResult(-amount);
 
         GameManager.gameManager.ChangeGold(sellPrice * amount);
         await ItemManager.itemManager.SetInventoryAtDb();
@@ -77,5 +77,13 @@ public class SellUi : MonoBehaviour
         }
         inputFieldAmount.text = amount.ToString();
         textTotalPrice.text = (amount * sellPrice).ToString("F0");
+    }
+    private void OnEnable()
+    {
+        GameManager.storeScenario?.storeUi.raycastBlock.gameObject.SetActive(true);
+    }
+    private void OnDisable()
+    {
+        GameManager.storeScenario.storeUi.raycastBlock.gameObject.SetActive(false);
     }
 }

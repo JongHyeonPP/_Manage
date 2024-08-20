@@ -3,6 +3,7 @@ using ItemCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,22 +12,23 @@ public class StoreUi : MonoBehaviour
     private List<InventorySlot_Store> inventorySlots;
     [SerializeField] Transform parentSlot;
     public Image imageSell;
+    public Image raycastBlock;
     public List<SelectButton> selectButtons = new();
     private SelectButton currentSelectButton;
     public InventorySlot_Store draggingSlot;
     public bool sellReady;
     [SerializeField] SellUi sellUi;
-    [SerializeField] SellConfirmUi sellConfirmUi;
-    [SerializeField] List<GoodsPanel> goodsPanels;
+    [SerializeField] BuyConfirmUi buyConfirmUi;
+    public List<GoodsPanel> goodsPanels;
     private void Awake()
     {
         imageSell.gameObject.SetActive(false);
         sellUi.gameObject.SetActive(false);
-        sellConfirmUi.gameObject.SetActive(false);
+        buyConfirmUi.gameObject.SetActive(false);
     }
     private void OnEnable()
     {
-        SetnventorySlots();
+        SetInventorySlots();
         SelectButtonSelect(selectButtons[0]);
         GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = false;
     }
@@ -34,9 +36,9 @@ public class StoreUi : MonoBehaviour
     {
         GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = true;
         sellUi.gameObject.SetActive(false);
-        sellConfirmUi.gameObject.SetActive(false);
+        buyConfirmUi.gameObject.SetActive(false);
     }
-    private void SetnventorySlots()
+    private void SetInventorySlots()
     {
         inventorySlots = new();
         List<InventorySlot> originSlots = ItemManager.itemManager.inventoryUi.inventorySlots;
@@ -89,16 +91,53 @@ public class StoreUi : MonoBehaviour
         sellUi.gameObject.SetActive(true);
     }
 
-    public void SetGoods()
+    public void SetNewGoods()
     {
         for (int i = 0; i < 3; i++)
         {
-            goodsPanels[i].SetGoods(i);
+            goodsPanels[i].SetNewGoods();
         }
     }
-    public void OnGoodsSlotClick(Item _item, int _price)
+    public void OnGoodsSlotClick(GoodsSlot _goodsSlot)
     {
-        sellConfirmUi.SetItemPrice(_item,_price);
-        sellConfirmUi.gameObject.SetActive(true);
+        buyConfirmUi.SetItemPrice(_goodsSlot);
+        buyConfirmUi.gameObject.SetActive(true);
+    }
+
+    public InventorySlot_Store GetExistSlot(Item _item)
+    {
+        return inventorySlots.Where(data => data.connectedSlot.ci.item.itemId == _item.itemId).FirstOrDefault();
+    }
+    public void ConnectEmptySlot(Item _item)
+    {
+        InventorySlot_Store emptySlot = inventorySlots.Where(data => data.connectedSlot.ci == null).FirstOrDefault();
+        if (emptySlot != null)
+        {
+            InventorySlot connectedSlot = ItemManager.itemManager.inventoryUi.inventorySlots[emptySlot.connectedSlot.slotIndex];
+            connectedSlot.SetSlot(new(_item));
+            emptySlot.SetSlot(connectedSlot);
+        }
+    }
+
+    internal void SetExistingSlot(Dictionary<string, object> goodsDoc)
+    {
+        foreach (KeyValuePair<string, object> kvp in goodsDoc)
+        {
+            GoodsPanel targetGoodsPanel = null;
+            switch (kvp.Key)
+            {
+                case "Weapon":
+                    targetGoodsPanel = goodsPanels[0];
+                    break;
+                case "Skill":
+                    targetGoodsPanel = goodsPanels[1];
+                    break;
+                case "Premium":
+                    targetGoodsPanel = goodsPanels[2];
+                    break;
+            }
+            List<object> goodsDataList = kvp.Value as List<object>;
+            targetGoodsPanel.SetExistingGoods(goodsDataList);
+        }
     }
 }

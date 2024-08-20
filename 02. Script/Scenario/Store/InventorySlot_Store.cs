@@ -127,10 +127,10 @@ public class InventorySlot_Store : SlotBase
                 switch (column)
                 {
                     case 4:
-                        xOffset -= 30f;
+                        xOffset -= 0.5f;
                         break;
                     case 5:
-                        xOffset -= 60f;
+                        xOffset -= 1f;
                         break;
                 }
                 switch (row)
@@ -143,23 +143,12 @@ public class InventorySlot_Store : SlotBase
                         break;
                 }
                 ItemTooltip tooltip = GameManager.storeScenario.storeTooltip;
-                tooltip.gameObject.SetActive(true);
 
-                // 마우스 위치를 로컬 좌표로 변환
-                RectTransform tooltipRectTransform = tooltip.GetComponent<RectTransform>();
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    storeUi.GetComponent<RectTransform>(),
-                    Input.mousePosition,
-                    GameManager.storeScenario.overlayCamera,
-                    out var localPoint
-                );
-
-                // 로컬 좌표 기반으로 Tooltip 위치 설정
                 tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
                 tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
                 tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
-                tooltip.rectTransform.localPosition = localPoint + new Vector2(xOffset, yOffset);
-
+                tooltip.transform.position = transform.position + new Vector3(xOffset, yOffset);
+                tooltip.gameObject.SetActive(true);
                 tooltip.SetTooltipInfo(connectedSlot.ci.item);
             }
         }
@@ -174,9 +163,9 @@ public class InventorySlot_Store : SlotBase
         }
     }
 
-    public void SetAmountResult(int _amount)
+    public void SetAmountResult(int _sellAmount)
     {
-        connectedSlot.ChangeCiAmount(-_amount);
+        connectedSlot.ChangeCiAmount(_sellAmount);
         if (connectedSlot.ci == null)
         {
             panelBack.gameObject.SetActive(false);
