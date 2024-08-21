@@ -65,7 +65,6 @@ abstract public class BaseInBattle : MonoBehaviour
     public Transform rootTargetTransform;
     public Transform skillTargetTransform;
     public GameObject fireObj;
-    public abstract void SetAnimParam();
     protected void InitBase(GridObject _grid)
     {
         grid = _grid;
@@ -110,7 +109,13 @@ abstract public class BaseInBattle : MonoBehaviour
         else
         {
             moveCoroutine = StartCoroutine(MoveCharacterCoroutine(_grid.transform, distance / 8));
+            if (BattleScenario.battlePatern == BattlePatern.Battle)
+            {
+                CharacterInBattle asCharacter = (CharacterInBattle)this;
+                asCharacter.StartFIllGauge();
+            }
         }
+
     }
     private IEnumerator MoveCharacterCoroutine(Transform _targetTransform, float _speed)
     {
@@ -273,6 +278,7 @@ abstract public class BaseInBattle : MonoBehaviour
                 tempEffectsDict[_effectType].Add(new TempEffect(_value, _duration, _valueBase, _caster, this, _effectType));
                 break;
             case EffectType.Damage:
+                _value *= BattleScenario.damageRatio;
                 _value *= BattleScenario.CalcResist(resistInBattle);
                 _value *= 1 + GetTempValue_Sum(EffectType.DefDescend) - GetTempValue_Sum(EffectType.DefAscend);
                 _value = Mathf.Max(0, _value);
@@ -314,7 +320,7 @@ abstract public class BaseInBattle : MonoBehaviour
                 speedInBattle *= Mathf.Max(1 - _value, 0.1f);
                 break;
             case EffectType.RewardAscend:
-                GameManager.battleScenario.RewardAscend += _value;
+                GameManager.battleScenario.rewardAscend += _value;
                 break;
         }
         switch (_effectType)
@@ -513,7 +519,6 @@ abstract public class BaseInBattle : MonoBehaviour
     {
         FindNewTargetAlly();
         FindNewTargetOpponent();
-        SetAnimParam();
         SetSkillsAndStart();
     }
     private IEnumerator FadeOutCoroutine()

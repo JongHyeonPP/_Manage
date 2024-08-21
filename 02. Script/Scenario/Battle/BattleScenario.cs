@@ -33,11 +33,11 @@ public class BattleScenario : MonoBehaviour
     public RectTransform rectCharacterGroup;
     public static List<EffectType> buffOrDebuff;
     public static BattlePatern battlePatern;
-    public float moveGauge;
     public Transform panelHpUi;
     public static List<GridObject> CharacterGrids { get; private set; } = new();
     public static List<GridObject> EnemyGrids { get; private set; } = new();
-    public float RewardAscend = 0f;
+    public float rewardAscend;
+    public float fameAscend;
     public static readonly float gridCorrection = 20f;
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
@@ -50,6 +50,7 @@ public class BattleScenario : MonoBehaviour
 
     public static float battleProgress = 0f;
     public static readonly float battleTime = 30f;
+
     public static float damageRatio = 1f;
     private void Awake()
     {
@@ -450,16 +451,6 @@ public class BattleScenario : MonoBehaviour
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
     }
-    private IEnumerator MoveGaugeCor()
-    {
-        moveGauge = 10f;
-        while (true)
-        {
-            if (moveGauge < 10f)
-                moveGauge += 1f;
-            yield return new WaitForSeconds(1f);
-        }
-    }
     public void StartBattle()
     {
         foreach (var x in enemies)
@@ -469,12 +460,14 @@ public class BattleScenario : MonoBehaviour
         foreach (var x in characters)
         {
             if (x)
+            {
                 x.StartBattle();
+                ((CharacterInBattle)x).StartFIllGauge();
+            }
         }
         buttonStartBattle.SetActive(false);
         StartCoroutine(ActiveRegualrEffect());
         battlePatern = BattlePatern.Battle;
-        StartCoroutine(MoveGaugeCor());
         battleTimer.gameObject.SetActive(true);
         battleTimer.TimerStart();
     }

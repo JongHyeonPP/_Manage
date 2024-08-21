@@ -114,7 +114,7 @@ namespace BattleCollection
                     }
                     break;
                 case EffectType.RewardAscend:
-                    GameManager.battleScenario.RewardAscend += value;
+                    GameManager.battleScenario.rewardAscend += value;
                     break;
             }
         }

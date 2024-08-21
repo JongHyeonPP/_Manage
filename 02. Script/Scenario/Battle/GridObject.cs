@@ -41,7 +41,9 @@ public class GridObject : MonoBehaviour
         if (!owner) return;
         if (BattleScenario.battlePatern == BattlePatern.Battle)
         {
-            if (GameManager.battleScenario.moveGauge < 10f) return;
+            CharacterInBattle ownerAsCharacter = (CharacterInBattle)owner;
+            if (ownerAsCharacter.GetMoveGauege() < 1f)
+                return;
         }
         GameManager.battleScenario.isDragging = true;
         GameManager.IsPaused = true;
@@ -53,6 +55,7 @@ public class GridObject : MonoBehaviour
             return;
         if (!owner) return;
         if (!GameManager.battleScenario.isDragging) return;
+
         Vector2 mousePosition = Input.mousePosition;
         RectTransformUtility.ScreenPointToWorldPointInRectangle(
     GetComponent<RectTransform>(),
@@ -83,27 +86,30 @@ public class GridObject : MonoBehaviour
 
     public void OnGridPointerEnter()
     {
-        if (owner != null)
-        {
-            owner.showBuffSlots.parentBuffSlot.gameObject.SetActive(true);
-        }
-        if (isEnemy)
-            return;
-        if (GameManager.battleScenario.isDragging)
+        if (GameManager.battleScenario.isDragging && !isEnemy)
         {
             GameManager.battleScenario.gridOnPointer = this;
             imageRect.enabled = true;
         }
-        else
+        switch (BattleScenario.battlePatern)
         {
-            if (owner && BattleScenario.battlePatern == BattlePatern.OnReady)
-            {
-                StatusExplain_Battle statusExplain = GameManager.battleScenario.statusExplain;
-                statusExplain.gameObject.SetActive(true);
-                statusExplain.transform.SetParent(transform);
-                statusExplain.transform.localPosition = new Vector3(0f, 145f);
-                statusExplain.SetExplain(owner);
-            }
+            case BattlePatern.Battle:
+                if (owner != null)
+                {
+                    owner.showBuffSlots.parentBuffSlot.gameObject.SetActive(true);
+                }
+
+                break;
+            case BattlePatern.OnReady:
+                if (owner&&!GameManager.battleScenario.isDragging)
+                {
+                    StatusExplain_Battle statusExplain = GameManager.battleScenario.statusExplain;
+                    statusExplain.gameObject.SetActive(true);
+                    statusExplain.transform.SetParent(transform);
+                    statusExplain.transform.localPosition = new Vector3(0f, 145f);
+                    statusExplain.SetExplain(owner);
+                }
+                break;
         }
     }
 
@@ -130,11 +136,6 @@ public class GridObject : MonoBehaviour
         else
         {
             GameManager.battleScenario.MoveCharacterByGrid(this, GameManager.battleScenario.gridOnPointer);
-
-            if (BattleScenario.battlePatern != BattlePatern.OnReady)
-            {
-                GameManager.battleScenario.moveGauge = 0f;
-            }
         }
 
         GameManager.battleScenario.gridOnPointer = null;

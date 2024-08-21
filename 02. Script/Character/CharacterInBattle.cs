@@ -7,12 +7,13 @@ using System.Collections;
 using LobbyCollection;
 using DefaultCollection;
 using ItemCollection;
+using System;
 
 public class CharacterInBattle : BaseInBattle
 {
     public static readonly Color TARGET_COLOR = new(0f, 0f, 1f, 0.5f);
     public bool isAct = false;
-
+    private MoveGaugeBar moveGaugeBar;
     public void SynchronizeCharacterData(CharacterData _data)
     {
         skillInBattles.Clear();
@@ -61,6 +62,8 @@ public class CharacterInBattle : BaseInBattle
             isDead = false;
         }
         name = _data.jobClass.name;
+
+        moveGaugeBar.gameObject.SetActive(false);
     }
     public void InitCharacter(CharacterData _data, GridObject _grid)
     {
@@ -77,6 +80,9 @@ public class CharacterInBattle : BaseInBattle
         rootTargetTransform.localScale = new Vector3(0.6f, 0.6f, 0);
         rootTargetTransform.localRotation = Quaternion.Euler(new Vector3(0f, 180f, 0f));
         skillTargetTransform.localRotation = Quaternion.Euler(new Vector3(0f, 180f, 0f));
+        moveGaugeBar = Instantiate(GameManager.gameManager.prefabMoveGaugeBar, transform).GetComponent<MoveGaugeBar>();
+        moveGaugeBar.transform.localPosition = new Vector3(3.6f, 93.6f);
+        moveGaugeBar.transform.localScale = Vector3.one *0.4f;
     }
     [ContextMenu("DeadTest")]
     public override void OnDead()
@@ -90,11 +96,15 @@ public class CharacterInBattle : BaseInBattle
         {
             GameManager.battleScenario.GameOver();//게임 오버
         }
-
+    }
+    public void StartFIllGauge()
+    {
+        moveGaugeBar.gameObject.SetActive(true);
+        moveGaugeBar.StartFillGauge();
     }
 
-    public override void SetAnimParam()
+    public float GetMoveGauege()
     {
-
+        return moveGaugeBar.moveGuage;
     }
 }

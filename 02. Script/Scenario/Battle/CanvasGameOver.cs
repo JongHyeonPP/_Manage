@@ -16,19 +16,19 @@ public class CanvasGameOver : MonoBehaviour
     [SerializeField]ScoreSlot scoreSlotTotal;
     [SerializeField]Image imageButton;
     [SerializeField]TMP_Text textButton;
-    public void SetScore(int _enemyNum, int _destinationNum, int _bossNum, int _foodNum)
+    public async void SetScore(int _enemyNum, int _destinationNum, int _bossNum, int _foodNum)
     {
         imageButton.gameObject.SetActive(false);
         int enemyScore = GetScore(ScoreType.Enemy, _enemyNum);
         int destinationScore = GetScore(ScoreType.Destination, _destinationNum);
         int bossScore = GetScore(ScoreType.Boss, _bossNum);
         int foodScore = GetScore(ScoreType.Food, _foodNum);
-        int totalScore = enemyScore + destinationScore + bossScore + foodScore;
+        int fameScore = enemyScore + destinationScore + bossScore + foodScore;
         scoreSlotEnemy.SetScore(_enemyNum, enemyScore);
         scoreSlotDestination.SetScore(_destinationNum, destinationScore);
         scoreSlotBoss.SetScore(_bossNum, bossScore);
         scoreSlotFood.SetScore(_foodNum, foodScore);
-        scoreSlotTotal.SetTotal(totalScore);
+        await scoreSlotTotal.SetFame(fameScore);
         StartCoroutine(AllMoveCoroutine());
 
     }

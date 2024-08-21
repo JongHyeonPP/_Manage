@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 224251052912629854}
   - component: {fileID: 222042959962332044}
   - component: {fileID: 114609850018064116}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: Bar_2Gray
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ GameObject:
   - component: {fileID: 224894220380913408}
   - component: {fileID: 222676883037393652}
   - component: {fileID: 114682910462855290}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: Frame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -161,7 +161,7 @@ GameObject:
   - component: {fileID: 224856517148286070}
   - component: {fileID: 222647340823383944}
   - component: {fileID: 114835168964058086}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: HpBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -235,7 +235,8 @@ GameObject:
   m_Component:
   - component: {fileID: 224613882504462314}
   - component: {fileID: 224790503957724318}
-  m_Layer: 5
+  - component: {fileID: 424734136454918098}
+  m_Layer: 3
   m_Name: HpBarInScene
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -279,6 +280,29 @@ MonoBehaviour:
   hpBar: {fileID: 114835168964058086}
   armorBar: {fileID: 5797441682148780694}
   hpBar_Back: {fileID: 2341849146867143981}
+--- !u!223 &424734136454918098
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1515528649962624}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 10
+  m_TargetDisplay: 0
 --- !u!1 &587791325429686589
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,7 +314,7 @@ GameObject:
   - component: {fileID: 2475677773159358614}
   - component: {fileID: 3284476391694963302}
   - component: {fileID: 2341849146867143981}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: HpBar_Back
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -365,7 +389,7 @@ GameObject:
   - component: {fileID: 6969382643859990903}
   - component: {fileID: 3574558539129642069}
   - component: {fileID: 5797441682148780694}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: ArmorBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -438,7 +462,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 884340558411266374}
-  m_Layer: 5
+  m_Layer: 3
   m_Name: Bar
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -130,7 +130,7 @@ namespace EnumCollection
     }
     public enum ScoreType
     {
-        Enemy, Destination, Boss, Food, Total
+        Enemy, Destination, Boss, Food, Fame
     }
     public enum GoodsType
     {

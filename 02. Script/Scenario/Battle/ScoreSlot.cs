@@ -1,5 +1,6 @@
 using EnumCollection;
 using System.Collections;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -9,14 +10,14 @@ public class ScoreSlot : MonoBehaviour
     [SerializeField] TMP_Text textType;
     [SerializeField] TMP_Text textScore;
 
-    int score;
+    int fame;
     int num;
 
     public void SetScore(int _num, int _score)
     {
         textType.gameObject.SetActive(false);
         num = _num;
-        score = _score;
+        fame = _score;
 
         string typeStr = string.Empty;
         switch (scoreType)
@@ -36,7 +37,7 @@ public class ScoreSlot : MonoBehaviour
         }
         typeStr += $" ({num})";
         textType.text = typeStr;
-        textScore.text = score.ToString();
+        textScore.text = fame.ToString();
     }
 
     public void ShowScore()
@@ -46,12 +47,16 @@ public class ScoreSlot : MonoBehaviour
         StartCoroutine(AnimateScore(textScore, false)); // 알파값만 애니메이션
     }
 
-    public void SetTotal(int _score)
+    public async Task SetFame(int _fame)
     {
         textType.gameObject.SetActive(false);
-        score = _score;
-        textType.text = (GameManager.language == Language.Ko) ? "점수" : "Score";
-        textScore.text = score.ToString();
+        fame = _fame;
+        int fameAscend = GameManager.battleScenario.fameAscend
+        textType.text = (GameManager.language == Language.Ko) ? "획득한 명성" : "Gain Reputation";
+        textScore.text = fame.ToString();
+        GameManager.gameManager.fame += fame;
+        await DataManager.dataManager.SetDocumentData("Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.Uid);
+        GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
     }
     public IEnumerator ShowTotal()
     {
@@ -123,7 +128,7 @@ public class ScoreSlot : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            currentScore = Mathf.Lerp(0, score, t);
+            currentScore = Mathf.Lerp(0, fame, t);
 
             // 텍스트 업데이트
             textScore.text = Mathf.FloorToInt(currentScore).ToString();
@@ -132,7 +137,7 @@ public class ScoreSlot : MonoBehaviour
         }
 
         // 최종 값 설정
-        textScore.text = score.ToString();
+        textScore.text = fame.ToString();
     }
 
 }

@@ -5,11 +5,12 @@ using DefaultCollection;
 using ItemCollection;
 using UnityEngine.UI;
 using System.Linq;
+using TMPro;
 public class LootUi : MonoBehaviour
 {
     public Transform panelMain;
     public Transform panelSub;
-
+    [SerializeField] TMP_Text textGold;
     private List<MainLootSlot> mainLootSlots;
     private List<SubLootSlot> subLootSlots;
     public void InitLootUi()
@@ -27,10 +28,8 @@ public class LootUi : MonoBehaviour
             subLootSlots.Add(loot);
         }
     }
-    public void SetLootAtUi(List<CountableItem> _main, List<CountableItem> _sub, int _gold)
+    public void SetLootAtUi(List<CountableItem> _main, List<CountableItem> _sub, int _gold, int _goldAscend)
     {
-
-
         //Main
         for (int i = 0; i < mainLootSlots.Count; i++)
         {
@@ -60,5 +59,8 @@ public class LootUi : MonoBehaviour
                 loot.gameObject.SetActive(false);
             }
         }
+        textGold.text = _gold.ToString();
+        if(_goldAscend>0)
+        textGold.text += $" <color=#EFCE0D>(+{_goldAscend})";
     }
 }

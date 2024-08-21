@@ -46,8 +46,4 @@ public class EnemyInBattle : BaseInBattle
         if (!gameOverFlag)
             StartCoroutine(GameManager.battleScenario.StageClearCoroutine());
     }
-
-    public override void SetAnimParam()
-    {
-    }
 }
