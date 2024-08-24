@@ -19,7 +19,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static UnityEngine.EventSystems.EventTrigger;
 
-public class GameManager : MonoBehaviour
+public class 
+    GameManager : MonoBehaviour
 {
     public static GameManager gameManager;
     public Camera uiCamera;
@@ -47,7 +48,7 @@ public class GameManager : MonoBehaviour
     public static BattleScenario battleScenario;
     public static LobbyScenario lobbyScenario;
     public static StartScenario startScenario;
-    public static StageScenarioBase mapScenario;
+    public static StageScenarioBase stageScenario;
     public static StoreScenario storeScenario;
 
     public GameObject CharacterTemplate;
@@ -82,7 +83,7 @@ public class GameManager : MonoBehaviour
     public int bossNum;
     public int foodNum;
     public GameObject showDamagePrefab;
-
+    public CanvasGameOver canvasGameOver;
     void Awake()//매니저 세팅은 Awake
     {
         if (!gameManager)
@@ -98,6 +99,7 @@ public class GameManager : MonoBehaviour
             uiCamera.gameObject.SetActive(true);
             popupUi.gameObject.SetActive(false);
             DontDestroyOnLoad(GameObject.FindWithTag("CANVASGROUP"));
+            canvasGameOver.gameObject.SetActive(false);
         }
     }
     public async Task LoadProgressDoc()
@@ -153,7 +155,7 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene _arg0, LoadSceneMode _arg1)
     {
         Dictionary<string, object> docDict = new();
-        if (_arg0.name != "Awake" && _arg0.name != "Start")
+        if (_arg0.name != "Awake")
         {
             var mainCameraData = Camera.main.GetComponent<UniversalAdditionalCameraData>();
             var uiCameraData = uiCamera.GetComponent<UniversalAdditionalCameraData>();
@@ -194,19 +196,19 @@ public class GameManager : MonoBehaviour
         }
         if (_arg0.name == "Battle" || _arg0.name == "Store")
             StageScenarioBase.state = StateInMap.NeedPhase;
-        if (StageScenarioBase.stageBaseCanvas)
-            StageScenarioBase.stageBaseCanvas.gameObject.SetActive(_arg0.name.Contains("Stage"));
-       buttonSetting.gameObject.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
+        if (StageScenarioBase.stageCanvas)
+            StageScenarioBase.stageCanvas.gameObject.SetActive(_arg0.name.Contains("Stage"));
+       buttonSetting.transform.parent.gameObject.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
     }
     private void InitGrids()
     {
         canvasGrid.gameObject.SetActive(false);
-        parentCharacter = canvasGrid.GetChild(1).GetComponent<RectTransform>();
+        parentCharacter = canvasGrid.GetChild(0).GetComponent<RectTransform>();
 
         GridLayoutGroup groupFrinedly = parentCharacter.GetComponent<GridLayoutGroup>();
         parentCharacter.GetComponent<RectTransform>().sizeDelta = new Vector2(groupFrinedly.cellSize.x * 3 + BattleScenario.gridCorrection, groupFrinedly.cellSize.y * 3 + BattleScenario.gridCorrection);
 
-        Transform panelEnemy = canvasGrid.GetChild(2);
+        Transform panelEnemy = canvasGrid.GetChild(1);
 
         for (int i = 0; i < 9; i++)
         {
@@ -257,17 +259,10 @@ public class GameManager : MonoBehaviour
                 case "Battle":
                     await BattleScenario.LoadEnemy();
                     break;
+                case "Stage":
+                    scene += StageScenarioBase.stageNum;
+                    break;
 
-            }
-            StageBaseCanvas canvas = StageScenarioBase.MakeCanvas(StageScenarioBase.stageNum);
-            if (scene == "Stage")
-            {
-                scene += StageScenarioBase.stageNum;
-                canvas.gameObject.SetActive(true);
-            }
-            else
-            {
-                canvas.gameObject.SetActive(false);
             }
         }
         LoadingScenario.LoadScene(scene);
@@ -654,10 +649,21 @@ public class GameManager : MonoBehaviour
         return 0;
     }
 
-    public void GameOver()
+    public async void GameOver()
     { 
         scene = null;
         progressDoc = null;
+        canvasGameOver.gameObject.SetActive(true);
+        canvasGameOver.SetScore(enemyNum, destinationNum, bossNum, foodNum);
+        canvasGrid.gameObject.SetActive(false);
+        StageScenarioBase.state = StateInMap.NeedPhase;
+        await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+        {
+            await BattleScenario.ClearCharacterAsync();
+            await BattleScenario.ClearEnemyAsync();
+            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(GameManager.gameManager.Uid);
+            await documentRef.DeleteAsync();
+        });
     }
     public void SetPopUp(string _content, string _emphasizeStr = "")
     {

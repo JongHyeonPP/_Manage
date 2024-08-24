@@ -94,7 +94,7 @@ public class CharacterInBattle : BaseInBattle
                 gameOverFlag = true;
         if (!gameOverFlag)
         {
-            GameManager.battleScenario.GameOver();//게임 오버
+            GameManager.battleScenario.GameOverInBattle();
         }
     }
     public void StartFIllGauge()

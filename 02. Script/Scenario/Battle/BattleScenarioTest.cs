@@ -60,10 +60,6 @@ public class BattleScenarioTest : MonoBehaviour
     }
     public void GameOverTest()
     {
-        battleScenario.GameOver();
-    }
-    public void BattleSimulationAsync()
-    {
-        battleScenario.GoToBattleSimulation();
+        GameManager.gameManager.GameOver();
     }
 }

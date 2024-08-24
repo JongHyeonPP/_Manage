@@ -2,20 +2,26 @@ using EnumCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 public class CanvasGameOver : MonoBehaviour
 {
     [SerializeField] TMP_Text textTitle;
-    [SerializeField]ScoreSlot scoreSlotEnemy;
-    [SerializeField]ScoreSlot scoreSlotDestination;
-    [SerializeField]ScoreSlot scoreSlotBoss;
-    [SerializeField]ScoreSlot scoreSlotFood;
-    [SerializeField]ScoreSlot scoreSlotTotal;
-    [SerializeField]Image imageButton;
-    [SerializeField]TMP_Text textButton;
+    [SerializeField] ScoreSlot scoreSlotEnemy;
+    [SerializeField] ScoreSlot scoreSlotDestination;
+    [SerializeField] ScoreSlot scoreSlotBoss;
+    [SerializeField] ScoreSlot scoreSlotFood;
+    [SerializeField] TMP_Text textFame;
+    [SerializeField] TMP_Text textFameScore;
+    [SerializeField] TMP_Text textFameAscend;
+    [SerializeField] Image imageButton;
+    [SerializeField] TMP_Text textButton;
+
+    private int fameScore;
     public async void SetScore(int _enemyNum, int _destinationNum, int _bossNum, int _foodNum)
     {
         imageButton.gameObject.SetActive(false);
@@ -23,12 +29,13 @@ public class CanvasGameOver : MonoBehaviour
         int destinationScore = GetScore(ScoreType.Destination, _destinationNum);
         int bossScore = GetScore(ScoreType.Boss, _bossNum);
         int foodScore = GetScore(ScoreType.Food, _foodNum);
-        int fameScore = enemyScore + destinationScore + bossScore + foodScore;
+        fameScore = enemyScore + destinationScore + bossScore + foodScore;
         scoreSlotEnemy.SetScore(_enemyNum, enemyScore);
         scoreSlotDestination.SetScore(_destinationNum, destinationScore);
         scoreSlotBoss.SetScore(_bossNum, bossScore);
         scoreSlotFood.SetScore(_foodNum, foodScore);
-        await scoreSlotTotal.SetFame(fameScore);
+
+        await SetFame(fameScore);
         StartCoroutine(AllMoveCoroutine());
 
     }
@@ -42,7 +49,7 @@ public class CanvasGameOver : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         scoreSlotFood.ShowScore();
         yield return new WaitForSeconds(0.5f);
-        yield return StartCoroutine(scoreSlotTotal.ShowTotal());
+        yield return StartCoroutine(ShowFame());
         StartCoroutine(FadeInButton(0.5f));
 
     }
@@ -61,8 +68,25 @@ public class CanvasGameOver : MonoBehaviour
 
         }
     }
+    public async Task SetFame(int _fame)
+    {
+        textFame.gameObject.SetActive(false);
+        textFameScore.gameObject.SetActive(false);
+        textFameAscend.gameObject.SetActive(false);
+        int fameAscend = Mathf.RoundToInt(_fame * GameManager.gameManager.upgradeValueDict[UpgradeEffectType.FameUp]);
+        textFame.text = (GameManager.language == Language.Ko) ? "획득한 명성" : "Gain Reputation";
+        textFameAscend.gameObject.SetActive(false);
+        await DataManager.dataManager.SetDocumentData("Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.Uid);
+        GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
+    }
+    public IEnumerator ShowFame()
+    {
+        yield return StartCoroutine(GameManager.FadeUi(textFame, 1f, true));
+        yield return StartCoroutine(AnimateFame());
+    }
     public void OnNextButtonClick()
     {
+        gameObject.SetActive(false);
         LoadingScenario.LoadScene("Start");
     }
     [ContextMenu("GameOverTest")]
@@ -112,5 +136,44 @@ public class CanvasGameOver : MonoBehaviour
         imageButton.color = imageColor;
         textButton.color = textColor;
     }
+    private IEnumerator AnimateFame()
+    {
+        float currentScore = 0;
+        float duration = 1.0f;
+        float elapsed = 0f;
+        textFameScore.gameObject.SetActive(true);
+        int fameAscend = Mathf.RoundToInt(fameScore * GameManager.gameManager.upgradeValueDict[UpgradeEffectType.FameUp]);
+        if (fameAscend > 0)
+        {
+            textFameAscend.gameObject.SetActive(true);
+            textFameAscend.text = string.Empty;
+        }
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            currentScore = Mathf.Lerp(0, fameScore, t);
 
+            textFameScore.text = Mathf.FloorToInt(currentScore).ToString();
+
+            yield return null;
+        }
+        textFameScore.text = fameScore.ToString();
+        yield return new WaitForSeconds(0.5f);
+        currentScore = 0;
+        elapsed = 0f;
+        
+        if (fameAscend > 0)
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                currentScore = Mathf.Lerp(0, fameAscend, t);
+
+                // 텍스트 업데이트
+                textFameAscend.text = $" (+{Mathf.FloorToInt(currentScore)})";
+
+                yield return null;
+            }
+    }
 }

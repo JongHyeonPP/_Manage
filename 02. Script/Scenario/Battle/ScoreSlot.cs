@@ -3,6 +3,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 public class ScoreSlot : MonoBehaviour
 {
@@ -47,31 +48,16 @@ public class ScoreSlot : MonoBehaviour
         StartCoroutine(AnimateScore(textScore, false)); // 알파값만 애니메이션
     }
 
-    public async Task SetFame(int _fame)
-    {
-        textType.gameObject.SetActive(false);
-        fame = _fame;
-        int fameAscend = GameManager.battleScenario.fameAscend
-        textType.text = (GameManager.language == Language.Ko) ? "획득한 명성" : "Gain Reputation";
-        textScore.text = fame.ToString();
-        GameManager.gameManager.fame += fame;
-        await DataManager.dataManager.SetDocumentData("Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.Uid);
-        GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
-    }
-    public IEnumerator ShowTotal()
-    {
-        textType.gameObject.SetActive(true);
-        textScore.gameObject.SetActive(false);
-        yield return StartCoroutine(AnimateScore(textType, false));
-        yield return StartCoroutine(AnimateTotal());
-    }
+
+
 
     private IEnumerator AnimateScore(TMP_Text _text, bool _animatePosition)
     {
-        float animationSpeed = 1.5f; // 애니메이션 속도
-        float moveDistance = 30.0f; // 텍스트가 위로 이동할 거리
-        Vector3 initialPosition = _text.transform.localPosition;
-        Vector3 targetPosition = initialPosition;
+        float animationDuration = 1f;
+        float moveDistance = 30f;
+
+        Vector3 initialPosition = _text.transform.localPosition - new Vector3(0f, moveDistance);
+        Vector3 targetPosition = _text.transform.localPosition;
 
         if (_animatePosition)
         {
@@ -90,7 +76,6 @@ public class ScoreSlot : MonoBehaviour
         _text.color = initialColor;
 
         float elapsed = 0f;
-        float animationDuration = 1.0f / animationSpeed; // 애니메이션 지속 시간을 속도로 설정
 
         while (elapsed < animationDuration)
         {
@@ -117,27 +102,7 @@ public class ScoreSlot : MonoBehaviour
             _text.transform.localPosition = targetPosition;
         }
     }
-    private IEnumerator AnimateTotal()
-    {
-        float currentScore = 0;
-        float duration = 1.0f; // 애니메이션을 1초 동안 실행
-        float elapsed = 0f;
-        textScore.gameObject.SetActive(true);
 
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-            currentScore = Mathf.Lerp(0, fame, t);
 
-            // 텍스트 업데이트
-            textScore.text = Mathf.FloorToInt(currentScore).ToString();
-
-            yield return null;
-        }
-
-        // 최종 값 설정
-        textScore.text = fame.ToString();
-    }
 
 }

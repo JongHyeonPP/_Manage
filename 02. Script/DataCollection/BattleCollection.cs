@@ -114,7 +114,7 @@ namespace BattleCollection
                     }
                     break;
                 case EffectType.RewardAscend:
-                    GameManager.battleScenario.rewardAscend += value;
+                    BattleScenario.rewardAscend += value;
                     break;
             }
         }
@@ -599,7 +599,27 @@ namespace BattleCollection
             caster = _caster;
             target = _target;
             effectType = _effectType;
-            _target.showBuffSlots.SetBuff(_effectType);
+            switch (_effectType)
+            {
+                case EffectType.Bleed:
+                case EffectType.AttAscend:
+                case EffectType.DefAscend:
+                case EffectType.ResistAscend:
+                case EffectType.AttDescend:
+                case EffectType.DefDescend:
+                case EffectType.ResistDescend:
+                case EffectType.SpeedAscend:
+                case EffectType.SpeedDescend:
+                case EffectType.Confuse:
+                case EffectType.Paralyze:
+                case EffectType.Enchant:
+                case EffectType.Critical:
+                case EffectType.Restore:
+                case EffectType.BuffAscend:
+                    _target.showBuffSlots.SetBuff(_effectType);
+                    break;
+            }
+
         }
         public void RemoveFromList()
         {

@@ -395,9 +395,13 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             name.Add(Language.Ko, (string)nameObj["Ko"]);
             name.Add(Language.En, (string)nameObj["En"]);
             //SkillName
-            Dictionary<string, object> skillNameObj = dict["Name"] as Dictionary<string, object>;
-            skillName.Add(Language.Ko, (string)skillNameObj["Ko"]);
-            skillName.Add(Language.En, (string)skillNameObj["En"]);
+            Dictionary<string, object> skillNameObj;
+            if (dict.TryGetValue("SkillName", out obj))
+            {
+                skillNameObj = obj as Dictionary<string, object>;
+                skillName.Add(Language.Ko, (string)skillNameObj["Ko"]);
+                skillName.Add(Language.En, (string)skillNameObj["En"]);
+            }
             //EffectExplain
             if (dict.TryGetValue("EffectExplain", out obj))
             {
@@ -686,8 +690,8 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
                 case "FameUp":
                     type = UpgradeEffectType.FameUp;
                     break;
-                case "GoldUp":
-                    type = UpgradeEffectType.GoldUp;
+                case "RewardUp":
+                    type = UpgradeEffectType.RewardUp;
                     break;
             }
             //Upgrade

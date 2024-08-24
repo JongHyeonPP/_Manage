@@ -17,7 +17,8 @@ public class LobbyScenario : MonoBehaviour
 {
     public GameObject selectLight;
     public GameObject buttonNext;
-    public List<GameObject> phaseList;
+    public List<GameObject> phase_0;
+    public List<GameObject> phase_1;
     public UpgradeUi pubUi;
     public UpgradeUi guildUi;
     public RecruitUi recruitUi;
@@ -33,9 +34,6 @@ public class LobbyScenario : MonoBehaviour
     public UpgradeExplainUi upgradeExplainUi;
     #endregion
     #region Phase_1
-
-
-
     public static readonly float defaultHp = 100f;
     public static readonly float defaultAbility = 10f;
     public static readonly float defaultSpeed = 1f;
@@ -55,8 +53,10 @@ public class LobbyScenario : MonoBehaviour
         #region UiSet
         layBlock.SetActive(false);
         selectLight.SetActive(false);
-        phaseList[0].SetActive(true);
-        phaseList[1].SetActive(false);
+        phase_0[0].SetActive(true);
+        phase_0[1].SetActive(true);
+        phase_1[0].SetActive(false);
+        phase_1[1].SetActive(false);
         pubUi.gameObject.SetActive(false);
         guildUi.gameObject.SetActive(false);
         recruitUi.gameObject.SetActive(false);
@@ -184,8 +184,10 @@ public class LobbyScenario : MonoBehaviour
     public void NextPhase()
     {
         SetMediumImage(true);
-        phaseList[0].SetActive(false);
-        phaseList[1].SetActive(true);
+        phase_0[0].SetActive(false);
+        phase_0[1].SetActive(false);
+        phase_1[0].SetActive(true);
+        phase_1[1].SetActive(true);
         buttonNext.SetActive(false);
         recruitUi.AllocateApplicant();
     }

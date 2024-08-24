@@ -21,8 +21,8 @@ public class SettingManager : MonoBehaviour
 
     public SettingUi settingUi;
 
-
     public static List<Resolution> resolutions = new();
+    public GameObject raycastBlock;
 
 
     private void Start()//DataManager가 먼저 Awake되고 실행돼야함
@@ -33,15 +33,10 @@ public class SettingManager : MonoBehaviour
             settingUi.ConnectLangaugeChange();
             volumeTypes = new List<VolumeType>((VolumeType[])Enum.GetValues(typeof(VolumeType)));
             settingUi.gameObject.SetActive(false);
-
+            raycastBlock.SetActive(false);
             settingUi.InitSettingUi();
+            
         }
     }
     public void ExecuteLangaugeChange() => LanguageChangeEvent();
-
-
-
-
-
-
 }

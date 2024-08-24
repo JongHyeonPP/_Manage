@@ -24,7 +24,6 @@ public class BattleScenario : MonoBehaviour
     public GameObject canvasClear;
     public LootUi lootUi;
     public GameObject buttonNext;
-    public CanvasGameOver canvasGameOver;
     [SerializeField] GameObject buttonStartBattle;
     [SerializeField] BattleTimer battleTimer;
     #endregion
@@ -36,8 +35,7 @@ public class BattleScenario : MonoBehaviour
     public Transform panelHpUi;
     public static List<GridObject> CharacterGrids { get; private set; } = new();
     public static List<GridObject> EnemyGrids { get; private set; } = new();
-    public float rewardAscend;
-    public float fameAscend;
+    public static float rewardAscend;
     public static readonly float gridCorrection = 20f;
     public Transform prefabSet;
     private Dictionary<BackgroundType, GameObject> backgrounds = new();
@@ -104,7 +102,6 @@ public class BattleScenario : MonoBehaviour
         GameManager.gameManager.canvasGrid.GetComponent<Canvas>().worldCamera = Camera.main;
         buttonStartBattle.gameObject.SetActive(true);
         battleTimer.gameObject.SetActive(false);
-        canvasGameOver.gameObject.SetActive(false);
         canvasBattle.gameObject.SetActive(true);
         canvasClear.gameObject.SetActive(false);
         texts =
@@ -150,7 +147,7 @@ public class BattleScenario : MonoBehaviour
         backgrounds[BackgroundType.RedRock] = prefabSet.GetChild(13).gameObject;
         backgrounds[BackgroundType.Lava] = prefabSet.GetChild(14).gameObject;
 
-        ChangeBackground(StageScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType);
+        ChangeBackground(StageScenarioBase.stageCanvas.currentNode.nodeType.backgroundType);
         battleTooltip.gameObject.SetActive(false);
         statusExplain.gameObject.SetActive(false);
     }
@@ -159,7 +156,6 @@ public class BattleScenario : MonoBehaviour
     {
         float totalSteps = 5; // 총 단계 수
         battleProgress = 0f;
-
         battlePatern = BattlePatern.OnReady;
         if (enemies.Count == 0)
         {
@@ -185,6 +181,8 @@ public class BattleScenario : MonoBehaviour
         CharacterAtBattleInit(); // Data -> Base
 
         battleProgress = 1f; // 진행률 업데이트
+
+        rewardAscend = GameManager.gameManager.upgradeValueDict[UpgradeEffectType.RewardUp];
         Debug.Log("Battle Load Complete");
     }
 
@@ -394,13 +392,13 @@ public class BattleScenario : MonoBehaviour
         {
             if (x)
                 x.StopAllCoroutines();
+            x.gameObject.SetActive(true);
         }
         foreach (var x in enemies)
         {
             x.StopAllCoroutines();
         }
         battlePatern = BattlePatern.OnReady;
-        StageScenarioBase.nodes.Add(null);
         List<CharacterData> dataList = GameManager.gameManager.characterList;
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
         {
@@ -473,7 +471,7 @@ public class BattleScenario : MonoBehaviour
     }
     private static List<EnemyPiece> MakeEnemies()
     {
-        List<string> casesStr = StageScenarioBase.stageBaseCanvas.currentNode.nodeType.casesStr;
+        List<string> casesStr = StageScenarioBase.stageCanvas.currentNode.nodeType.casesStr;
         string caseStr = casesStr[Random.Range(0, casesStr.Count)];
         List<EnemyPiece> enemyPieces = LoadEnemiesByCase(caseStr);
         return enemyPieces;
@@ -497,7 +495,7 @@ public class BattleScenario : MonoBehaviour
         enemies.Clear();
     }
 
-    public async Task ClearCharacterAsync()
+    public static async Task ClearCharacterAsync()
     {
         ClearCharacterObject();
         string collectionRef = "Progress/" + GameManager.gameManager.Uid + "/Characters";
@@ -508,7 +506,7 @@ public class BattleScenario : MonoBehaviour
         }
     }
 
-    private void ClearCharacterObject()
+    private static void ClearCharacterObject()
     {
         foreach (var x in characters)
         {
@@ -603,13 +601,6 @@ public class BattleScenario : MonoBehaviour
             enemies.Add(enemyScript);
         }
     }
-    public void GoToBattleSimulation()
-    {
-        ClearEnemyObject();
-        ClearCharacterObject();
-        RefreshGrid();
-        SceneManager.LoadScene("BattleSimulation");
-    }
     public static float CalcResist(float _resist)
     {
         if (_resist >= 0)
@@ -632,17 +623,9 @@ public class BattleScenario : MonoBehaviour
                 character.PassiveReconnect();
         }
     }
-    public async void GameOver()
+    public void GameOverInBattle()
     {
-        //await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
-        //{
-        //    await ClearCharacterAsync();
-        //    await ClearEnemyAsync();
-        //    DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
-        //    await documentRef.DeleteAsync();
-        //});
         StartCoroutine(GameOverCoroutine());
-        GameManager.gameManager.GameOver();
     }
 
     private IEnumerator GameOverCoroutine()
@@ -650,12 +633,10 @@ public class BattleScenario : MonoBehaviour
         foreach (BaseInBattle x in enemies)
             x.StopBattle();
         yield return new WaitForSeconds(2f);
-        canvasGameOver.gameObject.SetActive(true);
-        canvasGameOver.SetScore(GameManager.gameManager.enemyNum, GameManager.gameManager.destinationNum, GameManager.gameManager.bossNum, GameManager.gameManager.foodNum);
         canvasBattle.gameObject.SetActive(false);
-        GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
-
+        GameManager.gameManager.GameOver();
     }
+
     public BaseInBattle GetTarget(SkillEffect effectForm, BaseInBattle _caster)
     {
         BaseInBattle effectTarget;

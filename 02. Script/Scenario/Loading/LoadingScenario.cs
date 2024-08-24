@@ -20,8 +20,10 @@ public class LoadingScenario : MonoBehaviour
         StartCoroutine(LoadSceneProcess());
     }
 
-    public static void LoadScene(string _sceneName)
+    public static async void LoadScene(string _sceneName)
     {
+        if (_sceneName == "Start")
+            await GameManager.gameManager.LoadProgressDoc();
         nextScene = _sceneName;
         SceneManager.LoadSceneAsync("Loading");
     }

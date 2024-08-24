@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
+using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
@@ -13,6 +14,7 @@ public class ItemManager : MonoBehaviour
 {
     public static ItemManager itemManager;
     public static readonly int inventorySize = 36;//6*6
+
     public Sprite item_None;
     public Sprite item_Normal;
     public Sprite item_Rare;
@@ -22,10 +24,17 @@ public class ItemManager : MonoBehaviour
     public Sprite name_Rare;
     public Sprite name_Unique;
 
+    public Sprite ingredient_Fish;
+    public Sprite ingredient_Meat;
+    public Sprite ingredient_Fruit;
+    public Sprite ingredient_Vegetable;
+    public Sprite ingredient_Random;
+
     public InventoryUi inventoryUi;
     public GetJobUi getJobUi;
     public UpgradeSkillUi upgradeSkillUi;
 
+    public Sprite book_Default;
     public Sprite book_P;
     public Sprite book_S;
     public Sprite book_U;
@@ -95,69 +104,43 @@ public class ItemManager : MonoBehaviour
         List<CountableItem> main = new();
         List<CountableItem> sub = new();
         //전리품 생성
-        if (true)
+        IngredientType ingredientType;
+        SkillCategori skillCategori;
+        ItemGrade skillGrade;
+        GetLootTypesByBackgroundType(StageScenarioBase.stageCanvas.currentNode.nodeType.backgroundType, out skillCategori, out skillGrade, out ingredientType);
+        for (int i = 0; i < 2; i++)
         {
-            for (int i = 0; i < 2; i++)
+            int lootCase = GameManager.AllocateProbability(new float[] { 0.5f, 0.5f });
+            string id;
+            Item item = null;
+            switch (lootCase)
             {
-                int lootCase = GameManager.AllocateProbability(new float[] { 0.5f, 0.5f });
-                string id;
-                Item item = null;
-                switch (lootCase)
-                {
-                    case 0://Weapon
-                        id = GetRandomWeaponIdByGrade(ItemGrade.Normal);
-                        item = GetItemClass(ItemType.Weapon, id);
+                case 0://Weapon
+                    id = GetRandomWeaponIdByGrade(ItemGrade.Normal);
+                    item = GetItemClass(ItemType.Weapon, id);
 
-                        break;
-                    case 1://Skill
-                        id = GetRandomSkillIdByGrade(ItemGrade.Normal);
-                        item = GetItemClass(ItemType.Skill, id);
-                        break;
-                }
-                CountableItem ci = new(item);
-                main.Add(ci);
-            }
-            IngredientType ingredientType = IngredientType.Meat;
-            switch (StageScenarioBase.stageBaseCanvas.currentNode.nodeType.backgroundType)
-            {
-                case BackgroundType.Plains:
-                case BackgroundType.MysteriousForest:
-                case BackgroundType.DesertRuins:
-                    ingredientType = IngredientType.Meat;
                     break;
-                case BackgroundType.Forest:
-                case BackgroundType.VineForest:
-                case BackgroundType.Cave:
-                    ingredientType = IngredientType.Fish;
-                    break;
-                case BackgroundType.Beach:
-                case BackgroundType.Swamp:
-                case BackgroundType.Desert:
-                    ingredientType = IngredientType.Fruit;
-                    break;
-                case BackgroundType.Ruins:
-                case BackgroundType.WinterForest:
-                case BackgroundType.RedRock:
-                    ingredientType = IngredientType.Vegetable;
-                    break;
-                case BackgroundType.ElfCity:
-                case BackgroundType.IceField:
-                    ingredientType = IngredientType.Special;
+                case 1://Skill
+                    id = GetRandomSkillIdByGradeCategori(ItemGrade.Normal, skillCategori);
+                    item = GetItemClass(ItemType.Skill, id);
                     break;
             }
-            int ingredientNum = Mathf.RoundToInt(Random.Range(3, 5) * (1 + GameManager.battleScenario.rewardAscend));
-            for (int i = 0; i < ingredientNum; i++)//재료는 3개나 4개
-            {
-                string ingredientId = GetRandomIngredientId(ingredientType);
-                Item ingredientItem = GetItemClass(ItemType.Ingredient, ingredientId);
-                CountableItem ci = new(ingredientItem);
-                AddCiToArr(sub, ci);
-            }
+            CountableItem ci = new(item);
+            main.Add(ci);
+        }
+
+        int ingredientNum = Mathf.RoundToInt(Random.Range(3, 5) * (1 + BattleScenario.rewardAscend));
+        for (int i = 0; i < ingredientNum; i++)//재료는 3개나 4개
+        {
+            string ingredientId = GetRandomIngredientId(ingredientType);
+            Item ingredientItem = GetItemClass(ItemType.Ingredient, ingredientId);
+            CountableItem ci = new(ingredientItem);
+            AddCiToArr(sub, ci);
         }
         main = main.OrderBy(data => data.item.itemType).ToList();
         sub = sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
         int gold = Random.Range(10, 13);
-        int goldAscend = Mathf.RoundToInt( gold * GameManager.battleScenario.rewardAscend);
+        int goldAscend = Mathf.RoundToInt(gold * BattleScenario.rewardAscend);
         GameManager.gameManager.ChangeGold(gold + goldAscend);
         List<CountableItem> addMainSub = new(main);
         addMainSub.AddRange(sub);
@@ -318,7 +301,7 @@ public class ItemManager : MonoBehaviour
         string name = targetKeyList[Random.Range(0, targetKeyList.Count)];
         return $"{weaponTypeStr}:::{name}";
     }
-    private string GetRandomSkillIdByGrade(ItemGrade _grade)
+    private string GetRandomSkillIdByGradeCategori(ItemGrade _grade, SkillCategori _skillCategori)
     {
         string gradeStr;
         switch (_grade)
@@ -334,19 +317,40 @@ public class ItemManager : MonoBehaviour
                 break;
 
         }
-        List<string> skillList = LoadManager.loadManager.skillsDict
-     .Where(item => item.Value.categori != SkillCategori.Enemy)
-     .Select(item => item.Key)
-     .ToList();
+        List<string> skillList;
+        if (_skillCategori == default)
+        {
+            skillList = LoadManager.loadManager.skillsDict
+            .Where(item => item.Value.categori != SkillCategori.Enemy)
+            .Select(item => item.Key)
+            .ToList();
+        }
+        else
+        {
+            skillList = LoadManager.loadManager.skillsDict
+         .Where(item => item.Value.categori == _skillCategori)
+         .Select(item => item.Key)
+         .ToList();
+        }
         string skillId = skillList[Random.Range(0, skillList.Count)];
         return $"{skillId}:::{gradeStr}";
     }
     private string GetRandomIngredientId(IngredientType _ingredientType)
     {
-        List<string> ingredientList = LoadManager.loadManager.ingredientDict
-     .Where(item => item.Value.ingredientType == _ingredientType)
-     .Select(item => item.Key)
-     .ToList();
+        List<string> ingredientList;
+        if (_ingredientType == IngredientType.All)
+        {
+            ingredientList = LoadManager.loadManager.ingredientDict
+            .Select(item => item.Key)
+            .ToList();
+        }
+        else
+        {
+            ingredientList = LoadManager.loadManager.ingredientDict
+            .Where(item => item.Value.ingredientType == _ingredientType)
+            .Select(item => item.Key)
+            .ToList();
+        }
         string ingredientId = ingredientList[Random.Range(0, ingredientList.Count)];
         return ingredientId;
     }
@@ -434,8 +438,9 @@ public class ItemManager : MonoBehaviour
         JobClass job = GameManager.gameManager.GetJob(selectedCharacter.skillAsItems[0].itemId, selectedCharacter.skillAsItems[1].itemId);
         selectedCharacter.jobClass = job;
         selectedCharacter.characterHierarchy.SetJobSprite(job);
-        if (GameManager.gameManager.characterList.IndexOf(selectedCharacter) == 0)
-            StageScenarioBase.stageBaseCanvas.characterInStage.characterHierarchy.SetJobSprite(job);
+        if (StageScenarioBase.stageCanvas)
+            if (GameManager.gameManager.characterList.IndexOf(selectedCharacter) == 0)
+                StageScenarioBase.stageCanvas.characterInStage.characterHierarchy.SetJobSprite(job);
         inventoryUi.ch.SetJobSprite(job);
         inventoryUi.jobSlot.SetJobIcon(job);
         for (int i = 0; i < 2; i++)
@@ -457,6 +462,82 @@ public class ItemManager : MonoBehaviour
                 return needExp[0];
             case ItemGrade.Rare:
                 return needExp[1];
+        }
+    }
+    public static void GetLootTypesByBackgroundType(BackgroundType _backgroundType, out SkillCategori _skillCategori, out ItemGrade _skillGrade, out IngredientType _ingredientType)
+    {
+        switch (_backgroundType)
+        {
+            default://Plains
+                _ingredientType = IngredientType.Vegetable;
+                _skillCategori = SkillCategori.Power;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.Forest:
+                _ingredientType = IngredientType.Meat;
+                _skillCategori = SkillCategori.Sustain;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.Beach:
+                _ingredientType = IngredientType.Fish;
+                _skillCategori = SkillCategori.Util;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.Ruins:
+                _ingredientType = IngredientType.Fruit;
+                _skillCategori = SkillCategori.Power;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.ElfCity:
+                _ingredientType = IngredientType.All;
+                _skillCategori = SkillCategori.Default;
+                _skillGrade = ItemGrade.Rare;
+                break;
+            case BackgroundType.MysteriousForest:
+                _ingredientType = IngredientType.Vegetable;
+                _skillCategori = SkillCategori.Sustain;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.WinterForest:
+                _ingredientType = IngredientType.Meat;
+                _skillCategori = SkillCategori.Util;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.VineForest:
+                _ingredientType = IngredientType.Fish;
+                _skillCategori = SkillCategori.Power;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.Swamp:
+                _ingredientType = IngredientType.Fruit;
+                _skillCategori = SkillCategori.Sustain;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.IceField:
+                _ingredientType = IngredientType.All;
+                _skillCategori = SkillCategori.Default;
+                _skillGrade = ItemGrade.Rare;
+                break;
+            case BackgroundType.DesertRuins:
+                _ingredientType = IngredientType.Vegetable;
+                _skillCategori = SkillCategori.Util;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.Cave:
+                _ingredientType = IngredientType.Meat;
+                _skillCategori = SkillCategori.Power;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.Desert:
+                _ingredientType = IngredientType.Fish;
+                _skillCategori = SkillCategori.Sustain;
+                _skillGrade = ItemGrade.Normal;
+                break;
+            case BackgroundType.RedRock:
+                _ingredientType = IngredientType.Fruit;
+                _skillCategori = SkillCategori.Util;
+                _skillGrade = ItemGrade.Normal;
+                break;
         }
     }
 }

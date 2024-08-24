@@ -13,7 +13,7 @@ public class GoodsSlot : SlotBase
     public bool isSoldOut;
     [SerializeField] Image imageGrade;
     [SerializeField] Image imageItem;
-    [SerializeField] GameObject imageSoldOut;
+    public GameObject imageSoldOut;
     [SerializeField] TMP_Text textPrice;
     private ItemTooltip tooltip;
     private RectTransform rectTransform;
@@ -21,7 +21,6 @@ public class GoodsSlot : SlotBase
 
     private void Start()
     {
-        imageSoldOut.SetActive(false);
         tooltip = GameManager.storeScenario.storeTooltip;
         rectTransform = GetComponent<RectTransform>();
     }
@@ -92,6 +91,8 @@ public class GoodsSlot : SlotBase
     }
     public void OnPointerClick()
     {
+        if (isSoldOut)
+            return;
         if (GameManager.gameManager.gold < price)
         {
             string popUpMessage = GameManager.language == Language.Ko ? "골드가 부족합니다." : "Not enough gold.";

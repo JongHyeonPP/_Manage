@@ -320,7 +320,7 @@ abstract public class BaseInBattle : MonoBehaviour
                 speedInBattle *= Mathf.Max(1 - _value, 0.1f);
                 break;
             case EffectType.RewardAscend:
-                GameManager.battleScenario.rewardAscend += _value;
+                BattleScenario.rewardAscend += _value;
                 break;
         }
         switch (_effectType)
@@ -354,9 +354,10 @@ abstract public class BaseInBattle : MonoBehaviour
             target.ApplyValue(GetTempValue_Sum(EffectType.Bleed) * bleedTransfer, EffectType.Bleed);
             Debug.Log("BleedTransfer : " + target.grid.index);
         }
-        foreach (var ally in IsEnemy ? BattleScenario.enemies : BattleScenario.characters)
+        var allies = IsEnemy ? BattleScenario.enemies : BattleScenario.characters;
+        foreach (var ally in allies)
         {
-            if (ally.tempEffectsDict.ContainsKey(EffectType.Revive) && ally.tempEffectsDict[EffectType.Revive].Count>0)
+            if (ally.tempEffectsDict.ContainsKey(EffectType.Revive) && ally.tempEffectsDict[EffectType.Revive].Count > 0)
             {
                 TempEffect tempEffect = ally.tempEffectsDict[EffectType.Revive][0];
                 tempEffect.RemoveFromList();
@@ -374,12 +375,15 @@ abstract public class BaseInBattle : MonoBehaviour
         yield return new WaitForSeconds(3f);
 
         //Dead
-        if(passiveEffects!=null)
-        foreach (var passive in passiveEffects)
+        if (allies.Where(item => !item.isDead).Count() > 0)
         {
-            passive.RemoveTempEffectToTarget();
+            if (passiveEffects != null)
+                foreach (var passive in passiveEffects)
+                {
+                    passive.RemoveTempEffectToTarget();
+                }
+            gameObject.SetActive(false);
         }
-        gameObject.SetActive(false);
     }
 
 

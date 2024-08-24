@@ -21,7 +21,6 @@ public class AwakeScenario : MonoBehaviour
 
     private async void Start()
     {
-
         await GameManager.gameManager.LoadProgressDoc();
         SceneManager.LoadScene("Start");
     }

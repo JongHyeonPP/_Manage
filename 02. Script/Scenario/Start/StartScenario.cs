@@ -34,13 +34,18 @@ public class StartScenario : MonoBehaviour
         panelNewGame.gameObject.SetActive(false);
         isOperating = false;
     }
-    private void Start()
+    private async void Start()
     {
         if (GameManager.gameManager)
-            if (GameManager.gameManager.progressDoc ==null)
+            if (GameManager.gameManager.progressDoc == null)
             {
                 InActiveLoadBtn();
             }
+        if (StageScenarioBase.stageCanvas)
+        {
+            Destroy(StageScenarioBase.stageCanvas.gameObject);
+            StageScenarioBase.stageCanvas = null;
+        }
     }
     public void OnNewGameButtonClick()
     {
@@ -88,7 +93,10 @@ public class StartScenario : MonoBehaviour
         if (isOperating)
             return;
         isOperating = true;
-        await LoadManager.loadManager.LoadDbBaseData();
+        if (!LoadManager.loadManager.isInit)
+        {
+            await LoadManager.loadManager.LoadDbBaseData();
+        }
         GameManager.gameManager.LoadGame();
     }
     public void SettingBtnClick()

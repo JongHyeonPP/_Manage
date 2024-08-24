@@ -20,6 +20,10 @@ public class GoodsPanel : MonoBehaviour
     {
         AllocateGoods();
         SetListToSlot();
+        foreach (var x in goodsSlots)
+        {
+            x.imageSoldOut.SetActive(false);
+        }
     }
     public void SetExistingGoods(List<object> _goodsDataList)
     {
@@ -66,6 +70,10 @@ public class GoodsPanel : MonoBehaviour
                 }
             }
             goodsPriceList.Add(new(item, price));
+            if (isSoldOut)
+                goodsSlots[i].SoldOut();
+            else
+                goodsSlots[i].imageSoldOut.SetActive(false);
         }
     }
 

@@ -29,7 +29,7 @@ namespace EnumCollection
     }
     public enum UpgradeEffectType : byte
     {
-        AllocateNumberUp, StatusUp, TalentEffectUp, TalentLevelUp, FameUp, GoldUp
+        AllocateNumberUp, StatusUp, TalentEffectUp, TalentLevelUp, FameUp, RewardUp
     }
     public enum EffectRange : byte
     {
@@ -53,7 +53,7 @@ namespace EnumCollection
         //Stage 0
         Plains, Forest, Beach, Ruins, ElfCity,
         //Stage1
-        MysteriousForest, VineForest, Swamp, WinterForest, IceField,
+        MysteriousForest, WinterForest, VineForest, Swamp, IceField,
         //Stage 2
         DesertRuins, Cave, Desert, RedRock, Lava,
         //Store
@@ -109,7 +109,7 @@ namespace EnumCollection
     }
     public enum IngredientType
     {
-        Meat, Fish, Fruit, Vegetable, Special
+        Meat, Fish, Fruit, Vegetable, All
     }
     public enum ValueBase
     {

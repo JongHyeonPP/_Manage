@@ -134,9 +134,6 @@ public class ItemTooltip : MonoBehaviour
                 case IngredientType.Vegetable:
                     gradeStr = (GameManager.language == Language.Ko) ? "¾ßÃ¤" : "Vegetiable";
                     break;
-                case IngredientType.Special:
-
-                    break;
             }
         }
         textGrade.text = gradeStr;

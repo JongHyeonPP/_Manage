@@ -57,6 +57,7 @@ public class StoreScenario : MonoBehaviour
     public async void NextButtonClicked()
     {
         await ClearStoreAtDb();
+        GameManager.storeScenario = null;
         SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
     }
     private async Task ClearStoreAtDb()

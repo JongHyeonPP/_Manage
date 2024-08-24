@@ -77,6 +77,10 @@ public class BuffSlot : MonoBehaviour
                 buffStr = "Heal";
                 imageType = 1;
                 break;
+            case EffectType.BuffAscend:
+                buffStr = "Buff";
+                imageType = 1;
+                break;
         }
         textBuff.color = textColor;
         textBuff.text = buffStr;

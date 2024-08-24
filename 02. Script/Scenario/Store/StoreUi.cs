@@ -31,12 +31,16 @@ public class StoreUi : MonoBehaviour
         SetInventorySlots();
         SelectButtonSelect(selectButtons[0]);
         GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = false;
+        GameManager.storeScenario.raycastBlock.SetActive(true);
+        raycastBlock.gameObject.SetActive(false);
     }
     private void OnDisable()
     {
         GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = true;
         sellUi.gameObject.SetActive(false);
         buyConfirmUi.gameObject.SetActive(false);
+        GameManager.storeScenario.raycastBlock.SetActive(false);
+
     }
     private void SetInventorySlots()
     {
@@ -106,7 +110,7 @@ public class StoreUi : MonoBehaviour
 
     public InventorySlot_Store GetExistSlot(Item _item)
     {
-        return inventorySlots.Where(data => data.connectedSlot.ci.item.itemId == _item.itemId).FirstOrDefault();
+        return inventorySlots.Where(data => data.connectedSlot.ci != null).Where(data => data.connectedSlot.ci.item.itemId == _item.itemId).FirstOrDefault();
     }
     public void ConnectEmptySlot(Item _item)
     {

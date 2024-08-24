@@ -1,11 +1,13 @@
 using DefaultCollection;
 using EnumCollection;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static SettingManager;
 public class SettingUi : MonoBehaviour
@@ -13,11 +15,17 @@ public class SettingUi : MonoBehaviour
     public SettingSet originSet;
     public SettingSet newSet;
 
+    Dictionary<VolumeType, VolumeSlider> volumeSliders = new();
+
     [SerializeField] TMP_Dropdown dropdownResolution;
     [SerializeField] TMP_Dropdown dropdownLanguage;
     [SerializeField] Toggle toggleFullScreen;
     [SerializeField] Transform parentSlider;
-    Dictionary<VolumeType, VolumeSlider> volumeSliders = new();
+    [SerializeField] GameObject buttonSurrender;
+    [SerializeField] GameObject buttonExit;
+    [SerializeField] GameObject panelSurrender;
+
+
 
     [SerializeField] TMP_Text textResolution;
     [SerializeField] TMP_Text textFullScreen;
@@ -30,6 +38,35 @@ public class SettingUi : MonoBehaviour
     [SerializeField] TMP_Text textLanguage;
     [SerializeField] TMP_Text textConfirm;
     [SerializeField] TMP_Text textCancel;
+    [SerializeField] TMP_Text textSurrenderButton;
+    [SerializeField] TMP_Text textSurrender;
+    [SerializeField] TMP_Text textReturn;
+    [SerializeField] TMP_Text textExit;
+    private void Awake()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
+    {
+        if (arg0.name == "Battle" || arg0.name == "Store" || arg0.name.Contains("Stage"))
+        {
+            buttonSurrender.SetActive(true);
+        }
+        else
+        {
+            buttonSurrender.SetActive(false);
+        }
+        if (arg0.name == "Battle" || arg0.name == "Store" || arg0.name == "Lobby" || arg0.name.Contains("Stage"))
+        {
+            buttonExit.SetActive(true);
+        }
+        else
+        {
+            buttonExit.SetActive(false);
+        }
+    }
+
     public void InitSettingUi()
     {
         volumeSliders.Add(VolumeType.All, parentSlider.GetChild(0).GetComponent<VolumeSlider>());
@@ -76,6 +113,9 @@ public class SettingUi : MonoBehaviour
         textLanguage.text = (GameManager.language == Language.Ko) ? "언어" : "Language";
         textConfirm.text = (GameManager.language == Language.Ko) ? "확인" : "Confirm";
         textCancel.text = (GameManager.language == Language.Ko) ? "취소" : "Cancel";
+        textSurrenderButton.text = textSurrender.text = (GameManager.language == Language.Ko) ? "포기하기" : "Surrender";
+        textReturn.text = (GameManager.language == Language.Ko) ? "돌아가기" : "Return";
+        textExit.text = (GameManager.language == Language.Ko) ? "시작 화면으로" : "To start Screen";
     }
     private void InitData()
     {
@@ -209,7 +249,7 @@ public class SettingUi : MonoBehaviour
             float value = originSet.volume[type];
             volumeSlider.slider.value = value;
             bool onOff = originSet.onOff[type];
-            
+
             volumeSlider.VolumeControl();
             volumeSlider.SetOnOff(onOff);
         }
@@ -249,7 +289,7 @@ public class SettingUi : MonoBehaviour
     public void ConfirmBtnClick()
     {
         DataManager.dataManager.SetConfigData(DataSection.Language, "Language", newSet.language);
-        
+
         DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllVolume", newSet.volume[VolumeType.All]);
         DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxVolume", newSet.volume[VolumeType.Sfx]);
         DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmVolume", newSet.volume[VolumeType.Bgm]);
@@ -264,22 +304,36 @@ public class SettingUi : MonoBehaviour
         gameObject.SetActive(false);
         originSet = newSet.GetDeepCopySet();
     }
-    internal void SetNewSet()
+    public void OnExitButtonClick()
     {
-        DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllVolume", newSet.volume[VolumeType.All]);
-        DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxVolume", newSet.volume[VolumeType.Sfx]);
-        DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmVolume", newSet.volume[VolumeType.Bgm]);
-
-        DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllOnOff", newSet.onOff[VolumeType.All]);
-        DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "SfxOnOff", newSet.onOff[VolumeType.Sfx]);
-        DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "BgmOnOff", newSet.onOff[VolumeType.Bgm]);
-
-        DataManager.dataManager.SetConfigData(DataSection.Language, "Language", newSet.language);
-
-        DataManager.dataManager.SetConfigData(DataSection.Screen, "FullScreenMode", newSet.fullScreenMode);
-        DataManager.dataManager.SetConfigData(DataSection.Screen, "ResolutionIndex", newSet.resolutionIndex);
-
-        originSet = newSet;
-        newSet = null;
+        ConfirmBtnClick();
+        gameObject.SetActive(false);
+        if (StageScenarioBase.stageCanvas)
+        {
+            StageScenarioBase.stageCanvas.gameObject.SetActive(false);
+        }
+        LoadingScenario.LoadScene("Start");
+    }
+    public void OnSurrenderButtonClick()
+    {
+        ConfirmBtnClick();
+        gameObject.SetActive(false);
+        GameManager.gameManager.GameOver();
+        if (StageScenarioBase.stageCanvas)
+        {
+            Destroy(StageScenarioBase.stageCanvas.gameObject);
+            StageScenarioBase.stageCanvas = null;
+        }
+    }
+    private void OnEnable()
+    {
+        if (settingManager)
+            settingManager.raycastBlock.SetActive(true);
+    }
+    private void OnDisable()
+    {
+        if (settingManager)
+            settingManager.raycastBlock.SetActive(false);
+        panelSurrender.SetActive(false);
     }
 }

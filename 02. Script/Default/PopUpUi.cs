@@ -32,7 +32,7 @@ public class PopUpUi : MonoBehaviour
         {
             textPopUp.text = _content;
         }
-        float targetPanelAlpha = 0.7f;
+        float targetPanelAlpha = 1f;
         // 텍스트와 패널의 기본 색상을 가져오고 알파값을 0으로 설정
         Color textOriginalColor = textPopUp.color;
         Color textColor = textOriginalColor;

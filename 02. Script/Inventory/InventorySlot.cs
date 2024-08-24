@@ -193,7 +193,7 @@ public class InventorySlot : SlotBase
     {
         if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
-        Destroy(panelBack.GetComponent<Canvas>());
+        Destroy(imageGrade.GetComponent<Canvas>());
         //인벤토리에서 교환
         if (ItemManager.itemManager.inventoryUi.targetInventorySlot)
         {
@@ -287,7 +287,11 @@ public class InventorySlot : SlotBase
                 float resist = newWeapon.resist - previousWeapon.resist;
                 float speed = newWeapon.speed - previousWeapon.resist;
                 ItemManager.itemManager.inventoryUi.parentStatusUp.StartShowTextsStatus(0f, maxHp, ability, resist, speed);
-                targetCharacter.ChangeWeapon(curCi.item as WeaponClass);
+                targetCharacter.ChangeWeapon(newWeapon);
+                if (GameManager.gameManager.characterList.IndexOf(targetCharacter) == 0)
+                {
+                    StageScenarioBase.stageCanvas.characterInStage.characterHierarchy.SetWeaponSprite(newWeapon);
+                }
                 break;
             case ItemType.Skill:
                 targetCharacter.skillAsItems[targetSlot.index] = curCi.item as SkillAsItem;
