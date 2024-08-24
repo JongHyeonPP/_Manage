@@ -58,6 +58,7 @@ public class StoreScenario : MonoBehaviour
     {
         await ClearStoreAtDb();
         GameManager.storeScenario = null;
+        StageScenarioBase.state = StateInMap.NeedPhase;
         SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
     }
     private async Task ClearStoreAtDb()

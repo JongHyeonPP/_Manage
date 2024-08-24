@@ -122,8 +122,22 @@ public class StageCanvas : MonoBehaviour
             {
                 arrayIndexes.Add((int)(long)nodes[i]);
             }
-            if (!isStrSetted)
+            if (isStrSetted)
             {
+                StageScenarioBase.state = StateInMap.NeedMove;
+                foreach (int arrayIndex in arrayIndexes)
+                {
+                    DestinationNode temp = SetNodeActive(i, arrayIndex);
+
+                    temp.ActiveWithObject(true);
+                    List<GameObject> dots = ConnectDots(prevNode, temp);
+                    foreach (var x in dots)
+                        x.SetActive(true);
+                }
+            }
+            else
+            {
+                StageScenarioBase.state = StateInMap.NeedEnter;
                 DestinationNode temp = SetNodeActive(i, arrayIndexes[0]);
 
                 temp.ActiveWithObject(true);
@@ -136,19 +150,6 @@ public class StageCanvas : MonoBehaviour
                 if (prevNode.phaseNum != temp.phaseNum)
                     prevNode = temp;
                 currentNode = temp;
-            }
-            else
-            {
-                StageScenarioBase.state = StateInMap.NeedMove;
-                foreach (int arrayIndex in arrayIndexes)
-                {
-                    DestinationNode temp = SetNodeActive(i, arrayIndex);
-
-                    temp.ActiveWithObject(true);
-                    List<GameObject> dots = ConnectDots(prevNode, temp);
-                    foreach (var x in dots)
-                        x.SetActive(true);
-                }
             }
 
         }

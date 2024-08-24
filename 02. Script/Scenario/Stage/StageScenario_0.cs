@@ -71,11 +71,11 @@ public class StageScenario_0 : StageScenarioBase
                 break;
             case 0:
                 x = -100f;
-                y = 119.84f;
+                y = 135.45f;
                 break;
             case 1:
                 x = 50f;
-                y = 82.3f;
+                y = 94.1f;
                 break;
             case 2:
                 x = 98f;

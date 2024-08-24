@@ -102,13 +102,6 @@ public abstract class StageScenarioBase : MonoBehaviour
             stageCanvas.GetComponent<Canvas>().worldCamera = Camera.main;
         stageCanvas.gameObject.SetActive(true);
 
-
-        //if (nodes.Contains(null))
-        //{
-        //    nodes.RemoveAll(item => item == null);
-        //    DataManager.dataManager.SetDocumentData("Nodes", nodes, "Progress", GameManager.gameManager.Uid);
-        //    state = StateInMap.NeedPhase;
-        //}
         MoveMapVia(true);
         ExtendVia(true);
         if (state == StateInMap.NeedPhase)

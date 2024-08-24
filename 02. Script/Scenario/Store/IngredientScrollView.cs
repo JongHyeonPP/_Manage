@@ -22,12 +22,6 @@ public class IngredientScrollView : CustomScrollRect
             content.sizeDelta += new Vector2(gridLayoutGroup.cellSize.x + gridLayoutGroup.spacing.x, 0);
         }
     }
-    [ContextMenu("AddTest")]
-    public void AddTest()
-    {
-        Instantiate(ingredientSlotObj, content);
-        content.sizeDelta += new Vector2(gridLayoutGroup.cellSize.x + gridLayoutGroup.spacing.x, 0);
-    }
     public void AddIngredientCi(CountableItem _ci)
     {
         GameObject slotObj = Instantiate(ingredientSlotObj, content);
