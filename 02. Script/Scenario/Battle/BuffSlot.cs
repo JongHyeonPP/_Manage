@@ -111,7 +111,6 @@ public class BuffSlot : MonoBehaviour
                 textNum.text = "x" + num;
             }
         }
-        Debug.Log(num);
         return true;
     }
 }

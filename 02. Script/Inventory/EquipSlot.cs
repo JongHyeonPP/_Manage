@@ -18,6 +18,7 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     public int index;
     public GameObject objectCategori;
     public TMP_Text textLevel;
+    public TMP_Text textName;
     public GameObject expBar;
     public Image imageFill;
     private new void Awake()

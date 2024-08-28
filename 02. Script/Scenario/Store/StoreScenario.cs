@@ -42,17 +42,22 @@ public class StoreScenario : MonoBehaviour
     }
     private void Start()
     {
-        var baseCameraData = Camera.main.GetUniversalAdditionalCameraData();
-        var overlayCameraData = overlayCamera.GetUniversalAdditionalCameraData();
+        UniversalAdditionalCameraData baseCameraData = Camera.main.GetUniversalAdditionalCameraData();
 
         // 먼저 카메라 스택에서 해당 오버레이 카메라를 제거
         if (baseCameraData.cameraStack.Contains(overlayCamera))
         {
             baseCameraData.cameraStack.Remove(overlayCamera);
         }
-
         // 그런 다음 카메라 스택의 가장 마지막에 다시 추가 (즉, 가장 위로 올림)
         baseCameraData.cameraStack.Add(overlayCamera);
+        // 먼저 카메라 스택에서 해당 오버레이 카메라를 제거
+        if (baseCameraData.cameraStack.Contains(GameManager.gameManager.popUpCamera))
+        {
+            baseCameraData.cameraStack.Remove(GameManager.gameManager.popUpCamera);
+        }
+        // 그런 다음 카메라 스택의 가장 마지막에 다시 추가 (즉, 가장 위로 올림)
+        baseCameraData.cameraStack.Add(GameManager.gameManager.popUpCamera);
     }
     public async void NextButtonClicked()
     {
@@ -92,7 +97,8 @@ public class StoreScenario : MonoBehaviour
     }
     public void OnRaycastBlockClicked()
     {
-        cookUi.gameObject.SetActive(false);
+        if (!cookUi.isOperating)
+            cookUi.gameObject.SetActive(false);
         storeUi.gameObject.SetActive(false);
     }
     public static int GetGoodsPrice(Item _item)

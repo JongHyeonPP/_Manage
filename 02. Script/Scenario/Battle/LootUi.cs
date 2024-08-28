@@ -6,13 +6,24 @@ using ItemCollection;
 using UnityEngine.UI;
 using System.Linq;
 using TMPro;
+using EnumCollection;
 public class LootUi : MonoBehaviour
 {
+    [SerializeField] TMP_Text textTitle;
     public Transform panelMain;
     public Transform panelSub;
     [SerializeField] TMP_Text textGold;
     private List<MainLootSlot> mainLootSlots;
     private List<SubLootSlot> subLootSlots;
+    private void Awake()
+    {
+        SettingManager.LanguageChangeEvent += OnLanguageChange;
+        OnLanguageChange();
+    }
+    private void OnLanguageChange()
+    {
+        textTitle.text = GameManager.language == Language.Ko ? "Àü¸®Ç°" : "Loot";
+    }
     public void InitLootUi()
     {
         mainLootSlots = new List<MainLootSlot>();

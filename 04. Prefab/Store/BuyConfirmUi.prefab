@@ -467,11 +467,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3392386740080593981}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 3.6500244, y: -7.5300293}
-  m_SizeDelta: {x: 33.599937, y: 50}
-  m_Pivot: {x: 0.5, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 3.6500015, y: 21.469982}
+  m_SizeDelta: {x: 260.6, y: 38.1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5669259522432447635
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -500,7 +500,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC544\uC774\uD15C \uC774\uB984 (\uB178\uB9D0)"
+  m_text: Absorption Strike (Normal)
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
   m_sharedMaterial: {fileID: -6556917279671221155, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
@@ -527,12 +527,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 29.92
+  m_fontSize: 19.9
   m_fontSizeBase: 29.92
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 10
-  m_fontSizeMax: 20
+  m_fontSizeMax: 41.6
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -909,10 +909,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2423077673444853124}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 3.6500244, y: -28.6}
-  m_SizeDelta: {x: -34.50007, y: 50}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 3.6500473, y: -28.600006}
+  m_SizeDelta: {x: 322.4, y: 50}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &7913895019265396013
 CanvasRenderer:
@@ -942,7 +942,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC815\uB9D0 \uAD6C\uB9E4\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"
+  m_text: Are you sure you want to buy?
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
   m_sharedMaterial: {fileID: -6556917279671221155, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
@@ -969,12 +969,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 33.1
+  m_fontSize: 21.5
   m_fontSizeBase: 33.1
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 10
-  m_fontSizeMax: 20
+  m_fontSizeMax: 29.2
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512

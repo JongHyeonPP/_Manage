@@ -21,7 +21,6 @@ public class InventorySlot : SlotBase
     public TMP_Text textAmount;
     public GameObject imageNoSelect;
     public TMP_Text textPokerNum;
-
     private new void Awake()
     {
         base.Awake();
@@ -288,9 +287,15 @@ public class InventorySlot : SlotBase
                 float speed = newWeapon.speed - previousWeapon.resist;
                 ItemManager.itemManager.inventoryUi.parentStatusUp.StartShowTextsStatus(0f, maxHp, ability, resist, speed);
                 targetCharacter.ChangeWeapon(newWeapon);
+                targetCharacter.maxHp += maxHp;
+                targetCharacter.ability += ability;
+                targetCharacter.resist += resist;
+                targetCharacter.speed += speed;
+                ItemManager.itemManager.inventoryUi.SetStatusSlotText();
                 if (GameManager.gameManager.characterList.IndexOf(targetCharacter) == 0)
                 {
-                    StageScenarioBase.stageCanvas.characterInStage.characterHierarchy.SetWeaponSprite(newWeapon);
+                    if (StageScenarioBase.stageCanvas)
+                        StageScenarioBase.stageCanvas.characterInStage.characterHierarchy.SetWeaponSprite(newWeapon);
                 }
                 break;
             case ItemType.Skill:
@@ -360,9 +365,6 @@ public class InventorySlot : SlotBase
             tooltip.SetTooltipInfo(ci.item);
         }
     }
-
-
-
     public void OnPointerExit()
     {
         if (!isSelected)
@@ -406,7 +408,7 @@ public class InventorySlot : SlotBase
                         }
                         break;
                     case ItemType.Food:
-                        Debug.Log("요리 클릭클릭");
+                        ItemManager.itemManager.SetEatFoodUi(this);
                         break;
                 }
                 if (ItemManager.itemManager.inventoryUi.targetEquipSlot)

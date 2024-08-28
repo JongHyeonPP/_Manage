@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,12 +21,16 @@ public class StoreUi : MonoBehaviour
     [SerializeField] SellUi sellUi;
     [SerializeField] BuyConfirmUi buyConfirmUi;
     public List<GoodsPanel> goodsPanels;
+
+    [SerializeField] TMP_Text textTitle;
+    [SerializeField] TMP_Text textSell;
     private void Awake()
     {
         imageSell.gameObject.SetActive(false);
         sellUi.gameObject.SetActive(false);
         buyConfirmUi.gameObject.SetActive(false);
     }
+
     private void OnEnable()
     {
         SetInventorySlots();
@@ -33,6 +38,11 @@ public class StoreUi : MonoBehaviour
         GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = false;
         GameManager.storeScenario.raycastBlock.SetActive(true);
         raycastBlock.gameObject.SetActive(false);
+        goodsPanels[0].textTitle.text = GameManager.language == Language.Ko ? "무기" : "Weapon";
+        goodsPanels[1].textTitle.text = GameManager.language == Language.Ko ? "스킬" : "Skill";
+        goodsPanels[2].textTitle.text = GameManager.language == Language.Ko ? "고급" : "Premium";
+        textTitle.text = GameManager.language == Language.Ko ? "상점" : "Store";
+        textSell.text = GameManager.language == Language.Ko ? "판매하기" : "Sell";
     }
     private void OnDisable()
     {

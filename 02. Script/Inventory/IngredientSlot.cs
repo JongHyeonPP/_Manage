@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class IngredientSlot : SlotBase
+public class IngredientSlot : SlotBase, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public TMP_Text textPokerNum;
     public TMP_Text textAmount;
@@ -51,5 +52,20 @@ public class IngredientSlot : SlotBase
     public void OnPointerExit()
     {
         HighlightOff();
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        parentScrollView.OnBeginDrag(eventData);
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        parentScrollView.OnDrag(eventData);
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        parentScrollView.OnEndDrag(eventData);
     }
 }

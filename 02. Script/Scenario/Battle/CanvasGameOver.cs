@@ -22,18 +22,22 @@ public class CanvasGameOver : MonoBehaviour
     [SerializeField] TMP_Text textButton;
 
     private int fameScore;
-    public async void SetScore(int _enemyNum, int _destinationNum, int _bossNum, int _foodNum)
+    public async void SetScore()
     {
+        int enemyNum = GameManager.gameManager.enemyNum;
+        int destinationNum = GameManager.gameManager.destinationNum;
+        int bossNum = GameManager.gameManager.bossNum;
+        int foodNum = GameManager.gameManager.foodNum;
         imageButton.gameObject.SetActive(false);
-        int enemyScore = GetScore(ScoreType.Enemy, _enemyNum);
-        int destinationScore = GetScore(ScoreType.Destination, _destinationNum);
-        int bossScore = GetScore(ScoreType.Boss, _bossNum);
-        int foodScore = GetScore(ScoreType.Food, _foodNum);
+        int enemyScore = GetScore(ScoreType.Enemy, enemyNum);
+        int destinationScore = GetScore(ScoreType.Destination, destinationNum);
+        int bossScore = GetScore(ScoreType.Boss, bossNum);
+        int foodScore = GetScore(ScoreType.Food, foodNum);
         fameScore = enemyScore + destinationScore + bossScore + foodScore;
-        scoreSlotEnemy.SetScore(_enemyNum, enemyScore);
-        scoreSlotDestination.SetScore(_destinationNum, destinationScore);
-        scoreSlotBoss.SetScore(_bossNum, bossScore);
-        scoreSlotFood.SetScore(_foodNum, foodScore);
+        scoreSlotEnemy.SetScore(enemyNum, enemyScore);
+        scoreSlotDestination.SetScore(destinationNum, destinationScore);
+        scoreSlotBoss.SetScore(bossNum, bossScore);
+        scoreSlotFood.SetScore(foodNum, foodScore);
 
         await SetFame(fameScore);
         StartCoroutine(AllMoveCoroutine());
@@ -92,10 +96,9 @@ public class CanvasGameOver : MonoBehaviour
     [ContextMenu("GameOverTest")]
     public void GameOverTest()
     {
-        BattleScenario battleScenario = FindAnyObjectByType<BattleScenario>();
-        battleScenario.canvasBattle.gameObject.SetActive(false);
+        FindAnyObjectByType<BattleScenario>()?.canvasBattle.gameObject.SetActive(false);
         gameObject.SetActive(true);
-        SetScore(3, 3, 3, 3);
+        SetScore();
     }
     private IEnumerator FadeInButton(float duration)
     {

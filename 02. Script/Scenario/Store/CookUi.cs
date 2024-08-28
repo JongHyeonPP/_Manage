@@ -24,10 +24,15 @@ public class CookUi : MonoBehaviour
     public List<GradeStar> gradeStars;
     public Image imageFire;
     public TMP_Text textName;
+    public bool isOperating;
+    [SerializeField] TMP_Text textTitle;
+    [SerializeField] TMP_Text textReset;
+    [SerializeField] TMP_Text textCreate;
     private void Start()
     {
         if (!GameManager.gameManager)
             return;
+        isOperating = false;
         textResult.text = (GameManager.language == Language.Ko) ? "노 카드" : "No Card";
         imageResult.gameObject.SetActive(false);
         textName.text = string.Empty;
@@ -42,7 +47,20 @@ public class CookUi : MonoBehaviour
         SetCiesToScrollView(GetSortedItemsByType(cies, IngredientType.Vegetable), vegetableView);
         imageFire.gameObject.SetActive(false);
     }
-
+    private void OnDisable()
+    {
+        ResetPoker();
+        GameManager.storeScenario.raycastBlock.SetActive(false);
+        GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = true;
+    }
+    private void OnEnable()
+    {
+        GameManager.storeScenario.raycastBlock.SetActive(true);
+        GameManager.gameManager.buttonInventory.enabled = GameManager.gameManager.buttonSetting.enabled = false;
+        textTitle.text = GameManager.language == Language.Ko ? "요리" : "Cook";
+        textReset.text = GameManager.language == Language.Ko ? "초기화" : "Reset";
+        textCreate.text = GameManager.language == Language.Ko ? "요리하기" : "Cooking";
+    }
     private List<CountableItem> GetSortedItemsByType(IEnumerable<CountableItem> items, IngredientType type)
     {
         return items
@@ -131,7 +149,6 @@ public class CookUi : MonoBehaviour
 
     public PokerCombination EvaluateHand(List<IngredientClass> _hand)
     {
-
 
         // 손에 있는 카드를 정렬
         var sortedHand = _hand.OrderBy(card => card.pokerNum).ToList();
@@ -325,6 +342,8 @@ private bool IsFullHouse(List<IngredientClass> hand)
     }
     public void ResetPoker()
     {
+        if (isOperating)
+            return;
         foreach (PokerSlot slot in pokerSlots)
         {
             if (slot.ingredient == null)
@@ -342,6 +361,9 @@ private bool IsFullHouse(List<IngredientClass> hand)
     }
     public void CreateButtonClicked()
     {
+        if (isOperating)
+            return;
+
         if (pokerSlots.Select(data => data.ingredient).Contains(null))
         {
             GameManager.gameManager.SetPopUp("재료를 5개 선택해야합니다.", "5개");
@@ -352,6 +374,7 @@ private bool IsFullHouse(List<IngredientClass> hand)
         }
         else
         {
+            isOperating = true;
             StartCoroutine(CreateCoroutine());
         }
     }
@@ -365,8 +388,28 @@ private bool IsFullHouse(List<IngredientClass> hand)
         }
         List<FoodClass> ableFoods = LoadManager.loadManager.foodDict.Values.Where(data => data.pokerCombination == currentCombination).ToList();
         FoodClass selectedFood = ableFoods[Random.Range(0, ableFoods.Count)];
+        if (selectedFood.foodEffect.targetRange == FoodTargetRange.One)
+        {
+            StatusType statusType;
+            switch (GameManager.AllocateProbability(0.25f, 0.25f, 0.25f, 0.25f))
+            {
+                default:
+                    statusType = StatusType.HpMax;
+                    break;
+                case 1:
+                    statusType = StatusType.Ability;
+                    break;
+                case 2:
+                    statusType = StatusType.Resist;
+                    break;
+                case 3:
+                    statusType = StatusType.Speed;
+                    break;
+            }
+            selectedFood.SetStatusType(statusType);
+        }
         ItemManager.itemManager.SetItemToAbleIndex(new(selectedFood));
-        //ItemManager.itemManager.SetInventoryAtDb();
+        ItemManager.itemManager.SetInventoryAtDb();
 
 
         imageResult.gameObject.SetActive(false);
@@ -402,6 +445,7 @@ private bool IsFullHouse(List<IngredientClass> hand)
         textName.text = selectedFood.name[GameManager.language];
 
         textResult.text = "";
+        isOperating = false;
     }
     private IEnumerator FadeInOut(Image _image, float _duration, bool _isFadeIn)
     {
@@ -422,13 +466,11 @@ private bool IsFullHouse(List<IngredientClass> hand)
         color.a = _isFadeIn ? 1f : 0f;
         _image.color = color;
     }
-    private void OnDisable()
+
+    public void OnExitButtonClick()
     {
-        ResetPoker();
-        GameManager.storeScenario.raycastBlock.SetActive(false);
-    }
-    private void OnEnable()
-    {
-        GameManager.storeScenario.raycastBlock.SetActive(true);
+        if (isOperating)
+            return;
+        gameObject.SetActive(false);
     }
 }

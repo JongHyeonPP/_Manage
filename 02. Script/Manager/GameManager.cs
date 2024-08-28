@@ -24,6 +24,7 @@ public class
 {
     public static GameManager gameManager;
     public Camera uiCamera;
+    public Camera popUpCamera;
     //public Difficulty difficulty;
     public static Language language;
     private string uid;
@@ -94,6 +95,7 @@ public class
             SceneManager.sceneLoaded += OnSceneLoaded;
             DontDestroyOnLoad(gameObject);
             DontDestroyOnLoad(uiCamera);
+            DontDestroyOnLoad(popUpCamera);
             DontDestroyOnLoad(canvasGrid);
             InitGrids();
             uiCamera.gameObject.SetActive(true);
@@ -157,15 +159,18 @@ public class
         Dictionary<string, object> docDict = new();
         if (_arg0.name != "Awake")
         {
-            var mainCameraData = Camera.main.GetComponent<UniversalAdditionalCameraData>();
-            var uiCameraData = uiCamera.GetComponent<UniversalAdditionalCameraData>();
-            if (mainCameraData != null && uiCameraData != null)
+            UniversalAdditionalCameraData mainCameraData = Camera.main.GetComponent<UniversalAdditionalCameraData>();
+            UniversalAdditionalCameraData uiCameraData = uiCamera.GetComponent<UniversalAdditionalCameraData>();
+            UniversalAdditionalCameraData popUpCameraData = popUpCamera.GetComponent<UniversalAdditionalCameraData>();
+            if (mainCameraData != null)
             {
                 // Overlay 카메라의 Render Type을 Overlay로 설정
                 uiCameraData.renderType = CameraRenderType.Overlay;
+                popUpCameraData.renderType = CameraRenderType.Overlay;
 
                 // Base 카메라의 Stack에 Overlay 카메라 추가
                 mainCameraData.cameraStack.Add(uiCamera);
+                mainCameraData.cameraStack.Add(popUpCamera);
             }
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Loading"&& _arg0.name != "Lobby")
@@ -258,6 +263,7 @@ public class
             {
                 case "Battle":
                     await BattleScenario.LoadEnemy();
+                    BattleScenario.currentBackground = LoadManager.loadManager.nodeTypesDict[StageScenarioBase.nodeTypes.Where(item => item != null).Last()].backgroundType;
                     break;
                 case "Stage":
                     scene += StageScenarioBase.stageNum;
@@ -508,10 +514,6 @@ public class
                 }
                 weaponName = splittedStr[1];
                  weapon = LoadManager.loadManager.weaponDict[weaponType][weaponName];
-                hp += weapon.hp;
-                ability += weapon.ability;
-                speed += weapon.speed;
-                resist += weapon.resist;
             }
             else
             {
@@ -582,12 +584,12 @@ public class
         return LoadManager.loadManager.jobsDict[jobId];
     }
 
-    public GameObject GetEnemyPrefab(string _characterId)
+    public GameObject GetEnemyPrefab(string _characterId, float _scale)
     {
         GameObject enemyObject = Instantiate(Resources.Load<GameObject>(string.Format("Prefab/Enemy/" + _characterId)));
 
             Transform body = enemyObject.transform.GetChild(0);
-            body.localScale = Vector3.one * 60f;
+            body.localScale = Vector3.one * 60f * _scale;
             var sortingGroup = body.gameObject.AddComponent<SortingGroup>();
             sortingGroup.sortingOrder = 0;
             Vector3 curRot = body.eulerAngles;
@@ -650,21 +652,27 @@ public class
     }
 
     public async void GameOver()
-    { 
+    {
+        canvasGameOver.SetScore();
+        canvasGameOver.gameObject.SetActive(true);
+        await ResetGame();
+    }
+
+    public async Task ResetGame()
+    {
         scene = null;
         progressDoc = null;
-        canvasGameOver.gameObject.SetActive(true);
-        canvasGameOver.SetScore(enemyNum, destinationNum, bossNum, foodNum);
         canvasGrid.gameObject.SetActive(false);
         StageScenarioBase.state = StateInMap.NeedPhase;
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
         {
             await BattleScenario.ClearCharacterAsync();
             await BattleScenario.ClearEnemyAsync();
-            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(GameManager.gameManager.Uid);
+            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
             await documentRef.DeleteAsync();
         });
     }
+
     public void SetPopUp(string _content, string _emphasizeStr = "")
     {
         StartCoroutine(popupUi.SetContent(_content, _emphasizeStr));

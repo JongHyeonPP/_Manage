@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class IngredientScrollView : CustomScrollRect
+public class IngredientScrollView : ScrollRect
 {
     public new RectTransform content;
     public GameObject ingredientSlotObj;

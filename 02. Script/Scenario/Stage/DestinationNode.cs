@@ -13,7 +13,6 @@ public class DestinationNode : MonoBehaviour
 
     public Image imageName;
     public TMP_Text textName;
-
     public Image buttonDot;
 
     public Image imageObject;
@@ -26,6 +25,20 @@ public class DestinationNode : MonoBehaviour
 
     public NodeType nodeType;
     public readonly static Color storeColor = new Color(0.773f, 0.94f, 0.773f, 0.7f);
+    private void Awake()
+    {
+        OnLangaugeChange();
+        SettingManager.LanguageChangeEvent += OnLangaugeChange;
+    }
+    private void OnLangaugeChange()
+    {
+        if (textEnter && textEnter.gameObject.activeSelf)
+            textEnter.text = GameManager.language == Language.Ko ? "들어가기" : "Enter";
+        if (textName && textName.gameObject.activeSelf&&nodeType!=null)
+            textName.text = nodeType.name[GameManager.language];
+        
+    }
+    
     public IEnumerator GraduallyAscendBaseAlpha()
     {
         float curAlpha = 0f;
@@ -80,7 +93,12 @@ public class DestinationNode : MonoBehaviour
 
     private IEnumerator MoveWaitCor()
     {
+        if (transform.position.x > StageScenarioBase.stageCanvas.currentNode.transform.position.x)
+        {
+            StageScenarioBase.stageCanvas.characterInStage.transform.localRotation = Quaternion.Euler(new Vector3(0f, 180f,0f));
+        }
         yield return StageScenarioBase.stageCanvas.CharacterMove(this);
+        StageScenarioBase.stageCanvas.characterInStage.transform.localRotation = Quaternion.Euler(new Vector3(0f, 0f, 0f));
         if (StageScenarioBase.stageCanvas.currentNode.imageName)
             StartCoroutine(GameManager.FadeUi(StageScenarioBase.stageCanvas.currentNode.imageName, 1f, false));
         if (StageScenarioBase.stageCanvas.currentNode.textName)
@@ -132,7 +150,10 @@ public class DestinationNode : MonoBehaviour
         if (nodeType.backgroundType == BackgroundType.Store)
             LoadingScenario.LoadScene("Store");
         else
+        {
+            BattleScenario.currentBackground = nodeType.backgroundType;
             LoadingScenario.LoadScene("Battle");
+        }
         GameManager.gameManager.destinationNum++;
         await DataManager.dataManager.SetDocumentData("DestinationNum", GameManager.gameManager.destinationNum, "Progress", GameManager.gameManager.Uid);
     }
@@ -187,8 +208,9 @@ public class DestinationNode : MonoBehaviour
     {
         textName.text = nodeType.name[GameManager.language];
         RectTransform rectTransform = imageName.rectTransform;
-        Canvas.ForceUpdateCanvases();
-        rectTransform.sizeDelta = new Vector2(Mathf.Max(180f, textName.preferredWidth + 50) , rectTransform.sizeDelta.y);
+
+        rectTransform.sizeDelta = new Vector2(Mathf.Max(180f, textName.preferredWidth*0.8f + 50) , rectTransform.sizeDelta.y);
+        //Canvas.ForceUpdateCanvases();
     }
     public void OnPointerEnter()
     {
@@ -217,7 +239,7 @@ public class DestinationNode : MonoBehaviour
         lootExplain.SetExplain(skillCategori, skillGrade, ingredientType);
         lootExplain.transform.position = transform.position;
         float screenYProportion = RectTransformUtility.WorldToScreenPoint(Camera.main, transform.position).y / Screen.height;
-        Debug.Log(screenYProportion);
+        //Debug.Log(screenYProportion);
         if (screenYProportion > 0.64f)
             lootExplain.transform.localPosition = new Vector3(lootExplain.transform.localPosition.x, 100f, lootExplain.transform.localPosition.y);
         else

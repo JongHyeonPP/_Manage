@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 public class ApplicantSlot : MonoBehaviour
 {
-    public RecruitUi recruitUi;
+    private RecruitUi recruitUi;
     public float Hp { get; private set; }
     public float Ability { get; private set; }
     public float Speed { get; private set; }
@@ -37,7 +37,16 @@ public class ApplicantSlot : MonoBehaviour
         IsActived = false;
         isSelected = false;
         textSelect = objectSelect.transform.GetChild(0).GetComponent<TMP_Text>();
+        OnLanguageChange();
+        SettingManager.LanguageChangeEvent += OnLanguageChange;
 
+    }
+    private void OnLanguageChange()
+    {
+        if (isSelected)
+            textSelect.text = GameManager.language == Language.Ko ? "해제" : "Deselect";
+        else
+            textSelect.text = GameManager.language == Language.Ko ? "선택" : "Select";
     }
     private void Start()
     {
@@ -275,7 +284,7 @@ public class ApplicantSlot : MonoBehaviour
             if (currentSelectedNum != -1)//성공 여부
             {
                 isSelected = true;
-                textSelect.text = "해제";
+                textSelect.text = GameManager.language == Language.Ko ? "해제" : "Deselect";
                 imageNum.gameObject.SetActive(true);
                 imageNum.sprite = numberTexture[currentSelectedNum];
             }
@@ -284,7 +293,7 @@ public class ApplicantSlot : MonoBehaviour
         {
             recruitUi.RemoveSelectedSlot(this);
             isSelected = false;
-            textSelect.text = "선택";
+            textSelect.text = GameManager.language == Language.Ko ? "선택" : "Select";
             imageNum.gameObject.SetActive(false);
         }
 

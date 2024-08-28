@@ -16,8 +16,17 @@ public class SellUi : MonoBehaviour
     [SerializeField] TMP_Text textConfirm;
     [SerializeField] TMP_Text textTotalPrice;
     [SerializeField] TMP_InputField inputFieldAmount;
-
-    
+    private void OnEnable()
+    {
+        GameManager.storeScenario?.storeUi.raycastBlock.gameObject.SetActive(true);
+        textExplain.text = GameManager.language == Language.Ko ? "판매 수량을 입력하세요." : "Enter the quantity to sell.";
+        textReturn.text = GameManager.language == Language.Ko ? "돌아가기" : "Go back";
+        textConfirm.text = GameManager.language == Language.Ko ? "판매하기" : "Sell";
+    }
+    private void OnDisable()
+    {
+        GameManager.storeScenario.storeUi.raycastBlock.gameObject.SetActive(false);
+    }
     public void SetInventorySlot(InventorySlot_Store _slot)
     {
         slot = _slot;
@@ -78,12 +87,5 @@ public class SellUi : MonoBehaviour
         inputFieldAmount.text = amount.ToString();
         textTotalPrice.text = (amount * sellPrice).ToString("F0");
     }
-    private void OnEnable()
-    {
-        GameManager.storeScenario?.storeUi.raycastBlock.gameObject.SetActive(true);
-    }
-    private void OnDisable()
-    {
-        GameManager.storeScenario.storeUi.raycastBlock.gameObject.SetActive(false);
-    }
+
 }

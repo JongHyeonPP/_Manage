@@ -137,7 +137,10 @@ public class ItemTooltip : MonoBehaviour
             }
         }
         textGrade.text = gradeStr;
-        textExplain.text = _item.explain[GameManager.language];
+        if (_item.itemType == ItemType.Food)
+            textExplain.text = ((FoodClass)_item).GetExplain();
+        else
+            textExplain.text = _item.explain[GameManager.language];
         float width = rectTransform.rect.width;
         float height = baseHeight + textExplain.preferredHeight;
         float yCorrection =  textExplain.preferredHeight;

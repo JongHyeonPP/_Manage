@@ -249,7 +249,7 @@ public class LobbyScenario : MonoBehaviour
     }
     public void OnPointerEnter_Slot(UpgradeSlot _upgradeSlot)
     {
-        upgradeExplainUi.gameObject.SetActive(true);
+        upgradeExplainUi.gameObject.SetActive(true);//dd
         upgradeExplainUi.gameObject.transform.position = _upgradeSlot.transform.position + new Vector3(-0.2f, 0f, 0f);
 
         UpgradeClass upgradeClass = LoadManager.loadManager.upgradeDict[_upgradeSlot.curId];
@@ -275,8 +275,9 @@ public class LobbyScenario : MonoBehaviour
             next = string.Empty;
         }
         upgradeExplainUi.SetInfo(cur, next);
-
         upgradeExplainUi.SetSize();
+
+
     }
     public void OnPointerExit_Slot()
     {
@@ -334,6 +335,7 @@ public class LobbyScenario : MonoBehaviour
         });
         GameManager.gameManager.ChangeGold(0);
         StageScenarioBase.stageNum = 0;
+        StageScenarioBase.state = StateInMap.NeedPhase;
         SceneManager.LoadScene("Stage0");
         
     }

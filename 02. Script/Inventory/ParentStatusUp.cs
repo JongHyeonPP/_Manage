@@ -11,23 +11,13 @@ public class ParentStatusUp : MonoBehaviour
     private List<IEnumerator> coroutineQueue = new List<IEnumerator>();
     private Queue<TMP_Text> textPool = new Queue<TMP_Text>(); // TMP_Text 오브젝트 풀
 
-    private void Awake()
-    {
-        // 초기 텍스트 오브젝트 생성
-        for (int i = 0; i < 10; i++)
-        {
-            CreateNewText();
-        }
-    }
-
     private TMP_Text CreateNewText()
     {
         TMP_Text newText = Instantiate(textPrefab, transform);
-        newText.gameObject.SetActive(false);
-        textPool.Enqueue(newText);
+        newText.gameObject.SetActive(true);
         return newText;
     }
-
+    //발동 메서드
     public void StartShowTextsStatus(float _hp, float _maxHp, float _ability, float _resist, float _speed)
     {
         // 새 코루틴을 대기열에 추가
@@ -175,9 +165,27 @@ public class ParentStatusUp : MonoBehaviour
                 return new Color(0.08f, 0.16f, 0.9f);//1429E6
         }
     }
-    [ContextMenu("Test")]
-    public void TestMethod()
+    private void StopAndResetAllCoroutines()
     {
-        StartShowTextsStatus(3f, 3f, 3f, 3f, -3f);
+        // 모든 코루틴 중지
+        StopAllCoroutines();
+
+        // 대기열 초기화
+        coroutineQueue.Clear();
+
+        // 활성화된 모든 텍스트를 큐로 되돌림
+        foreach (Transform child in transform)
+        {
+            TMP_Text textStatus = child.GetComponent<TMP_Text>();
+            if (textStatus != null && textStatus.gameObject.activeSelf)
+            {
+                textStatus.gameObject.SetActive(false);
+                textPool.Enqueue(textStatus);
+            }
+        }
+    }
+    private void OnDisable()
+    {
+        StopAndResetAllCoroutines();
     }
 }

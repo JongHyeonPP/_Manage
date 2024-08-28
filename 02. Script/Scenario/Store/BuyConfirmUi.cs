@@ -20,8 +20,16 @@ public class BuyConfirmUi : MonoBehaviour
     private void Start()
     {
         storeUi = GameManager.storeScenario.storeUi;
+    }
+    private void OnEnable()
+    {
+        GameManager.storeScenario?.storeUi.raycastBlock.gameObject.SetActive(true);
         textConfirm.text = GameManager.language == Language.Ko ? "구매하기" : "Buy";
         textReturn.text = GameManager.language == Language.Ko ? "돌아가기" : "Go back";
+    }
+    private void OnDisable()
+    {
+        GameManager.storeScenario.storeUi.raycastBlock.gameObject.SetActive(false);
     }
     public void SetItemPrice(GoodsSlot _goodsSlot)
     {
@@ -29,7 +37,7 @@ public class BuyConfirmUi : MonoBehaviour
         Item item = goodsSlot.item;
         int price = goodsSlot.price;
         item.SetSpriteToImage(imageItem);
-        textExplain.text = GameManager.language == Language.Ko ? "정말 구매하시겠습니까?" : "Are you sure you want to buy?";
+        textExplain.text = GameManager.language == Language.Ko ? "정말 구매하시겠습니까?" : "Do you want to buy?";
         textName.text = item.name[GameManager.language];
         switch (item.itemGrade)
         {
@@ -62,14 +70,7 @@ public class BuyConfirmUi : MonoBehaviour
         }
         textPrice.text = price.ToString();
     }
-    private void OnEnable()
-    {
-        GameManager.storeScenario?.storeUi.raycastBlock.gameObject.SetActive(true);
-    }
-    private void OnDisable()
-    {
-        GameManager.storeScenario.storeUi.raycastBlock.gameObject.SetActive(false);
-    }
+
     public async void OnConfirmButtonClick()
     {
         Item item = goodsSlot.item;

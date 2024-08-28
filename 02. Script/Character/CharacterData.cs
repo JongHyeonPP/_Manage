@@ -69,7 +69,12 @@ public class CharacterData:MonoBehaviour
         {
             { "WeaponId", weapon.itemId },
             { "JobId", jobClass.jobId},
-            {"Exp", exp }
+            {"Exp", exp },
+            {"MaxHp", maxHp },
+            {"Hp", hp },
+            {"Ability", ability },
+            {"Resist", resist },
+            {"Speed", speed },
         };
         if (skillAsItems[0] != null)
         {

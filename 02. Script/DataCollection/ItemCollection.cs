@@ -90,11 +90,13 @@ namespace ItemCollection
             }
         }
     }
-    public class FoodClass:Item
+    public class FoodClass : Item
     {
         public PokerCombination pokerCombination;
+        public FoodEffect foodEffect;
+        public StatusType statusType;
 
-        public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name,_explain, _sprite, _scale, _position)
+        public FoodClass(ItemType _itemType, string _itemId, ItemGrade _itemGrade, Dictionary<Language, string> _name, Dictionary<Language, string> _explain, Sprite _sprite, Vector2 _scale, Vector2 _position) : base(_itemType, _itemId, _itemGrade, _name, _explain, _sprite, _scale, _position)
         {
             itemType = _itemType;
             itemId = _itemId;
@@ -103,11 +105,139 @@ namespace ItemCollection
             sprite = _sprite;
             position = _position;
             scale = _scale;
+
         }
         public FoodClass SetPokerCombination(PokerCombination _pokerCombination)
         {
             pokerCombination = _pokerCombination;
             return this;
+        }
+        public FoodClass SetFoodEffect(FoodEffect _foodEffect)
+        {
+            foodEffect = _foodEffect;
+            return this;
+        }
+        public FoodClass SetStatusType(StatusType _statusType)
+        {
+            statusType = _statusType;
+            return this;
+        }
+        public string GetExplain()
+        {
+            List<string> allField = new() { "HealAmount", "StatusType", "TargetRange", "StatusValue" };
+            string replacedStr = explain[GameManager.language];
+            foreach (var field in allField)
+            {
+                replacedStr = ReplaceByRegex(replacedStr, field);
+            }
+            return replacedStr;
+            string ReplaceByRegex(string _origin, string _field)
+            {
+                string fontColor = string.Empty;
+                string fontSize = string.Empty;
+                string replacedStr = _origin;
+                switch (_field)
+                {
+                    case "HealAmount":
+                        fontColor = "#0096FF";
+                        fontSize = "120%";
+                        break;
+                    case "StatusValue":
+                        fontColor = "#4C4CFF";
+                        fontSize = "120%";
+                        break;
+                }
+                // 정규식 패턴 문자열 생성, % 포함 여부도 확인
+                string pattern = $@"\{{{_field}\}}(\%)?";
+                Regex regex = new Regex(pattern);
+
+                MatchCollection matches = regex.Matches(_origin);
+
+                foreach (Match match in matches)
+                {
+                    bool isPercent = match.Groups[1].Success; // % 기호 존재 여부 확인
+
+                    string valueStr = string.Empty;
+                    switch (_field)
+                    {
+                        default://HealAMount
+                            float healValue = foodEffect.healAmount;
+                            if (isPercent)
+                            {
+                                healValue *= 100;
+                            }
+                            valueStr = healValue.ToString("F0");
+                            break;
+                        case "StatusType":
+                            switch (statusType)
+                            {
+                                case StatusType.HpMax:
+                                    valueStr = GameManager.language == Language.Ko ? "최대 채력을" : "Max Hp";
+                                    break;
+                                case StatusType.Ability:
+                                    valueStr = GameManager.language == Language.Ko ? "능력을" : "Ability";
+                                    break;
+                                case StatusType.Resist:
+                                    valueStr = GameManager.language == Language.Ko ? "저항력을" : "Resist";
+                                    break;
+                                case StatusType.Speed:
+                                    valueStr = GameManager.language == Language.Ko ? "속도를" : "Speed";
+                                    break;
+                            }
+                            break;
+                        case "StatusValue":
+                            if (statusType == StatusType.Speed)
+                            {
+                                valueStr = foodEffect.statusValue[statusType].ToString("F1");
+                            }
+                            else
+                            {
+                                valueStr = foodEffect.statusValue[statusType].ToString("F0");
+                            }
+                            break;
+                        case "TargetRange":
+                            switch (foodEffect.targetRange)
+                            {
+                                case FoodTargetRange.One:
+                                    valueStr = GameManager.language == Language.Ko ? "한 명" : "One";
+                                    break;
+                                case FoodTargetRange.All:
+                                    valueStr = GameManager.language == Language.Ko ? "모두" : "All";
+                                    break;
+                            }
+                            break;
+                    }
+
+                    if (isPercent)
+                        valueStr += "%";
+                    switch (_field)
+                    {
+                        case "HealAmount":
+                        case "StatusValue":
+                            string richF = $"<color={fontColor}><size={fontSize}><b>";
+                            string richB = "</b></size></color>";
+                            valueStr = richF + valueStr + richB;
+                            break;
+                    }
+                    replacedStr = replacedStr.Replace(match.Value, valueStr);
+                }
+
+                replacedStr = replacedStr.Replace("\\n", "\n");
+                return replacedStr;
+            }
+        }
+    }
+    public class FoodEffect
+    {
+        public float healAmount;
+        public FoodTargetRange targetRange;
+        public Dictionary<StatusType, float> statusValue;
+        public FoodEffect(float _healAmount, FoodTargetRange _targetRange,
+            Dictionary<StatusType, float> _statusValue)
+        {
+            healAmount = _healAmount;
+            targetRange = _targetRange;
+            statusValue = _statusValue;
         }
     }
     public class WeaponClass:Item

@@ -972,11 +972,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7845609488113255643}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 3.6500244, y: -19.800003}
-  m_SizeDelta: {x: -34.50007, y: 50}
-  m_Pivot: {x: 0.5, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 3.6500473, y: 92.20003}
+  m_SizeDelta: {x: 327.9, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2099723136626499947
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1005,7 +1005,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD310\uB9E4 \uC218\uB7C9\uC744 \uC785\uB825\uD558\uC138\uC694."
+  m_text: Enter the quantity to sell.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
   m_sharedMaterial: {fileID: -6556917279671221155, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
@@ -1032,12 +1032,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 33.1
+  m_fontSize: 25.95
   m_fontSizeBase: 33.1
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 10
-  m_fontSizeMax: 20
+  m_fontSizeMax: 30.6
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1137,7 +1137,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5365401596932380092}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 0}
   m_ConstrainProportionsScale: 0
@@ -1151,8 +1151,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 27.75}
-  m_SizeDelta: {x: 385.9, y: 241.3}
+  m_AnchoredPosition: {x: 29.904762, y: 57.11429}
+  m_SizeDelta: {x: 400, y: 274.97}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2169724027608663243
 CanvasRenderer:

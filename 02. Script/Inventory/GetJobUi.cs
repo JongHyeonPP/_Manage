@@ -14,12 +14,16 @@ public class GetJobUi : MonoBehaviour
     public GameObject phase0;
     public CharacterHierarchy from;
     public CharacterHierarchy to;
+    public TMP_Text fromText;
     public TMP_Text toText;
+    public TMP_Text textExplain0;
+    public TMP_Text textNo;
+    public TMP_Text textYes;
     public Image imageJobIcon;
     //phase1
     public GameObject phase1;
     public CharacterHierarchy jobCh;
-    public TMP_Text textExplain;
+    public TMP_Text textExplain1;
 
     public ParticleSystem particle;
     readonly Dictionary<Language, string> explainStr = new Dictionary<Language, string> { { Language.Ko, "{jobName}로 전직했습니다!" }, { Language.En, "Promoted to {jobName}!" } };
@@ -27,19 +31,22 @@ public class GetJobUi : MonoBehaviour
     {
         from.animator.enabled = false;
         to.animator.enabled = false;
-
     }
     private void OnEnable()
     {
         phase0.SetActive(true);
         phase1.SetActive(false);
-        textExplain.gameObject.SetActive(false);
+        textExplain1.gameObject.SetActive(false);
         
-        ItemManager.itemManager.backgroundInventoryAdd.SetActive(true);
+        ItemManager.itemManager.InventoryRayBlock.SetActive(true);
+        fromText.text = GameManager.language == Language.Ko ? "무직" : "Jobless";
+        textExplain0.text = GameManager.language == Language.Ko ? "전직 이후에는 스킬 변경이 불가능하며 스킬 강화를 할 수 있습니다." : "After changing job, you cannot modify skills, but you can enhance them.";
+        textNo.text = GameManager.language == Language.Ko ? "돌아가기" : "Go Back";
+        textYes.text = GameManager.language == Language.Ko ? "전직하기" : "Change Job";
     }
     private void OnDisable()
     {
-        ItemManager.itemManager.backgroundInventoryAdd.SetActive(false);
+        ItemManager.itemManager.InventoryRayBlock.SetActive(false);
     }
 
     public void SetInfo(CharacterData _character)
@@ -65,11 +72,7 @@ public class GetJobUi : MonoBehaviour
     private IEnumerator NextJobPhaseCor()
     {
         SetJob();
-        FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
-        {
-            await ItemManager.itemManager.SetInventoryAtDb();
-            await ItemManager.itemManager.SetCharacterAtDb();
-        });
+        ItemManager.itemManager.SetInventoryAtDb();
         jobCh.CopyHierarchySprite(from);
         phase0.gameObject.SetActive(false);
         phase1.gameObject.SetActive(true);
@@ -79,9 +82,9 @@ public class GetJobUi : MonoBehaviour
         yield return StartCoroutine(jobCh.GraduallyChangeAlpha(false, 3f));
         jobCh.CopyHierarchySprite(to);
         StartCoroutine(jobCh.GraduallyChangeAlpha(true,3f));
-        textExplain.gameObject.SetActive(true);
+        textExplain1.gameObject.SetActive(true);
         string replaced = explainStr[GameManager.language].Replace("{jobName}", jobName);
-        textExplain.text = replaced;
+        textExplain1.text = replaced;
         jobCh.animator.enabled = true;
 
 

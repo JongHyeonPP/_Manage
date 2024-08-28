@@ -9,6 +9,7 @@ using TMPro;
 using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
+using UnityEngine.UIElements;
 
 public class ItemManager : MonoBehaviour
 {
@@ -33,6 +34,7 @@ public class ItemManager : MonoBehaviour
     public InventoryUi inventoryUi;
     public GetJobUi getJobUi;
     public UpgradeSkillUi upgradeSkillUi;
+    public EatFoodUi eatFoodUi;
 
     public Sprite book_Default;
     public Sprite book_P;
@@ -45,7 +47,7 @@ public class ItemManager : MonoBehaviour
     public static readonly Color sustainColor = new(1f, 1f, 0.34f);
     public static readonly Color utilColor = new(0.2003195f, 1f, 0.0235849f);
 
-    public GameObject backgroundInventoryAdd;
+    public GameObject InventoryRayBlock;
     public CharacterData selectedCharacter { get; set; }
 
     public bool isUpgradeCase;
@@ -58,8 +60,9 @@ public class ItemManager : MonoBehaviour
             itemManager = this;
             inventoryUi.gameObject.SetActive(false);
             getJobUi.gameObject.SetActive(false);
+            eatFoodUi.gameObject.SetActive(false);
             upgradeSkillUi.gameObject.SetActive(false);
-            backgroundInventoryAdd.gameObject.SetActive(false);
+            InventoryRayBlock.gameObject.SetActive(false);
             inventoryUi.InitInventory();
         }
     }
@@ -107,7 +110,7 @@ public class ItemManager : MonoBehaviour
         IngredientType ingredientType;
         SkillCategori skillCategori;
         ItemGrade skillGrade;
-        GetLootTypesByBackgroundType(StageScenarioBase.stageCanvas.currentNode.nodeType.backgroundType, out skillCategori, out skillGrade, out ingredientType);
+        GetLootTypesByBackgroundType(BattleScenario.currentBackground, out skillCategori, out skillGrade, out ingredientType);
         for (int i = 0; i < 2; i++)
         {
             int lootCase = GameManager.AllocateProbability(new float[] { 0.5f, 0.5f });
@@ -242,6 +245,9 @@ public class ItemManager : MonoBehaviour
                     itemId = ci.item.itemId +":::"+ ci.item.itemGrade.ToString();
                     typeStr = "Skill";
                     break;
+                case ItemType.Food:
+                    itemId = ci.item.itemId + ":::" + ((FoodClass)ci.item).statusType.ToString();
+                    break;
             }
             Dictionary<string, object> itemDict = new()
             {
@@ -255,20 +261,13 @@ public class ItemManager : MonoBehaviour
         {
             DataManager.dataManager.SetDocumentData("Inventory", setArr, "Progress", GameManager.gameManager.Uid);
             DataManager.dataManager.SetDocumentData("Gold", GameManager.gameManager.gold, "Progress", GameManager.gameManager.Uid);
+            foreach (CharacterData data in GameManager.gameManager.characterList)
+            {
+                if (data)
+                    data.SetCharacterAtDbAsync();
+            }
             return Task.CompletedTask;
         });
-
-
-    }
-    public Task SetCharacterAtDb()
-    {
-        foreach (CharacterData data in GameManager.gameManager.characterList)
-        {
-            if (data)
-                data.SetCharacterAtDbAsync();
-        }
-
-        return Task.CompletedTask;
     }
 
     
@@ -403,7 +402,16 @@ public class ItemManager : MonoBehaviour
                 returnValue = LoadManager.loadManager.ingredientDict[_id];
                 break;
             case ItemType.Food:
-                returnValue = LoadManager.loadManager.foodDict[_id];
+
+                string[] splitted = _id.Split(":::");
+                if (splitted.Length > 1)
+                {
+                    _id = splitted[0];
+                    System.Enum.TryParse(splitted[1], out StatusType statusType);
+                    returnValue = LoadManager.loadManager.foodDict[_id].SetStatusType(statusType);
+                }
+                else
+                    returnValue = LoadManager.loadManager.foodDict[_id];
                 break;
         }
         return returnValue;
@@ -539,5 +547,11 @@ public class ItemManager : MonoBehaviour
                 _skillGrade = ItemGrade.Normal;
                 break;
         }
+    }
+
+    public void SetEatFoodUi(InventorySlot _slot)
+    {
+        eatFoodUi.SetEatFoodUi(_slot);
+        eatFoodUi.gameObject.SetActive(true);
     }
 }

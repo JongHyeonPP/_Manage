@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using System;
+using UnityEngine.UI;
 public class UpgradeExplainUi : MonoBehaviour
 {
-    private TMP_Text textExplain;
-    private TMP_Text textInfo;
+    [SerializeField] TMP_Text textExplain;
+    [SerializeField] TMP_Text textInfo;
+    [SerializeField] Transform infoParent;
     float widthCorrection = 100f;
     float heightCorrection = 110f;
     public RectTransform rectTransform;
-    void Awake()
-    {
-        textExplain = transform.GetChild(0).GetComponent<TMP_Text>();
-        textInfo = transform.GetChild(1).GetComponent<TMP_Text>();
-    }
     public void SetExplain(string _explain)
     {
         textExplain.text = _explain;
@@ -32,8 +29,9 @@ public class UpgradeExplainUi : MonoBehaviour
     }
     public void SetSize()
     {
-        float width = Mathf.Max(textInfo.preferredWidth + widthCorrection, 500f);
+        Canvas.ForceUpdateCanvases();
         float height = textExplain.preferredHeight + textInfo.preferredHeight + heightCorrection;
-        GetComponent<RectTransform>().sizeDelta = new Vector3(width, height);
+        textInfo.transform.localPosition = new Vector3(0f,Mathf.Min(-50f, -textExplain.preferredHeight), 0f);
+        GetComponent<RectTransform>().sizeDelta = new Vector3(750f, Mathf.Max(230f, height));
     }
 }

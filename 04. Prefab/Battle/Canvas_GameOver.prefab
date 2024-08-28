@@ -218,7 +218,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 20
+  m_text: 754
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 87533aafd6776d849a2b2b0cee53d867, type: 2}
   m_sharedMaterial: {fileID: 4402271163713812080, guid: 87533aafd6776d849a2b2b0cee53d867, type: 2}
@@ -245,12 +245,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 43.3
+  m_fontSize: 38.75
   m_fontSizeBase: 43.3
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 10.8
-  m_fontSizeMax: 60.5
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 11
+  m_fontSizeMax: 40
   m_fontStyle: 0
   m_HorizontalAlignment: 4
   m_VerticalAlignment: 512
@@ -297,7 +297,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5171443722751840387}
   - component: {fileID: 8481656444039046394}
-  - component: {fileID: 5260277873320715292}
   - component: {fileID: 2269145900176475681}
   m_Layer: 5
   m_Name: ScoreSlot_Fame
@@ -334,21 +333,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2311592429717265375}
   m_CullTransparentMesh: 1
---- !u!114 &5260277873320715292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2311592429717265375}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3d8024eb93b1824abb4c5347446037a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  scoreType: 4
-  textType: {fileID: 2269145900176475681}
-  textScore: {fileID: 1672999238558703703}
 --- !u!114 &2269145900176475681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -369,7 +353,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD68D\uB4DD\uD55C \uBA85\uC131"
+  m_text: Clear All Stages
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 87533aafd6776d849a2b2b0cee53d867, type: 2}
   m_sharedMaterial: {fileID: 4402271163713812080, guid: 87533aafd6776d849a2b2b0cee53d867, type: 2}
@@ -721,7 +705,7 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 72.8, y: 100}
+  m_CellSize: {x: 73, y: 100}
   m_Spacing: {x: 21.9, y: 0}
   m_Constraint: 1
   m_ConstraintCount: 2
@@ -790,7 +774,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: (+21)
+  m_text: ' (+222)'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 87533aafd6776d849a2b2b0cee53d867, type: 2}
   m_sharedMaterial: {fileID: 4402271163713812080, guid: 87533aafd6776d849a2b2b0cee53d867, type: 2}
@@ -817,12 +801,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 35.2
+  m_fontSize: 30
   m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 35.2
-  m_fontSizeMax: 35.61
+  m_fontSizeMin: 30
+  m_fontSizeMax: 42
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1770,7 +1754,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1810050577526097453, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_text
-      value: "\uBA39\uC740 \uC74C\uC2DD \uC218\uC900 (3)"
+      value: Quality of food eaten (3)
       objectReference: {fileID: 0}
     - target: {fileID: 2272647578047652700, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_Name
@@ -1911,7 +1895,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1810050577526097453, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_text
-      value: "\uCC98\uCE58\uD55C \uBCF4\uC2A4 \uC218 (3)"
+      value: Number of bosses defeated (3)
       objectReference: {fileID: 0}
     - target: {fileID: 2272647578047652700, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_Name
@@ -2060,7 +2044,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1810050577526097453, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_text
-      value: "\uC774\uB3D9\uD55C \uBAA9\uC801\uC9C0 (3)"
+      value: Destination reached (3)
       objectReference: {fileID: 0}
     - target: {fileID: 1810050577526097453, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_fontColor.a
@@ -2217,7 +2201,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1810050577526097453, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_text
-      value: "\uCC98\uCE58\uD55C \uC801\uC758 \uC218 (3)"
+      value: Number of enemies defeated (3)
       objectReference: {fileID: 0}
     - target: {fileID: 1810050577526097453, guid: d4f6c98beea954d49b3c83679e243fe3, type: 3}
       propertyPath: m_fontColor.a

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6931582989906953986}
   - component: {fileID: 2277498434472850988}
   - component: {fileID: 355112172915812459}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Text_Explain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 5.7000427, y: -72.37}
-  m_SizeDelta: {x: -79.60005, y: 0}
+  m_AnchoredPosition: {x: 3.1825256, y: -88.96002}
+  m_SizeDelta: {x: -83.96503, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &6931582989906953986
 CanvasRenderer:
@@ -163,7 +163,7 @@ GameObject:
   - component: {fileID: 191878850260786346}
   - component: {fileID: 6139832016213071792}
   - component: {fileID: 985051073144760898}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: TalentExplainUi
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -177,7 +177,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8253771102361381686}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 0}
   m_ConstrainProportionsScale: 0
@@ -279,7 +279,7 @@ GameObject:
   - component: {fileID: 1656435215638685457}
   - component: {fileID: 207934072786100951}
   - component: {fileID: 8154146760320620445}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Text_Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -302,8 +302,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 5.7000427, y: -24.76}
-  m_SizeDelta: {x: -79.60005, y: 0}
+  m_AnchoredPosition: {x: 3.9500732, y: -28.105034}
+  m_SizeDelta: {x: -83.10004, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &1656435215638685457
 CanvasRenderer:
@@ -333,7 +333,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB2E8\uB2E8\uD55C \uC2E0\uCCB4 <size=120%>(\uB808\uBCA8 1)"
+  m_text: No Talent
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
   m_sharedMaterial: {fileID: -6556917279671221155, guid: 82fe826e666d71d4badfd3c9e7bf59cd, type: 2}
@@ -376,7 +376,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_enableWordWrapping: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}

@@ -41,12 +41,12 @@ public class UpgradeSkillUi : MonoBehaviour
         if (!ItemManager.itemManager)
             return;
         ItemManager.itemManager.isUpgradeCase = true;
-        ItemManager.itemManager.backgroundInventoryAdd.SetActive(true);
+        ItemManager.itemManager.InventoryRayBlock.SetActive(true);
         inventoryUi.SetCanvasForPanelInventory();
     }
     private void OnDisable()
     {
-        ItemManager.itemManager.backgroundInventoryAdd.SetActive(false);
+        ItemManager.itemManager.InventoryRayBlock.SetActive(false);
         Destroy(ItemManager.itemManager.inventoryUi.panelInventory.GetComponent<GraphicRaycaster>());
         Destroy(ItemManager.itemManager.inventoryUi.panelInventory.GetComponent<Canvas>());
         ItemManager.itemManager.isUpgradeCase = false;

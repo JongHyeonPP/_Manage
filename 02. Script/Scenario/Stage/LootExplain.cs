@@ -86,7 +86,7 @@ public class LootExplain : MonoBehaviour
                 text = GameManager.language == Language.Ko ? "랜덤" : "Random";
                 break;
         }
-        text = $"Ingredient :\n{text}";
+        text = $"{(GameManager.language==Language.Ko?"요리 재료": "Ingredient")} :\n{text}";
         lootSlotIngredient.SetContent(sprite, text, ItemGrade.None);
 
     }

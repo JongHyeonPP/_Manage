@@ -37,17 +37,7 @@ public class LoadingScenario : MonoBehaviour
         bool needDbLoad = !LoadManager.loadManager.isInit;
         bool needBattleInit = nextScene == "Battle";
 
-        if (needDbLoad)
-        {
-            // DB 초기화 진행
-            LoadManager.loadManager.LoadDbBaseData();
-        }
-
-        if (needBattleInit)
-        {
-            // 배틀 초기화 진행
-            BattleScenario.Init_BattleSetAsync();
-        }
+        LoadData(needDbLoad, needBattleInit);
 
         // 최소 로딩 시간 동안 0%에서 90%까지 진행
         while (timer < minimumLoadTime)
@@ -122,6 +112,21 @@ public class LoadingScenario : MonoBehaviour
             }
 
             yield return null;
+        }
+
+        async void LoadData(bool needDbLoad, bool needBattleInit)
+        {
+            if (needDbLoad)
+            {
+                // DB 초기화 진행
+                await LoadManager.loadManager.LoadDbBaseData();
+            }
+
+            if (needBattleInit)
+            {
+                // 배틀 초기화 진행
+                BattleScenario.Init_BattleSetAsync();
+            }
         }
     }
 

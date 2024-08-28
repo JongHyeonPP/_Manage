@@ -121,7 +121,7 @@ namespace EnumCollection
     }
     public enum StateInMap
     {
-        NeedPhase, NeedEnter,NeedMove, None
+        NeedEnter,NeedPhase,NeedMove, None
     }
     public enum PokerCombination
     {
@@ -130,10 +130,14 @@ namespace EnumCollection
     }
     public enum ScoreType
     {
-        Enemy, Destination, Boss, Food, Fame
+        Enemy, Destination, Boss, Food, StageClear, Fame
     }
     public enum GoodsType
     {
         Weapon, Skill, Premium
+    }
+    public enum FoodTargetRange
+    {
+        One, All
     }
 }

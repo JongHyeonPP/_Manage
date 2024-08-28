@@ -28,8 +28,19 @@ public class TalentSlot_Inventory : MonoBehaviour, IPointerEnterHandler, IPointe
         statusExplain.transform.localPosition = transform.localPosition + Vector3.right * 20f;
 
         string name = currentTalent.name[GameManager.language];
-        string levelText = currentTalent.effectLevel + 1 + ((GameManager.language == Language.Ko) ? "레벨" : "Lv");
-        statusExplain.SetExplain($"{name} ({levelText})", currentTalent.GetExplain());
+        if (currentTalent.talentId == "NoTalent")
+        {
+            statusExplain.SetExplain($"{name}", currentTalent.GetExplain());
+        }
+        else
+        {
+            string levelText;
+            if (GameManager.language == Language.Ko)
+                levelText = (currentTalent.effectLevel + 1) + " 레벨";
+            else
+                levelText = "Level " + (currentTalent.effectLevel + 1);
+            statusExplain.SetExplain($"{name} ({levelText})", currentTalent.GetExplain());
+        }
 
     }
 

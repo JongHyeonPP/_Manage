@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -101,7 +102,7 @@ abstract public class BaseInBattle : MonoBehaviour
             StopCoroutine(moveCoroutine);
         }
 
-        if (isInstant)
+        if (isInstant || isDead)
         {
             transform.SetParent(_grid.transform);
             transform.localPosition = Vector3.zero;
@@ -513,8 +514,8 @@ abstract public class BaseInBattle : MonoBehaviour
     public void StopBattle()
     {
         GameManager.battleScenario.regularEffect -= ActiveRegularEffect;
-        grid.owner = null;
         skillQueue.Clear();
+        
         //hpBarInScene.StopAllCoroutines();
         //if (hpBarInUi)
         //    hpBarInUi.StopAllCoroutines();
@@ -524,11 +525,13 @@ abstract public class BaseInBattle : MonoBehaviour
         FindNewTargetAlly();
         FindNewTargetOpponent();
         SetSkillsAndStart();
+        showBuffSlots.gameObject.SetActive(true);
     }
     private IEnumerator FadeOutCoroutine()
     {
-        SpriteRenderer[] spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
-        Image[] images = hpBarInScene.GetComponentsInChildren<Image>();
+        SpriteRenderer[] spriteRenderers =  GetComponentsInChildren<SpriteRenderer>();
+        Image[] images = GetComponentsInChildren<Image>();
+
         // 3초 동안 반복
         float timer = 0f;
         float coroutineTime = 2f;

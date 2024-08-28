@@ -1,5 +1,6 @@
 
 using EnumCollection;
+using Firebase.Firestore;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,23 +17,19 @@ public abstract class StageScenarioBase : MonoBehaviour
     public Volume volume;
     protected Vignette vignette;
 
-
     public static StageCanvas stageCanvas { get; set; }
     public static int phase;
     public LootExplain lootExplain;
 
-
     //public GameObject canvasPrefab;
     public static List<object> nodes { get; set; }//¸â¹ö´Â nodeÀÇ ÀÎµ¦½º int°ª
     public static string[] nodeTypes = new string[21];
-    protected static float targetIntensity;
-    protected static float targetSmoothness;
+
     [SerializeField] Camera overlayCamera;
     [SerializeField] StageTextUi stageTextUi;
 
-    protected virtual void Awake()
+    protected virtual async void Awake()
     {
-
         //Ui
         lootExplain.gameObject.SetActive(false);
         stageTextUi.gameObject.SetActive(false);
@@ -50,16 +47,8 @@ public abstract class StageScenarioBase : MonoBehaviour
         GameManager.stageScenario = this;
         if (stageCanvas == null)
         {
-            ///PhaseSet
-            if (nodes.Count == 0)
-            {
-                phase = -1;
 
-            }
-            else
-            {
-                phase = nodes.Where(item => item != null).Where(item=>item is not string).Count() - 1;
-            }
+            phase = nodes.Where(item => item != null).Where(item => item is not string).Count() - 1;
             MakeCanvas(stageNum);
 
             //CanvasSet
@@ -91,9 +80,9 @@ public abstract class StageScenarioBase : MonoBehaviour
             }
             else
             {
-                stageTextUi.gameObject.SetActive(true);
                 stageTextUi.StageStart();
             }
+
             stageCanvas.SetCharacterToCurrentNode();
 
 
@@ -101,19 +90,24 @@ public abstract class StageScenarioBase : MonoBehaviour
         else
             stageCanvas.GetComponent<Canvas>().worldCamera = Camera.main;
         stageCanvas.gameObject.SetActive(true);
-
+        while (nodes.Contains(null))
+            nodes.Remove(null);
         MoveMapVia(true);
         ExtendVia(true);
         if (state == StateInMap.NeedPhase)
         {
+
             if (phase == 5)
             {
-                Debug.Log("Stage Clear");
+                    stageTextUi.StageClear();
+
             }
             else
             {
                 stageCanvas.NextDestination();
             }
+
+
         }
 
         if (stageCanvas.currentNode.buttonEnter)
@@ -170,7 +164,10 @@ public abstract class StageScenarioBase : MonoBehaviour
         vignette.intensity.value = targetIntensity;
         vignette.smoothness.value = targetSmoothness;
     }
-
+    public void ResetStageSetting()
+    {
+        
+    }
 
 
 

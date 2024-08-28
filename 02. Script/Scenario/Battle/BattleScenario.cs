@@ -79,6 +79,10 @@ public class BattleScenario : MonoBehaviour
                 hpBarInUI.gameObject.SetActive(false);
             }
         }
+        foreach (BaseInBattle enemy in enemies)
+        {
+            enemy.Hp = enemy.Hp;
+        }
     }
 
 
@@ -147,7 +151,7 @@ public class BattleScenario : MonoBehaviour
         backgrounds[BackgroundType.RedRock] = prefabSet.GetChild(13).gameObject;
         backgrounds[BackgroundType.Lava] = prefabSet.GetChild(14).gameObject;
 
-        ChangeBackground(StageScenarioBase.stageCanvas.currentNode.nodeType.backgroundType);
+        ChangeBackground(currentBackground);
         battleTooltip.gameObject.SetActive(false);
         statusExplain.gameObject.SetActive(false);
     }
@@ -377,7 +381,10 @@ public class BattleScenario : MonoBehaviour
         foreach (BaseInBattle x in characters)
         {
             if (x)
+            {
                 x.StopBattle();
+                x.showBuffSlots.gameObject.SetActive(false);
+            }
         }
 
         yield return new WaitForSeconds(2f);
@@ -392,7 +399,6 @@ public class BattleScenario : MonoBehaviour
         {
             if (x)
                 x.StopAllCoroutines();
-            x.gameObject.SetActive(true);
         }
         foreach (var x in enemies)
         {
@@ -414,6 +420,7 @@ public class BattleScenario : MonoBehaviour
                 dict.Add("GridIndex", data.gridIndex);
                 DataManager.dataManager.SetDocumentData(dict, string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
             }
+            StageScenarioBase.nodes.Add(null);
             Dictionary<string, object> docDict = new()
             {
                 { "Scene", "Stage"},
@@ -445,6 +452,11 @@ public class BattleScenario : MonoBehaviour
         {
             if (x)
                 x.InBattleFieldZero();
+        }
+        foreach (var x in characters)
+        {
+            if (x)
+                x.gameObject.SetActive(true);
         }
         GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         SceneManager.LoadSceneAsync("Stage" + StageScenarioBase.stageNum);
@@ -571,7 +583,7 @@ public class BattleScenario : MonoBehaviour
             GridObject grid = EnemyGrids[pieceForm.index];
             GameObject enemyObject;
             EnemyClass enemyClass = enemyDict[id];
-            enemyObject = GameManager.gameManager.GetEnemyPrefab(id);
+            enemyObject = GameManager.gameManager.GetEnemyPrefab(id, enemyClass.scale);
 
             EnemyInBattle enemyInBattle = enemyObject.AddComponent<EnemyInBattle>();
             enemyInBattle.InitEnemy(enemyClass, grid);
@@ -594,7 +606,7 @@ public class BattleScenario : MonoBehaviour
             GridObject grid = EnemyGrids[gridIndex];
             GameObject enemyObject;
             EnemyClass enemyClass = enemyDict[id];
-            enemyObject = GameManager.gameManager.GetEnemyPrefab(id);
+            enemyObject = GameManager.gameManager.GetEnemyPrefab(id, enemyClass.scale);
 
             EnemyInBattle enemyScript = enemyObject.AddComponent<EnemyInBattle>();
             enemyScript.InitEnemy(enemyClass, grid);

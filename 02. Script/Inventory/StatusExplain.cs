@@ -48,7 +48,7 @@ public class StatusExplain : MonoBehaviour
         statusName.text = "<b><color=#1429E6>" + ((GameManager.language == Language.Ko) ? "속도" : "Speed");
         statusExplain.text = (GameManager.language == Language.Ko) ?
             $"시전 속도가 <b><color=#1429E6><size=120%>{_speed:F1}배</size></color></b>\n빨라집니다." :
-            $"The casting speed becomes <b><color=#1429E6><size=120%>{{_speed\r\n}}times</size></color></b> faster.";
+            $"The casting speed becomes <b><color=#1429E6><size=120%>{_speed:F1} times</size></color></b> faster.";
         SetSize(250f);
     }
     public void SetExplain(string _name, string _explain)
@@ -59,6 +59,7 @@ public class StatusExplain : MonoBehaviour
     }
     private void SetSize(float _width)
     {
+        rectTransform.sizeDelta = new Vector2(_width, Mathf.Max(150f, statusExplain.preferredHeight + 100f));//width 설정 된 이후 preferredHeight 써야 돼서 두 번
         rectTransform.sizeDelta = new Vector2(_width, Mathf.Max(150f, statusExplain.preferredHeight + 100f));
         imageLine.sizeDelta = new Vector2(_width*0.8f, imageLine.sizeDelta.y);
     }

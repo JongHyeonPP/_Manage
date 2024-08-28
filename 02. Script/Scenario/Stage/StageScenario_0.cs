@@ -8,12 +8,14 @@ public class StageScenario_0 : StageScenarioBase
 {
     protected override void Awake()
     {
-        base.Awake();
         stageNum = 0;
+        base.Awake();
     }
 
     public override void ExtendVia(bool _isInstant)
     {
+        float targetIntensity;
+        float targetSmoothness;
         switch (phase)
         {
             default:

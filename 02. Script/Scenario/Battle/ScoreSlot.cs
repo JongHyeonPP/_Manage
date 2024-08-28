@@ -35,8 +35,12 @@ public class ScoreSlot : MonoBehaviour
             case ScoreType.Food:
                 typeStr = (GameManager.language == Language.Ko) ? "먹은 음식 수준" : "Quality of food eaten";
                 break;
+            case ScoreType.StageClear:
+                typeStr = (GameManager.language == Language.Ko) ? "모든 스테이지 클리어" : "Clear All Stages";
+                break;
         }
-        typeStr += $" ({num})";
+        if (_num != -1)
+            typeStr += $" ({num})";
         textType.text = typeStr;
         textScore.text = fame.ToString();
     }

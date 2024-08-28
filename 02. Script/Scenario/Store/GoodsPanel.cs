@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class GoodsPanel : MonoBehaviour
 {
+    public TMP_Text textTitle;
     [SerializeField] List<GoodsSlot> goodsSlots;
     List<Tuple<Item, int>> goodsPriceList = new();
     public GoodsType goodsType;

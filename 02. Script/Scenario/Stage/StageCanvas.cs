@@ -34,6 +34,7 @@ public class StageCanvas : MonoBehaviour
 
     private void Awake()
     {
+        
         smallDotPrefab = GameManager.gameManager.smallDotPrefab;
         startNode.phaseNum = -1;
         startNode.index = -1;
@@ -84,8 +85,7 @@ public class StageCanvas : MonoBehaviour
         DestinationNode prevNode = startNode;
         List<object> nodes = StageScenarioBase.nodes;
         string[] nodeTypes = StageScenarioBase.nodeTypes;
-
-
+        //StageScenarioBase.state = StateInMap.NeedEnter;
         for (int i = 0; i < nodeTypes.Length; i++)
         {
             string nodeTypeStr = nodeTypes[i];
@@ -102,7 +102,12 @@ public class StageCanvas : MonoBehaviour
         for (int i = 0; i < nodes.Count; i++)
         {
             if (nodes[i] == null)
+            {
+                nodes.Remove(i);
+                StageScenarioBase.state = StateInMap.NeedPhase;
                 continue;
+            }
+
             //parentNode.GetChild(i).gameObject.SetActive(true);
             List<int> arrayIndexes = new();
             bool isStrSetted = false;
@@ -137,7 +142,7 @@ public class StageCanvas : MonoBehaviour
             }
             else
             {
-                StageScenarioBase.state = StateInMap.NeedEnter;
+
                 DestinationNode temp = SetNodeActive(i, arrayIndexes[0]);
 
                 temp.ActiveWithObject(true);

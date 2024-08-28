@@ -102,6 +102,10 @@ public class CharacterInBattle : BaseInBattle
         moveGaugeBar.gameObject.SetActive(true);
         moveGaugeBar.StartFillGauge();
     }
+    public Image[] GetGuageImages()
+    {
+        return GetComponentsInChildren<Image>();
+    }
 
     public float GetMoveGauege()
     {

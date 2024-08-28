@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 1910706649034803902}
   - component: {fileID: 8345774332215507100}
   - component: {fileID: 8841611229772531171}
-  - component: {fileID: 5895764280899923283}
   - component: {fileID: 4995818173035377370}
+  - component: {fileID: 2689766060705338370}
   m_Layer: 0
   m_Name: LootExplain
   m_TagString: Untagged
@@ -80,29 +80,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!223 &5895764280899923283
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1470587888513652632}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 1
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 25
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 6
-  m_TargetDisplay: 0
 --- !u!114 &4995818173035377370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,6 +95,29 @@ MonoBehaviour:
   textExplain: {fileID: 2133632753038562938}
   lootSlotSkill: {fileID: 347906799752669042}
   lootSlotIngredient: {fileID: 8902207375103489964}
+--- !u!223 &2689766060705338370
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1470587888513652632}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 25
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 6
+  m_TargetDisplay: 0
 --- !u!1 &5588391968545447637
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,7 +227,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 3.6499634, y: -14.149994}
+  m_AnchoredPosition: {x: 3.6499634, y: -14.150024}
   m_SizeDelta: {x: 250.2, y: 50.000008}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &8280583675184134299

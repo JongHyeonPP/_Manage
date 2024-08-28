@@ -23,6 +23,7 @@ public class InventoryUi : MonoBehaviour
     public TMP_Text abilityText;
     public TMP_Text resistText;
     public TMP_Text speedText;
+    public TMP_Text textTitle;
     public List<GameObject> characterSelectFocus = new();
     public ItemTooltip tooltip;
     public StatusExplain statusExplain;
@@ -45,6 +46,15 @@ public class InventoryUi : MonoBehaviour
         tooltip.gameObject.SetActive(false);
         statusExplain.gameObject.SetActive(false);
         panelThrow.gameObject.SetActive(false);
+        OnLangaugeChange();
+        SettingManager.LanguageChangeEvent += OnLangaugeChange;
+    }
+    private void OnLangaugeChange()
+    {
+        textTitle.text = GameManager.language == Language.Ko ? "가방" : "Bag";
+        equipSlots[0].textName.text = GameManager.language == Language.Ko ? "스킬 1" : "Skill 1";
+        equipSlots[1].textName.text = GameManager.language == Language.Ko ? "스킬 2" : "Skill 2";
+        equipSlots[2].textName.text = GameManager.language == Language.Ko ? "무기" : "Weapon";
     }
     private void OnEnable()
     {
@@ -78,23 +88,13 @@ public class InventoryUi : MonoBehaviour
             slot.ClearSlot();
         }
     }
-
-
     public void SetCharacterAtInventory(int _index)
     {
         CharacterData character = GameManager.gameManager.characterList[_index];
         if (character == null)
             return;
         ItemManager.itemManager.selectedCharacter = character;
-        float maxHp = character.maxHp;
-        float hp = character.hp;
-        float ability = character.ability;
-        float resist = character.resist;
-        float speed = character.speed;
-        hpText.text = hp.ToString("F0") + "/" + maxHp.ToString("F0");
-        abilityText.text = ability.ToString("F0");
-        resistText.text = resist.ToString("F0");
-        speedText.text = speed.ToString("F1");
+        SetStatusSlotText();
         ch.CopyHierarchySprite(character.characterHierarchy);
 
         for (int i = 0; i < characterSelectFocus.Count; i++)
@@ -142,7 +142,19 @@ public class InventoryUi : MonoBehaviour
         }
     }
 
-
+    public void SetStatusSlotText()
+    {
+        CharacterData character = ItemManager.itemManager.selectedCharacter;
+        float maxHp = character.maxHp;
+        float hp = character.hp;
+        float ability = character.ability;
+        float resist = character.resist;
+        float speed = character.speed;
+        hpText.text = hp.ToString("F0") + "/" + maxHp.ToString("F0");
+        abilityText.text = ability.ToString("F0");
+        resistText.text = resist.ToString("F0");
+        speedText.text = speed.ToString("F1");
+    }
 
     public void SetEquipSlot(Item _item, int _index)
     {
@@ -268,14 +280,7 @@ public class InventoryUi : MonoBehaviour
         bool isActive = !gameObject.activeSelf;
         gameObject.SetActive(isActive);
         if (!isActive)
-        {
-            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
-            {
-                await ItemManager.itemManager.SetInventoryAtDb();
-                await ItemManager.itemManager.SetCharacterAtDb();
-                return Task.CompletedTask;
-            });
-        }
+            ItemManager.itemManager.SetInventoryAtDb();
     }
     public void SetCanvasForPanelInventory()
     {

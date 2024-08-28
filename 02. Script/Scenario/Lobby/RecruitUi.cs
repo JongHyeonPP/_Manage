@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 public class RecruitUi : LobbyUiBase
 {
+    [SerializeField] TMP_Text textTitle;
     public TMP_Text textStatusHp;
     public TMP_Text textStatusAbility;
     public TMP_Text textStatusSpeed;
@@ -22,6 +23,12 @@ public class RecruitUi : LobbyUiBase
     private void Awake()
     {
         InitTalent();
+        OnLanguageChange();
+        SettingManager.LanguageChangeEvent += OnLanguageChange;
+    }
+    private void OnLanguageChange()
+    {
+        textTitle.text = GameManager.language == Language.Ko ? "¸ðÁý" : "Recruit";
     }
     public void SetStatusText(float _hp, float _ability, float _speed, float _resist)
     {

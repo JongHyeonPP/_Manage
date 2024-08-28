@@ -247,10 +247,11 @@ namespace BattleCollection
         public float resist;
         public List<SkillInBattle> skills;
         public float speed;
+        public float scale;
         public string type { get; set; }
         public int enemyLevel;
 
-        public EnemyClass(Dictionary<Language, string> _name, float _ability, float _hp, float _resist, List<SkillInBattle> _skills, float _speed, string _type, int _enemyLevel)
+        public EnemyClass(Dictionary<Language, string> _name, float _ability, float _hp, float _resist, List<SkillInBattle> _skills, float _speed,float _scale, string _type, int _enemyLevel)
         {
             name = _name;
             ability = _ability;
@@ -258,6 +259,7 @@ namespace BattleCollection
             resist = _resist;
             skills = _skills;
             speed = _speed;
+            scale = _scale;
             type = _type;
             enemyLevel = _enemyLevel;
         }
