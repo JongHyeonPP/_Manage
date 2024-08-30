@@ -16,6 +16,9 @@ public class CharacterInBattle : BaseInBattle
     public MoveGaugeBar moveGaugeBar;
     public void SynchronizeCharacterData(CharacterData _data)
     {
+        tempEffectsDict.Clear();
+        EffectsByAtt.Clear();
+        showBuffSlots.RemoveAllBuff();
         skillInBattles.Clear();
         maxHp = maxHpInBattle = _data.maxHp;
         ability = _data.ability;
@@ -34,8 +37,10 @@ public class CharacterInBattle : BaseInBattle
                 effects.Add(skillEffect);
             }
             effectsList.Add(effects);
-            skillInBattles.Add(new Skill(string.Empty, default, -99, effectsList, false, false, null, null, null).GetInBattle(0));
+
         }
+        if (effectsList.Count > 0)
+            skillInBattles.Add(new Skill(string.Empty, default, -99, effectsList, false, false, null, null, null).GetInBattle(0));
         //Job
         if (job.jobSkill != null)
             skillInBattles.Add(job.jobSkill.GetInBattle(0));
@@ -65,6 +70,8 @@ public class CharacterInBattle : BaseInBattle
 
         moveGaugeBar.gameObject.SetActive(false);
         hpBarInScene.gameObject.SetActive(true);
+
+        
     }
     public void InitCharacter(CharacterData _data, GridObject _grid)
     {

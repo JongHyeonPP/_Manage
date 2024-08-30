@@ -60,6 +60,11 @@ public class InventoryUi : MonoBehaviour
     {
         currentSelectButton = selectButtons[0];
     }
+    public void OnChangeCharacterButtonClick(int _index)
+    {
+        SoundManager.SfxPlay("PopThin");
+        SetCharacterAtInventory(_index);
+    }
     private void Start()
     {
         SetCharacterAtInventory(0);
@@ -214,10 +219,12 @@ public class InventoryUi : MonoBehaviour
     }
     public void SetGetJobUi()
     {
+        SoundManager.SfxPlay("PopThin");
         ItemManager.itemManager.SetGetJobUi();
     }
     public void InventorySorting()
     {
+        SoundManager.SfxPlay("ScifiThin");
         List<CountableItem> ciList = new();
         List<CountableItem> sortedList = new();
         foreach (InventorySlot slot in inventorySlots)
@@ -277,6 +284,7 @@ public class InventoryUi : MonoBehaviour
 
     public async void InventoryActive()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         bool isActive = !gameObject.activeSelf;
         gameObject.SetActive(isActive);
         if (!isActive)

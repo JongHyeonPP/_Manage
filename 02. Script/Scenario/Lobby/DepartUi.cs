@@ -17,6 +17,7 @@ public class DepartUi : LobbyUiBase
     }
     public void DepartSelected()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         GameManager.lobbyScenario.DepartAsync();
 
     }

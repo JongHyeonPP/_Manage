@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class TalentSlot_Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class TalentSlot_Inventory : SlotBase, IPointerEnterHandler, IPointerExitHandler
 {
     public Image talentIcon;
     [SerializeField]TalentClass currentTalent;
@@ -23,6 +23,7 @@ public class TalentSlot_Inventory : MonoBehaviour, IPointerEnterHandler, IPointe
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
+        HighlightOn();
         statusExplain.transform.parent = transform.parent;
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition + Vector3.right * 20f;
@@ -46,6 +47,7 @@ public class TalentSlot_Inventory : MonoBehaviour, IPointerEnterHandler, IPointe
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        HighlightOff();
         statusExplain.gameObject.SetActive(false);
     }
 

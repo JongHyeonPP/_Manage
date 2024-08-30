@@ -388,6 +388,14 @@ namespace BattleCollection
                 }
                 else
                 {
+                    if (activeEffects.Where(item => item.isTargetEnemy).Count() > 0)
+                    {
+                        SoundManager.SfxPlay("Attack",1.5f);
+                    }
+                    else
+                    {
+                        SoundManager.SfxPlay("Buff", 1.5f);
+                    }
                     List<GridObject> preGrids = new();
                     //Pre
                     if (skillInBattle.isPre)

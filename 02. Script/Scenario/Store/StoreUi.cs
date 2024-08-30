@@ -50,6 +50,7 @@ public class StoreUi : MonoBehaviour
         sellUi.gameObject.SetActive(false);
         buyConfirmUi.gameObject.SetActive(false);
         GameManager.storeScenario.raycastBlock.SetActive(false);
+        SoundManager.SfxPlay("MetalClick_0");
 
     }
     private void SetInventorySlots()

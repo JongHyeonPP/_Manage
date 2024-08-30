@@ -21,9 +21,8 @@ public class InventorySlot : SlotBase
     public TMP_Text textAmount;
     public GameObject imageNoSelect;
     public TMP_Text textPokerNum;
-    private new void Awake()
+    private void Awake()
     {
-        base.Awake();
         isSelected = true;
     }
     public void SetSlot(CountableItem _ci)
@@ -154,6 +153,7 @@ public class InventorySlot : SlotBase
         if (ItemManager.itemManager.isUpgradeCase || !isSelected)
             return;
         if (ci == null) return;
+        SoundManager.SfxPlay("BeginDrag");
         imageGrade.transform.SetParent(ItemManager.itemManager.inventoryUi.transform, true);
         ItemManager.itemManager.inventoryUi.throwReady = false;
         imageGrade.raycastTarget = false;
@@ -209,6 +209,7 @@ public class InventorySlot : SlotBase
             }
             targetSlot.SetSlot(curCi);
             targetSlot.HighlightOff();
+            SoundManager.SfxPlay("EndDrag");
         }
         //장비칸과 교환
         else if (ItemManager.itemManager.inventoryUi.targetEquipSlot)
@@ -232,6 +233,7 @@ public class InventorySlot : SlotBase
 
     private void SwapWithEquip()
     {
+        SoundManager.SfxPlay("Unequip");
         EquipSlot targetSlot = ItemManager.itemManager.inventoryUi.targetEquipSlot;
         if (targetSlot.item != null)
             if (targetSlot.item.itemId == ci.item.itemId)

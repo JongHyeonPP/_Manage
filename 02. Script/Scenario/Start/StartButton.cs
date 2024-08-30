@@ -2,10 +2,11 @@ using EnumCollection;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class StartButton : MonoBehaviour
+public class StartButton : SlotBase
 {
     public Dictionary<Language, string> typeStr;
     public TMP_Text typeText;

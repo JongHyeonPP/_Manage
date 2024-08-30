@@ -74,6 +74,7 @@ public class CookUi : MonoBehaviour
         {
             _view.AddIngredientCi(ci);
         }
+        _view.content.sizeDelta = new Vector2(77f*_cies.Count, 0);
     }
 
     public bool OnIngredientSlotClicked(Item _item)
@@ -141,7 +142,7 @@ public class CookUi : MonoBehaviour
         if (!targetSlot.gameObject.activeSelf)
         {
             targetSlot.gameObject.SetActive(true);
-            currentScrollView.ModifySizeDelta(true);
+            //currentScrollView.ModifySizeDelta(true);
         }
         targetSlot.ci.amount++;
         targetSlot.textAmount.text = targetSlot.ci.amount.ToString();
@@ -342,6 +343,7 @@ private bool IsFullHouse(List<IngredientClass> hand)
     }
     public void ResetPoker()
     {
+        SoundManager.SfxPlay("MetalClick_0");
         if (isOperating)
             return;
         foreach (PokerSlot slot in pokerSlots)
@@ -361,6 +363,7 @@ private bool IsFullHouse(List<IngredientClass> hand)
     }
     public void CreateButtonClicked()
     {
+        SoundManager.SfxPlay("MetalClick_0");
         if (isOperating)
             return;
 
@@ -374,6 +377,7 @@ private bool IsFullHouse(List<IngredientClass> hand)
         }
         else
         {
+
             isOperating = true;
             StartCoroutine(CreateCoroutine());
         }
@@ -420,11 +424,13 @@ private bool IsFullHouse(List<IngredientClass> hand)
             StartCoroutine(slot.MoveToObject(rect, 1f));
             yield return new WaitForSeconds(0.5f);
         }
+        SoundManager.SfxPlay("Fire");
         imageFire.gameObject.SetActive(true);
         yield return StartCoroutine(FadeInOut(imageFire, 0.5f, true));
         yield return new WaitForSeconds(2f);
         parentPokerSlot.enabled = true;
         yield return StartCoroutine(FadeInOut(imageFire, 1f, false));
+        SoundManager.SfxPlay("Decline");
         imageFire.gameObject.SetActive(false);
         foreach (var x in pokerSlots)
         {

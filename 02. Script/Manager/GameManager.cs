@@ -689,10 +689,11 @@ public class
     }
     public void OnSettingButtonClick()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         SettingUi settingUi = SettingManager.settingManager.settingUi;
         if (settingUi.gameObject.activeSelf)
         {
-            settingUi.OnCancelBtnClick();
+            settingUi.ResetSet();
         }
         else
         {

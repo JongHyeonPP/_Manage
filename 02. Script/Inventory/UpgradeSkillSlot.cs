@@ -12,9 +12,8 @@ public class UpgradeSkillSlot :SlotBase
     public TMP_Text textAmount;
     public CountableItem ci;
     public InventorySlot targetInventorySlot;
-    private new void Awake()
+    private void Awake()
     {
-        base.Awake();
         imageGrade.gameObject.SetActive(false);
         textAmount.gameObject.SetActive(false);
         ci = null;

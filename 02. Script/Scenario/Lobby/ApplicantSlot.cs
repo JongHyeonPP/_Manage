@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-public class ApplicantSlot : MonoBehaviour
+public class ApplicantSlot : SlotBase
 {
     private RecruitUi recruitUi;
     public float Hp { get; private set; }
@@ -12,7 +12,8 @@ public class ApplicantSlot : MonoBehaviour
     public float Speed { get; private set; }
     public float Resist { get; private set; }
     public GameObject objectSelect;
-    public SpriteRenderer imageNum;
+    public GameObject imageNum;
+    public TMP_Text textNum;
     private TMP_Text textSelect;
     private bool isActived;
     private bool isSelected;
@@ -26,12 +27,11 @@ public class ApplicantSlot : MonoBehaviour
     private readonly Color WhiteColor = new Color(1f, 1f, 1f);
     private readonly Color GreenColor = new Color(0f, 190f / 255f, 0f);
     public GameObject templateObject;
-    public List<Sprite> numberTexture;
     public Dictionary<string, object> bodyDict = new();
 
     public List<TalentClass> talents { get; private set; } = new();
 
-    private void Awake()
+    private new void Awake()
     {
         imageNum.gameObject.SetActive(false);
         IsActived = false;
@@ -114,8 +114,8 @@ public class ApplicantSlot : MonoBehaviour
             }
             child.gameObject.layer = LayerMask.NameToLayer("Lobby");
         }
-        templateObject.transform.localPosition = new Vector3(0f, -35f, 0f);
-        templateObject.transform.localScale = Vector3.one * 100f;
+        templateObject.transform.localPosition = new Vector3(0f, -45f, 0f);
+        templateObject.transform.localScale = Vector3.one * 120f;
         templateAnimator = templateObject.transform.GetChild(0).GetComponent<Animator>();
         templateAnimator.speed = 0f;
         CharacterHierarchy characterHierarchy = templateObject.transform.GetChild(0).GetComponent<CharacterHierarchy>();
@@ -258,6 +258,8 @@ public class ApplicantSlot : MonoBehaviour
     }
     public void SlotBtnClicked()
     {
+        SoundManager.SfxPlay("Hover");
+
         switch (isActived)
         {
             case true://활성화 돼있었다면 비활성화
@@ -276,6 +278,7 @@ public class ApplicantSlot : MonoBehaviour
     }
     public void SelectBtnClicked()
     {
+        SoundManager.SfxPlay("ScifiThin");
         recruitUi.InitStatusText();
         recruitUi.InitTalent();
         IsActived = false;
@@ -287,7 +290,7 @@ public class ApplicantSlot : MonoBehaviour
                 isSelected = true;
                 textSelect.text = GameManager.language == Language.Ko ? "해제" : "Deselect";
                 imageNum.gameObject.SetActive(true);
-                imageNum.sprite = numberTexture[currentSelectedNum];
+                textNum.text = currentSelectedNum.ToString(); ;
             }
         }
         else

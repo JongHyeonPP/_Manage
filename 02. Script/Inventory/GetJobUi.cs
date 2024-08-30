@@ -26,6 +26,9 @@ public class GetJobUi : MonoBehaviour
     public TMP_Text textExplain1;
 
     public ParticleSystem particle;
+
+    [SerializeField] Image imageReturnButton;
+    [SerializeField] Image imageConfirmButton;
     readonly Dictionary<Language, string> explainStr = new Dictionary<Language, string> { { Language.Ko, "{jobName}로 전직했습니다!" }, { Language.En, "Promoted to {jobName}!" } };
     private void Awake()
     {
@@ -47,6 +50,7 @@ public class GetJobUi : MonoBehaviour
     private void OnDisable()
     {
         ItemManager.itemManager.InventoryRayBlock.SetActive(false);
+        SoundManager.SfxPlay("PopThin");
     }
 
     public void SetInfo(CharacterData _character)
@@ -67,10 +71,12 @@ public class GetJobUi : MonoBehaviour
     {
         jobCh.animator.enabled = false;
         StartCoroutine(NextJobPhaseCor());
+        
     }
 
     private IEnumerator NextJobPhaseCor()
     {
+        SoundManager.SfxPlay("GetJob");
         SetJob();
         ItemManager.itemManager.SetInventoryAtDb();
         jobCh.CopyHierarchySprite(from);

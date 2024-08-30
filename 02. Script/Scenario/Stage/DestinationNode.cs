@@ -79,6 +79,7 @@ public class DestinationNode : MonoBehaviour
     {
         if (StageScenarioBase.state != StateInMap.NeedMove)
             return;
+        GameManager.stageScenario.lootExplain.gameObject.SetActive(false);
         StageScenarioBase.phase++;
         foreach (DestinationNode node in StageScenarioBase.stageCanvas.nodePhases[StageScenarioBase.phase])
         {
@@ -96,14 +97,23 @@ public class DestinationNode : MonoBehaviour
         };
         DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.uid);
     }
-
+    private IEnumerator StepSoundCoroutine()
+    {
+        while (true)
+        {
+            SoundManager.SfxPlay("Step",1.5f);
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
     private IEnumerator MoveWaitCor()
     {
         if (transform.position.x > StageScenarioBase.stageCanvas.currentNode.transform.position.x)
         {
             StageScenarioBase.stageCanvas.characterInStage.transform.localRotation = Quaternion.Euler(new Vector3(0f, 180f,0f));
         }
+        Coroutine stepCor = StartCoroutine(StepSoundCoroutine());
         yield return StageScenarioBase.stageCanvas.CharacterMove(this);
+        StopCoroutine(stepCor);
         StageScenarioBase.stageCanvas.characterInStage.transform.localRotation = Quaternion.Euler(new Vector3(0f, 0f, 0f));
         if (StageScenarioBase.stageCanvas.currentNode.imageName)
             StartCoroutine(GameManager.FadeUi(StageScenarioBase.stageCanvas.currentNode.imageName, 1f, false));
@@ -149,6 +159,7 @@ public class DestinationNode : MonoBehaviour
     }
     public async void OnEnterButtonClick()
     {
+        SoundManager.SfxPlay("Unequip");
         if (StageScenarioBase.state != StateInMap.NeedEnter)
             return;
         if (nodeType.backgroundType == BackgroundType.Store)
@@ -227,14 +238,22 @@ public class DestinationNode : MonoBehaviour
 
     private void ActiveLootExplain()
     {
+        if (nodeType.backgroundType == BackgroundType.Lava)
+            return;
         LootExplain lootExplain = GameManager.stageScenario.lootExplain;
-
-        ItemManager.GetLootTypesByBackgroundType(nodeType.backgroundType, out SkillCategori skillCategori, out ItemGrade skillGrade, out IngredientType ingredientType,out Tuple<int,int> _goldAmount);
-        lootExplain.SetExplain(skillCategori, skillGrade, ingredientType, _goldAmount);
+        if (nodeType.backgroundType != BackgroundType.Store)
+        {
+            ItemManager.GetLootTypesByBackgroundType(nodeType.backgroundType, out SkillCategori skillCategori, out ItemGrade skillGrade, out IngredientType ingredientType, out Tuple<int, int> _goldAmount);
+            lootExplain.SetExplain(skillCategori, skillGrade, ingredientType, _goldAmount);
+        }
+        else
+        {
+            lootExplain.SetStoreExplain();
+        }
         lootExplain.transform.position = transform.position;
         float screenYProportion = RectTransformUtility.WorldToScreenPoint(Camera.main, transform.position).y / Screen.height;
         //Debug.Log(screenYProportion);
-        if (screenYProportion > 0.6f)
+        if (screenYProportion > 0.55f)
             lootExplain.transform.localPosition = new Vector3(lootExplain.transform.localPosition.x, 50f, lootExplain.transform.localPosition.y);
         else
             lootExplain.transform.localPosition += new Vector3(0f, 20f);

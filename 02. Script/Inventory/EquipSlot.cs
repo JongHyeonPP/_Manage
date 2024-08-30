@@ -21,9 +21,8 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     public TMP_Text textName;
     public GameObject expBar;
     public Image imageFill;
-    private new void Awake()
+    private void Awake()
     {
-        base.Awake();
         expBar.SetActive(false);
     }
     public void OnPointerEnter(PointerEventData eventData)

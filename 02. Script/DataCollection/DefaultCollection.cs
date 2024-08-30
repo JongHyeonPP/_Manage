@@ -72,6 +72,7 @@ namespace DefaultCollection
                         case EffectType.AttDescend:
                         case EffectType.ResistDescend:
                         case EffectType.SpeedDescend:
+                        case EffectType.DefDescend:
                             selectedColor = decreaseColor;
                             break;
                     }

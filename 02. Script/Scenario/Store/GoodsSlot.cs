@@ -100,6 +100,7 @@ public class GoodsSlot : SlotBase
         }
         else
         {
+            SoundManager.SfxPlay("WoodenClick_1");
             GameManager.storeScenario.storeUi.OnGoodsSlotClick(this);
             tooltip.gameObject.SetActive(false);
         }

@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MainLootSlot : MonoBehaviour
+public class MainLootSlot : SlotBase
 {
     //Weapon
     public Image panelWeapon;
@@ -21,8 +21,8 @@ public class MainLootSlot : MonoBehaviour
     public TMP_Text textName;
     private Dictionary<Language, string> nameDict;
     //Item
-    Item curItem;
-
+    Item curItem;    
+    
     private void Awake()
     {
         SettingManager.LanguageChangeEvent += OnLanguageChange;
@@ -120,6 +120,7 @@ public class MainLootSlot : MonoBehaviour
     }
     public void OnPointerEnterSlot()
     {
+        HighlightOn();
         ItemTooltip tooltip = GameManager.battleScenario.battleTooltip;
         tooltip.transform.parent = transform;
         tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
@@ -131,6 +132,7 @@ public class MainLootSlot : MonoBehaviour
     }
     public void OnPointerExitSlot()
     {
+        HighlightOff();
         GameManager.battleScenario.battleTooltip.gameObject.SetActive(false);
     }
 }

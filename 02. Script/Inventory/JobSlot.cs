@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class JobSlot : MonoBehaviour
-{
+public class JobSlot : SlotBase
+{ 
     StatusExplain statusExplain;
     public Image jobIconSlot;
     public GameObject buttonExclaim;
@@ -22,13 +22,19 @@ public class JobSlot : MonoBehaviour
         if (isInGetJob)
         {
             job = GameManager.gameManager.GetJob(ItemManager.itemManager.selectedCharacter.skillAsItems[0].itemId, ItemManager.itemManager.selectedCharacter.skillAsItems[1].itemId);
+            HighlightOn();
         }
         else
         {
+
             job = ItemManager.itemManager.selectedCharacter.jobClass;
+            if (job.jobId != "000" || buttonExclaim.activeSelf)
+                HighlightOn();
         }
+
         if (job.jobId == "000")
             return;
+        
         statusExplain.transform.parent = transform.parent;
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition;
@@ -36,6 +42,7 @@ public class JobSlot : MonoBehaviour
     }
     public void OnPointerExit()
     {
+        HighlightOff();
         statusExplain.gameObject.SetActive(false);
     }
     public void SetJobIcon(JobClass _job)

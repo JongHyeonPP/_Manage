@@ -10,7 +10,7 @@ public class UpgradeExplainUi : MonoBehaviour
     [SerializeField] TMP_Text textInfo;
     [SerializeField] Transform infoParent;
     float widthCorrection = 100f;
-    float heightCorrection = 110f;
+    float heightCorrection = 70f;
     public RectTransform rectTransform;
     public void SetExplain(string _explain)
     {
@@ -30,8 +30,8 @@ public class UpgradeExplainUi : MonoBehaviour
     public void SetSize()
     {
         Canvas.ForceUpdateCanvases();
-        float height = textExplain.preferredHeight + textInfo.preferredHeight + heightCorrection;
-        textInfo.transform.localPosition = new Vector3(0f,Mathf.Min(-50f, -textExplain.preferredHeight), 0f);
-        GetComponent<RectTransform>().sizeDelta = new Vector3(750f, Mathf.Max(230f, height));
+        float height = (textExplain.preferredHeight + textInfo.preferredHeight)*1.3f + heightCorrection;
+        textInfo.transform.localPosition = new Vector3(textInfo.transform.localPosition.x,Mathf.Min(-50f, -textExplain.preferredHeight), 0f);
+        GetComponent<RectTransform>().sizeDelta = new Vector3(500f, Mathf.Max(230f, height));
     }
 }

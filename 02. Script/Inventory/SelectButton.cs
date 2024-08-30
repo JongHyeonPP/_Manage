@@ -12,6 +12,7 @@ public class SelectButton : MonoBehaviour
     [SerializeField] bool isInStore;//true : Inventory, false : Store
     public void OnClicked()
     {
+        SoundManager.SfxPlay("PopThin");
         if (isInStore)
             GameManager.storeScenario.storeUi.SelectButtonSelect(this);
         else

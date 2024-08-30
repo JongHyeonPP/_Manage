@@ -52,6 +52,16 @@ public class ShowBuffSlots : MonoBehaviour
             }
         }
     }
+    public void RemoveAllBuff()
+    {
+        foreach (var buffSlot in buffDict.Values)
+        {
+            buffSlot.ChangeBuffSlotOne(false);
+            slotPool.Add(buffSlot);
+            buffSlot.gameObject.SetActive(false);
+        }
+        buffDict.Clear();
+    }
     [ContextMenu("AddTest")]
     public void AddTest()
     {

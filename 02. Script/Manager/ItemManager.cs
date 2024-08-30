@@ -32,6 +32,8 @@ public class ItemManager : MonoBehaviour
     public Sprite ingredient_Fruit;
     public Sprite ingredient_Vegetable;
     public Sprite ingredient_Random;
+    public Sprite weaponSprite;
+    public Sprite cookSprite;
 
     public InventoryUi inventoryUi;
     public GetJobUi getJobUi;
@@ -166,7 +168,7 @@ public class ItemManager : MonoBehaviour
             }
             else
             {
-                existingSlot.ci.amount += ci.amount;
+                existingSlot.ChangeCiAmount(ci.amount);
             }
         }
 
@@ -325,7 +327,7 @@ public class ItemManager : MonoBehaviour
          .Select(item => item.Key)
          .ToList();
         }
-        string skillId = skillList[Random.Range(0, skillList.Count)];
+        string skillId = skillList[0]/*[Random.Range(0, skillList.Count)]*/;
         return $"{skillId}:::{gradeStr}";
     }
     private string GetRandomIngredientId(IngredientType _ingredientType)

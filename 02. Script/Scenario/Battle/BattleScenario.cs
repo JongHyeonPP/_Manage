@@ -458,6 +458,7 @@ public class BattleScenario : MonoBehaviour
 
     public void ToMap()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         foreach (BaseInBattle x in characters)
         {
             if (x)
@@ -473,6 +474,7 @@ public class BattleScenario : MonoBehaviour
     }
     public void StartBattle()
     {
+        SoundManager.SfxPlay("ScifiThin");
         foreach (var x in enemies)
         {
             x.StartBattle();
@@ -552,7 +554,7 @@ public class BattleScenario : MonoBehaviour
         }
         if (_visualEffect.sound != string.Empty)
         {
-            SoundManager.soundManager.SfxPlay(_visualEffect.sound);
+            SoundManager.SfxPlay(_visualEffect.sound);
         }
         Destroy(effectObj, _visualEffect.duration);
     }

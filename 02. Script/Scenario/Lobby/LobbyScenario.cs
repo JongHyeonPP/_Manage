@@ -147,6 +147,7 @@ public class LobbyScenario : MonoBehaviour
     }
     public void OnPointerClick(LobbyCase _lobbyCase)
     {
+        SoundManager.SfxPlay("MetalClick_0");
         layBlock.SetActive(true);
         curCase = _lobbyCase;
         switch (_lobbyCase)
@@ -187,6 +188,7 @@ public class LobbyScenario : MonoBehaviour
     }
     public void NextPhase()
     {
+        SoundManager.SfxPlay("WoodenClick_1");
         SetMediumImage(true);
         phase_0[0].SetActive(false);
         phase_0[1].SetActive(false);
@@ -261,7 +263,8 @@ public class LobbyScenario : MonoBehaviour
     public void OnPointerEnter_Slot(UpgradeSlot _upgradeSlot)
     {
         upgradeExplainUi.gameObject.SetActive(true);
-        upgradeExplainUi.gameObject.transform.position = _upgradeSlot.transform.position + new Vector3(-0.2f, 0f, 0f);
+        upgradeExplainUi.transform.parent = _upgradeSlot.transform;
+        upgradeExplainUi.transform.localPosition =  new Vector3(0.2f, 50f, 0f);
 
         UpgradeClass upgradeClass = LoadManager.loadManager.upgradeDict[_upgradeSlot.curId];
         int level = GameManager.gameManager.upgradeLevelDict[_upgradeSlot.curId];
@@ -340,11 +343,6 @@ public class LobbyScenario : MonoBehaviour
             keyValue.Key.text = keyValue.Value[GameManager.language];
         }
     }
-
-
-
-
-
 
     public async void DepartAsync()
     {

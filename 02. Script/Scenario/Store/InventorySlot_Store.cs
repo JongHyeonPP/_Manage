@@ -92,6 +92,7 @@ public class InventorySlot_Store : SlotBase
     {
         if (!isSelected || connectedSlot.ci == null)
             return;
+        SoundManager.SfxPlay("BeginDrag");
         imageGrade.transform.SetParent(storeUi.transform, true);
         storeUi.draggingSlot = this;
         storeUi.imageSell.gameObject.SetActive(true);
@@ -102,6 +103,7 @@ public class InventorySlot_Store : SlotBase
     {
         if (!isSelected || connectedSlot.ci == null)
             return;
+        SoundManager.SfxPlay("EndDrag");
         storeUi.draggingSlot = null;
         imageGrade.transform.parent = panelBack;
         imageGrade.transform.localPosition = Vector3.zero;

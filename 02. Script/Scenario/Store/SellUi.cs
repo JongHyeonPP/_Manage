@@ -39,11 +39,13 @@ public class SellUi : MonoBehaviour
     }
     public void OnPlusButtonClick()
     {
+        SoundManager.SfxPlay("PopThin");
         amount++;
         ModifyValueToInputField();
     }
     public void OnMinusButtonClick()
     {
+        SoundManager.SfxPlay("PopThin");
         amount--;
         ModifyValueToInputField();
     }
@@ -64,12 +66,17 @@ public class SellUi : MonoBehaviour
     }
     public void OnReturnButtonClick()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         gameObject.SetActive(false);
     }
     public async void OnConfirmButtonClick()
     {
         if (amount == 0)
+        {
+            SoundManager.SfxPlay("WoodenClick_0");
             return;
+        }
+        SoundManager.SfxPlay("BuySell");
         gameObject.SetActive(false);
         slot.SetAmountResult(-amount);
 

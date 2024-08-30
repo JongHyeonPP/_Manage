@@ -121,7 +121,7 @@ abstract public class BaseInBattle : MonoBehaviour
     }
     private IEnumerator MoveCharacterCoroutine(Transform _targetTransform, float _speed)
     {
-        showBuffSlots.gameObject.SetActive(false);
+        showBuffSlots.parentBuffSlot.gameObject.SetActive(false);
         if (isMonster)
         {
             animator.SetBool("Run", true);
@@ -158,7 +158,7 @@ abstract public class BaseInBattle : MonoBehaviour
         {
             animator.SetFloat("RunState", 0f);
         }
-        showBuffSlots.gameObject.SetActive(true);
+        showDamage.DeactivateAllTextAndEnqueue();
     }
     private IEnumerator UpdateTempEffects()
     {

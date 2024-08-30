@@ -4,16 +4,25 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.U2D;
+using UnityEngine.UI;
 
 public class LootExplain : MonoBehaviour
 {
     [SerializeField] TMP_Text textExplain;
     [SerializeField] TMP_Text textGold;
+    [SerializeField] Image imageGold;
+
 
     [SerializeField] LootSlot_Stage lootSlotSkill;
     [SerializeField] LootSlot_Stage lootSlotIngredient;
-    internal void SetExplain(SkillCategori _skillCategori, ItemGrade _skillGrade, IngredientType _ingredientType,Tuple<int,int> _goldAmount)
+    [SerializeField] RectTransform rectTransform;
+    public void SetExplain(SkillCategori _skillCategori, ItemGrade _skillGrade, IngredientType _ingredientType,Tuple<int,int> _goldAmount)
     {
+        textGold.gameObject.SetActive(true);
+        imageGold.gameObject.SetActive(true);
+        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 300f);
+
         textExplain.text = GameManager.language == Language.Ko ? "획득 가능한 보상" : "Obtainable rewards";
         Sprite sprite;
         string text;
@@ -90,6 +99,25 @@ public class LootExplain : MonoBehaviour
         text = $"{(GameManager.language==Language.Ko?"요리 재료": "Ingredient")} :\n{text}";
         lootSlotIngredient.SetContent(sprite, text, ItemGrade.None);
         textGold.text = $"{_goldAmount.Item1} ~ {_goldAmount.Item2}";
+    }
+
+    public void SetStoreExplain()
+    {
+        textGold.gameObject.SetActive(false);
+        imageGold.gameObject.SetActive(false);
+        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 250f);
+        Sprite sprite;
+        string text;
+
+        textExplain.text = GameManager.language == Language.Ko ? "요리와 상점 이용 가능" : "Cooking and Store available";
+
+        sprite = ItemManager.itemManager.cookSprite;
+        text = GameManager.language == Language.Ko ? "요리 제작" : "Cooking crafting";
+        lootSlotSkill.SetContent(sprite, text, ItemGrade.Normal);
+
+        sprite = ItemManager.itemManager.weaponSprite;
+        text = GameManager.language == Language.Ko ? "상품 구매" : "Purchasing goods";
+        lootSlotIngredient.SetContent(sprite, text, ItemGrade.Normal);
     }
 
     // Start is called before the first frame update

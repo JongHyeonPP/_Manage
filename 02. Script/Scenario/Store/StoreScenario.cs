@@ -61,6 +61,7 @@ public class StoreScenario : MonoBehaviour
     }
     public async void NextButtonClicked()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         await ClearStoreAtDb();
         GameManager.storeScenario = null;
         StageScenarioBase.state = StateInMap.NeedPhase;
@@ -74,6 +75,7 @@ public class StoreScenario : MonoBehaviour
     public void OnMediumClicked(StoreCase _storeCase)
     {
         selectLight.SetActive(false);
+        SoundManager.SfxPlay("MetalClick_0");
         foreach (StoreSelect x in storeSelects)
         {
             x.imageMedium.SetActive(false);

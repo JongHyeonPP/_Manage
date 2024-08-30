@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SubLootSlot : MonoBehaviour
+public class SubLootSlot : SlotBase
 {
     public Image imageLoot;
     public TMP_Text textAmount;
@@ -21,6 +21,7 @@ public class SubLootSlot : MonoBehaviour
     }
     public void OnPointerEnterSlot()
     {
+        HighlightOn();
         ItemTooltip tooltip = GameManager.battleScenario.battleTooltip;
         tooltip.transform.parent = transform;
         tooltip.rectTransform.anchorMin = new Vector2(0.5f, 0f);
@@ -32,6 +33,7 @@ public class SubLootSlot : MonoBehaviour
     }
     public void OnPointerExitSlot()
     {
+        HighlightOff();
         GameManager.battleScenario.battleTooltip.gameObject.SetActive(false);
     }
 }

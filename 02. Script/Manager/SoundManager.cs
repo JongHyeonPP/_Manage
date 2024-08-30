@@ -44,15 +44,35 @@ public class SoundManager : MonoBehaviour
     }
     private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
     {
-        if (bgmList.TryGetValue(arg0.name, out AudioClip audioClip))
+        AudioClip audioClip;
+        if (arg0.name == "Battle")
         {
-            bgmSource.clip = audioClip;
-            bgmSource.Play();
+            int phaseIndex = StageScenarioBase.nodes.Count == 6 ? 1 : 0;
+            if (bgmList.TryGetValue($"Battle_{StageScenarioBase.stageNum}_{phaseIndex}", out audioClip))
+            {
+                bgmSource.clip = audioClip;
+                bgmSource.Play();
+            }
+        }
+        else if (arg0.name.Contains("Stage"))
+        {
+            if (bgmList.TryGetValue("Stage", out audioClip))
+            {
+                bgmSource.clip = audioClip;
+                bgmSource.Play();
+            }
+        }
+        else
+        {
+            if (bgmList.TryGetValue(arg0.name, out audioClip))
+            {
+                bgmSource.clip = audioClip;
+                bgmSource.Play();
+            }
         }
     }
-    public void SfxPlay(string _name)
+    public static void SfxPlay(string _name, float _scale=1f)
     {
-        sfxSource.PlayOneShot(sfxList[_name]);
+        soundManager.sfxSource.PlayOneShot(soundManager.sfxList[_name], _scale);
     }
-
 }

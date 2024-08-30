@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using TMPro;
 using EnumCollection;
 using System;
-public class TalentSlot_Lobby : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class TalentSlot_Lobby : SlotBase, IPointerEnterHandler, IPointerExitHandler
 {
     RecruitUi recruitUi;
     public Image imageIcon;
@@ -19,7 +19,6 @@ public class TalentSlot_Lobby : MonoBehaviour, IPointerEnterHandler, IPointerExi
     {
         recruitUi = GameManager.lobbyScenario.recruitUi;
         talentExplainUi = recruitUi.talentExplainUi;
-        talentExplainUi.gameObject.SetActive(false);
     }
     public void SetCurrentTalent(TalentClass _talent)
     {
@@ -50,6 +49,7 @@ public class TalentSlot_Lobby : MonoBehaviour, IPointerEnterHandler, IPointerExi
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
+        HighlightOn();
         talentExplainUi.rectTransform.parent = transform;
         talentExplainUi.rectTransform.localPosition = new Vector2(0f, 50f);
         talentExplainUi.gameObject.SetActive(true);
@@ -57,13 +57,15 @@ public class TalentSlot_Lobby : MonoBehaviour, IPointerEnterHandler, IPointerExi
         if (currentTalent.ableLevel != -1)
         {
             string levelStr = (GameManager.language == Language.Ko) ? "·¹º§" : "Level";
-            title += $" <size=120%>({levelStr} {currentTalent.effectLevel + 1})";
+            title += $" ({levelStr} {currentTalent.effectLevel + 1})";
         }
+        talentExplainUi.rectTransform.sizeDelta = new Vector2(500f, talentExplainUi.rectTransform.sizeDelta.y);
         talentExplainUi.SetTalentExplain(title ,currentTalent.GetExplain());
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        HighlightOff();
         talentExplainUi.gameObject.SetActive(false);
     }
 

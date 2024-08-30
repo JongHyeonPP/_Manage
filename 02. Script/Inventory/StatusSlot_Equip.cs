@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class StatusSlot_Equip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class StatusSlot_Equip : SlotBase, IPointerEnterHandler, IPointerExitHandler
 {
     StatusExplain statusExplain;
     public StatusType statusType;
@@ -14,6 +14,7 @@ public class StatusSlot_Equip : MonoBehaviour, IPointerEnterHandler, IPointerExi
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
+        HighlightOn();
         statusExplain.transform.parent = transform.parent;
         statusExplain.gameObject.SetActive(true);
         statusExplain.transform.localPosition = transform.localPosition;
@@ -43,6 +44,7 @@ public class StatusSlot_Equip : MonoBehaviour, IPointerEnterHandler, IPointerExi
     }
     public void OnPointerExit(PointerEventData eventData)
     {
+        HighlightOff();
         statusExplain.gameObject.SetActive(false);
     }
 }

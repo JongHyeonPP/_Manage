@@ -32,7 +32,7 @@ public class EatFoodUi : MonoBehaviour
     }
     private void OnDisable()
     {
-        
+        SoundManager.SfxPlay("WoodenClick_0");
         ItemManager.itemManager.InventoryRayBlock.SetActive(false);
         foreach (EatFoodSlot x in slots)
             x.Deselect();
@@ -50,6 +50,7 @@ public class EatFoodUi : MonoBehaviour
     }
     public void OnEatButtonClick()
     {
+        SoundManager.SfxPlay("Decline");
         StartCoroutine(ApplyValuesCoroutine());
     }
 

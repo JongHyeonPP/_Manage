@@ -43,11 +43,17 @@ public class SettingUi : MonoBehaviour
     private void Awake()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        ButtonActive(SceneManager.GetActiveScene().name);
     }
 
     private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
     {
-        if (arg0.name == "Battle" || arg0.name == "Store" || arg0.name.Contains("Stage"))
+        ButtonActive(arg0.name);
+    }
+
+    private void ButtonActive(string _sceneName)
+    {
+        if (_sceneName == "Battle" || _sceneName == "Store" || _sceneName.Contains("Stage"))
         {
             buttonSurrender.SetActive(true);
         }
@@ -55,7 +61,7 @@ public class SettingUi : MonoBehaviour
         {
             buttonSurrender.SetActive(false);
         }
-        if (arg0.name == "Battle" || arg0.name == "Store" || arg0.name == "Lobby" || arg0.name.Contains("Stage"))
+        if (_sceneName == "Battle" || _sceneName == "Store" || _sceneName == "Lobby" || _sceneName.Contains("Stage"))
         {
             buttonExit.SetActive(true);
         }
@@ -289,6 +295,12 @@ public class SettingUi : MonoBehaviour
     }
     public void OnCancelBtnClick()
     {
+        SoundManager.SfxPlay("WoodenClick_1");
+        ResetSet();
+    }
+
+    public void ResetSet()
+    {
         Screen.SetResolution(resolutions[originSet.resolutionIndex].width, resolutions[originSet.resolutionIndex].height, originSet.fullScreenMode);
 
         dropdownResolution.value = originSet.resolutionIndex;
@@ -306,8 +318,10 @@ public class SettingUi : MonoBehaviour
         gameObject.SetActive(false);
         newSet = originSet.GetDeepCopySet();
     }
+
     public void ConfirmBtnClick()
     {
+        SoundManager.SfxPlay("WoodenClick_1");
         DataManager.dataManager.SetConfigData(DataSection.Language, "Language", newSet.language);
 
         DataManager.dataManager.SetConfigData(DataSection.SoundSetting, "AllVolume", newSet.volume[VolumeType.All]);
@@ -328,26 +342,52 @@ public class SettingUi : MonoBehaviour
     }
     public void OnExitButtonClick()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         ConfirmBtnClick();
         gameObject.SetActive(false);
-
+        foreach (var x in BattleScenario.enemies)
+        {
+            Destroy(x.gameObject);
+        }
+        foreach (var x in BattleScenario.characters)
+        {
+            Destroy(x.gameObject);
+        }
+        BattleScenario.enemies =new();
+        BattleScenario.characters= new();
+        GameManager.gameManager.canvasGrid.gameObject.SetActive(false);
         LoadingScenario.LoadScene("Start");
     }
     public void OnSurrenderButtonClick()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         ConfirmBtnClick();
         gameObject.SetActive(false);
         GameManager.gameManager.GameOver();
     }
+    public void OnSurButtonClick()
+    {
+        SoundManager.SfxPlay("WoodenClick_0");
+        panelSurrender.SetActive(true);
+    }
+    public void OnSurReturnClick()
+    {
+        SoundManager.SfxPlay("WoodenClick_0");
+        panelSurrender.SetActive(false);
+    }
     private void OnEnable()
     {
-        if (settingManager)
-            settingManager.raycastBlock.SetActive(true);
+        if (GameManager.battleScenario != null)
+        {
+            GameManager.IsPaused = true;
+        }
     }
     private void OnDisable()
     {
-        if (settingManager)
-            settingManager.raycastBlock.SetActive(false);
+        if (GameManager.battleScenario != null)
+        {
+            GameManager.IsPaused = false;
+        }
         panelSurrender.SetActive(false);
     }
 }

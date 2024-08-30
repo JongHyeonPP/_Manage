@@ -30,6 +30,7 @@ public class IngredientSlot : SlotBase, IBeginDragHandler, IDragHandler, IEndDra
     }
     public void OnButtonClicked()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         if (!cookUi.OnIngredientSlotClicked(ci.item))
             return;
         cookUi.textName.text = string.Empty;
@@ -37,7 +38,7 @@ public class IngredientSlot : SlotBase, IBeginDragHandler, IDragHandler, IEndDra
         if (ci.amount == 0)
         {
             gameObject.SetActive(false);
-            parentScrollView.ModifySizeDelta(false);
+            //parentScrollView.ModifySizeDelta(false);
             SetHighLightAlphaZero();
         }
         else

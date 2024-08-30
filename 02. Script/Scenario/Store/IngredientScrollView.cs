@@ -10,16 +10,16 @@ public class IngredientScrollView : ScrollRect
 {
     public new RectTransform content;
     public GameObject ingredientSlotObj;
-    private GridLayoutGroup gridLayoutGroup;
+    private HorizontalLayoutGroup gridLayoutGroup;
     public List<IngredientSlot> slots = new();
     private new void Start()
     {
         base.Start();
-        gridLayoutGroup = content.GetComponent<GridLayoutGroup>();
-        content.sizeDelta = new Vector2(gridLayoutGroup.spacing.x, content.sizeDelta.y);
+        gridLayoutGroup = content.GetComponent<HorizontalLayoutGroup>();
+        content.sizeDelta = new Vector2(gridLayoutGroup.spacing, content.sizeDelta.y);
         for (int i = 0; i < content.childCount; i++)
         {
-            content.sizeDelta += new Vector2(gridLayoutGroup.cellSize.x + gridLayoutGroup.spacing.x, 0);
+            content.sizeDelta += new Vector2(70 + gridLayoutGroup.spacing, 0);
         }
     }
     public void AddIngredientCi(CountableItem _ci)
@@ -33,8 +33,8 @@ public class IngredientScrollView : ScrollRect
     public void ModifySizeDelta(bool _isIncrease)
     {
         if (_isIncrease)
-            content.sizeDelta += new Vector2(gridLayoutGroup.cellSize.x + gridLayoutGroup.spacing.x, 0);
+            content.sizeDelta += new Vector2(70 + gridLayoutGroup.spacing, 0);
         else
-            content.sizeDelta -= new Vector2(gridLayoutGroup.cellSize.x + gridLayoutGroup.spacing.x, 0);
+            content.sizeDelta -= new Vector2(70 + gridLayoutGroup.spacing, 0);
     }
 }

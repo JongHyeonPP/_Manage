@@ -64,10 +64,10 @@ public class UpgradeSkillUi : MonoBehaviour
         inventoryUi.UnsetUpgradeMode();
         inventoryUi.SelectButtonSelect(inventoryUi.currentSelectButton);
         ResetUpgradeSkillUi();
-
     }
     public void ResetUpgradeSkillUi()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         foreach (UpgradeSkillSlot slot in slots.Where(data => data.targetInventorySlot))
         {
             slot.targetInventorySlot.ChangeCiAmount(slot.ci.amount);
@@ -127,6 +127,7 @@ public class UpgradeSkillUi : MonoBehaviour
     }
     public void OnUpgradeButtonClicked()
     {
+        SoundManager.SfxPlay("WoodenClick_0");
         if (slots.Where(item => item.ci != null).Count() == 0)
         {
             Debug.Log("재료 없음");
@@ -166,6 +167,7 @@ public class UpgradeSkillUi : MonoBehaviour
 
     public IEnumerator UpdateSkillGrade(ItemGrade _grade)
     {
+        SoundManager.SfxPlay("Confirm");
         // 1에서 0으로 알파값 변경
         float duration = 0.5f;
         float elapsedTime = 0f;

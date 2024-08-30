@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UpgradeSlot : MonoBehaviour
+public class UpgradeSlot : SlotBase
 {
     public int index;
     public TMP_Text textName;
@@ -16,14 +16,17 @@ public class UpgradeSlot : MonoBehaviour
     public TMP_Text textFame;
     public void OnUpBtnClicked()
     {
+        SoundManager.SfxPlay("Decline");
         GameManager.lobbyScenario.OnUpBtnClicked(this);
     }
     public void OnPointerEnter()
     {
+        HighlightOn();
         GameManager.lobbyScenario.OnPointerEnter_Slot(this);
     }
     public void OnPointerExit()
     {
+        HighlightOff();
         GameManager.lobbyScenario.OnPointerExit_Slot();
     }
 }

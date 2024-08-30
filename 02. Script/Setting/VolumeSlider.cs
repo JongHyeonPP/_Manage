@@ -5,7 +5,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using static SettingManager;
-public class VolumeSlider : MonoBehaviour
+public class VolumeSlider: MonoBehaviour
 {
     public VolumeType volumeType;
     public TMP_Text textNum;

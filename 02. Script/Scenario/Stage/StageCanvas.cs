@@ -135,7 +135,6 @@ public class StageCanvas : MonoBehaviour
                     DestinationNode temp = SetNodeActive(i, arrayIndex);
                     if (i == nodes.Count - 1)
                     {
-                        if (temp.nodeType.backgroundType != BackgroundType.Store && temp.nodeType.backgroundType != BackgroundType.Lava)
                             temp.imageTrigger.SetActive(true);
                     }
                     temp.ActiveWithObject(true);
@@ -150,7 +149,6 @@ public class StageCanvas : MonoBehaviour
                 DestinationNode temp = SetNodeActive(i, arrayIndexes[0]);
                 if (i == nodes.Count - 1)
                 {
-                    if (temp.nodeType.backgroundType != BackgroundType.Store && temp.nodeType.backgroundType != BackgroundType.Lava)
                         temp.imageTrigger.SetActive(true);
                 }
                 temp.ActiveWithObject(true);
@@ -449,13 +447,14 @@ public class StageCanvas : MonoBehaviour
 
             DestinationNode node = tempTo[i];
             List<KeyValuePair<string, NodeType>> kvps;
+            node.imageTrigger.SetActive(true);
             if (i == storeIndex)
             {
                 kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == BackgroundType.Store).ToList();
             }
             else
             {
-                node.imageTrigger.SetActive(true);
+
                 kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == node.backGroundType).ToList();
             }
             KeyValuePair<string, NodeType> selected = kvps[Random.Range(0, kvps.Count)];

@@ -31,6 +31,11 @@ public class BuyConfirmUi : MonoBehaviour
     {
         GameManager.storeScenario.storeUi.raycastBlock.gameObject.SetActive(false);
     }
+    public void OnReturnButtonClick()
+    {
+        SoundManager.SfxPlay("WoodenClick_0");
+        gameObject.SetActive(false);
+    }
     public void SetItemPrice(GoodsSlot _goodsSlot)
     {
         goodsSlot = _goodsSlot;
@@ -93,6 +98,7 @@ public class BuyConfirmUi : MonoBehaviour
         }
         if (isSuccess)
         {
+            SoundManager.SfxPlay("BuySell");
             GameManager.gameManager.ChangeGold(-price);
             GameManager.storeScenario.SetStoreAtDb();
             await ItemManager.itemManager.SetInventoryAtDb();

@@ -49,6 +49,7 @@ public class StartScenario : MonoBehaviour
     }
     public void OnNewGameButtonClick()
     {
+        SoundManager.SfxPlay("PopThin");
         if (isOperating)
             return;
         if (GameManager.gameManager.progressDoc != null)
@@ -86,10 +87,12 @@ public class StartScenario : MonoBehaviour
     }
     public void ExitBtnClick()
     {
+        SoundManager.SfxPlay("PopThin");
         Application.Quit();
     }
     public async void LoadBtnClick()
     {
+        SoundManager.SfxPlay("PopThin");
         if (isOperating)
             return;
         isOperating = true;
@@ -101,6 +104,7 @@ public class StartScenario : MonoBehaviour
     }
     public void SettingBtnClick()
     {
+        SoundManager.SfxPlay("PopThin");
         SettingManager.settingManager.settingUi.gameObject.SetActive(true);
     }
     private void LanguageChange()

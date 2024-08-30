@@ -25,6 +25,8 @@ public class RecruitUi : LobbyUiBase
         InitTalent();
         OnLanguageChange();
         SettingManager.LanguageChangeEvent += OnLanguageChange;
+        talentExplainUi.gameObject.SetActive(false);
+        InitStatusText();
     }
     private void OnLanguageChange()
     {

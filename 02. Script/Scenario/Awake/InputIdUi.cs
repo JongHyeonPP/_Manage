@@ -41,6 +41,7 @@ public class InputIdUi : MonoBehaviour
         bool isSuccess = IsValidId(inputFieldId.text);
         if (isSuccess)
         {
+            SoundManager.SfxPlay("Pause");
             buttonContinue.enabled = false;
             StartCoroutine(FadeOutUI());
         }

@@ -5,14 +5,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public abstract class SlotBase : MonoBehaviour//Highlight에 관련된 기능
+public class SlotBase : MonoBehaviour//Highlight에 관련된 기능
 {
     public Image imageHighlight;
     protected Coroutine highlightCoroutine;
     private readonly float _highlightAlpha = 0.5f;
     private readonly float _highlightFadeDuration = 0.2f;
     private float _currentHLAlpha = 0f;
-    protected void Awake()
+    private void OnEnable()
     {
         SetHighLightAlphaZero();
     }

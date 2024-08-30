@@ -647,7 +647,7 @@ public class LoadManager : MonoBehaviour//Firestore에 있는 기초 데이터들 로딩해�
             foreach (var x in dict["Explain"] as Dictionary<string, object>)
             {
                 string value = (string)x.Value;
-                value = value.Replace("<E>", "<color=#4C4CFF><size=120%><b>");
+                value = value.Replace("<E>", "<color=#4C4CFF><size=110%><b>");
                 value = value.Replace("</E>", "</b></size></color>");
                 value = value.Replace("\\n", "\n");
                 switch (x.Key)

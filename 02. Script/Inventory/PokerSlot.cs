@@ -17,7 +17,6 @@ public class PokerSlot : SlotBase
      
     private void Awake()
     {
-        base.Awake();
         ClearPoker();
     }
     private void Start()

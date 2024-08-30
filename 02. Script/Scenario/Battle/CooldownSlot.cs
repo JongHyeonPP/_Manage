@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CooldownSlot : MonoBehaviour
+public class CooldownSlot : SlotBase
 {
     [SerializeField] Image imageSkillIcon;
     [SerializeField] Image imageCooldown;
@@ -48,6 +48,8 @@ public class CooldownSlot : MonoBehaviour
     }
     public void OnPointerEnter()
     {
+        HighlightOn();
+
         ItemTooltip battleTooltip = GameManager.battleScenario.battleTooltip;
         battleTooltip.transform.SetParent(transform);
         battleTooltip.transform.localScale = new Vector2(1f, 1f);
@@ -61,6 +63,7 @@ public class CooldownSlot : MonoBehaviour
     }
     public void OnPointerExit()
     {
+        HighlightOff();
         GameManager.battleScenario.battleTooltip.gameObject.SetActive(false);
     }
 }
