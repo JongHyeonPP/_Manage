@@ -8,7 +8,6 @@ public class StageScenario_0 : StageScenarioBase
 {
     protected override void Awake()
     {
-        stageNum = 0;
         base.Awake();
     }
 

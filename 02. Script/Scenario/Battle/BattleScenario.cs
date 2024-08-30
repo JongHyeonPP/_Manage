@@ -174,7 +174,7 @@ public class BattleScenario : MonoBehaviour
                         { "Id", selectedCase[i].id },
                         { "GridIndex", selectedCase[i].index }
                     };
-                    DataManager.dataManager.SetDocumentData(enemyDict, $"Progress/{GameManager.gameManager.Uid}/Enemies");
+                    DataManager.dataManager.SetDocumentData(enemyDict, $"Progress/{GameManager.gameManager.uid}/Enemies");
                     battleProgress += 1f / totalSteps; // 진행률 업데이트
                 }
                 return Task.CompletedTask;
@@ -194,6 +194,7 @@ public class BattleScenario : MonoBehaviour
     public static List<BaseInBattle> GetTargetsByRange(EffectRange _range, BaseInBattle _target)
     {
         List<BaseInBattle> targets = null;
+
         List<BaseInBattle> targetsBase = (_target.IsEnemy ? enemies : characters).Where(item => item&& !item.isDead).ToList();
         switch (_range)
         {
@@ -386,15 +387,16 @@ public class BattleScenario : MonoBehaviour
                 x.showBuffSlots.gameObject.SetActive(false);
             }
         }
-
         yield return new WaitForSeconds(2f);
+        battlePatern = BattlePatern.Done;
         StageClearAsync();
 
     }
     public async Task StageClearAsync()
     {
         Debug.Log("StageClear");
-        GameManager.battleScenario.StopAllCoroutines();
+        battleTimer.gameObject.SetActive(false);
+        StopAllCoroutines();
         foreach (var x in characters)
         {
             if (x)
@@ -404,7 +406,6 @@ public class BattleScenario : MonoBehaviour
         {
             x.StopAllCoroutines();
         }
-        battlePatern = BattlePatern.OnReady;
         List<CharacterData> dataList = GameManager.gameManager.characterList;
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
         {
@@ -418,7 +419,7 @@ public class BattleScenario : MonoBehaviour
                 Dictionary<string, object> dict = new();
                 dict.Add("Hp", data.hp);
                 dict.Add("GridIndex", data.gridIndex);
-                DataManager.dataManager.SetDocumentData(dict, string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"), data.docId);
+                DataManager.dataManager.SetDocumentData(dict, string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.uid, "Characters"), data.docId);
             }
             StageScenarioBase.nodes.Add(null);
             Dictionary<string, object> docDict = new()
@@ -428,13 +429,22 @@ public class BattleScenario : MonoBehaviour
                 { "EnemyNum", GameManager.gameManager.enemyNum},
                 { "BossNum", GameManager.gameManager.bossNum }
             };
-            DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.uid);
+            ClearEnemyAsync();
             return Task.CompletedTask;
         });
 
-        await ClearEnemyAsync();
-        await ItemManager.itemManager.SetLootAsync();
-        canvasClear.SetActive(true);
+
+        if (currentBackground == BackgroundType.Lava)
+        {
+            canvasClear.SetActive(true);
+            lootUi.gameObject.SetActive(false);
+        }
+        else
+        {
+            await ItemManager.itemManager.SetLootAsync();
+            canvasClear.SetActive(true);
+        }
         buttonNext.gameObject.SetActive(true);
     }
 
@@ -491,7 +501,7 @@ public class BattleScenario : MonoBehaviour
     public static async Task ClearEnemyAsync()
     {
         ClearEnemyObject();
-        List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
+        List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.uid}/Enemies");
         foreach (DocumentSnapshot snapshot in snapshots)
         {
             await snapshot.Reference.DeleteAsync();
@@ -510,8 +520,8 @@ public class BattleScenario : MonoBehaviour
     public static async Task ClearCharacterAsync()
     {
         ClearCharacterObject();
-        string collectionRef = "Progress/" + GameManager.gameManager.Uid + "/Characters";
-        List<DocumentSnapshot> result = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.Uid, "Characters"));
+        string collectionRef = "Progress/" + GameManager.gameManager.uid + "/Characters";
+        List<DocumentSnapshot> result = await DataManager.dataManager.GetDocumentSnapshots(string.Format("{0}/{1}/{2}", "Progress", GameManager.gameManager.uid, "Characters"));
         foreach (DocumentSnapshot doc in result)
         {
             await doc.Reference.DeleteAsync();
@@ -596,7 +606,7 @@ public class BattleScenario : MonoBehaviour
     {
         Dictionary<string, EnemyClass> enemyDict = LoadManager.loadManager.enemyiesDict;
         List<DocumentSnapshot> snapshots;
-            snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/Enemies");
+            snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.uid}/Enemies");
         foreach (DocumentSnapshot snapshot in snapshots)
         {
             Dictionary<string, object> dict = snapshot.ToDictionary();

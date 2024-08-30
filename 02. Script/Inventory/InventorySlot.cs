@@ -284,10 +284,12 @@ public class InventorySlot : SlotBase
                 float maxHp = newWeapon.hp - previousWeapon.hp;
                 float ability = newWeapon.ability - previousWeapon.ability;
                 float resist = newWeapon.resist - previousWeapon.resist;
-                float speed = newWeapon.speed - previousWeapon.resist;
+                float speed = newWeapon.speed - previousWeapon.speed;
                 ItemManager.itemManager.inventoryUi.parentStatusUp.StartShowTextsStatus(0f, maxHp, ability, resist, speed);
                 targetCharacter.ChangeWeapon(newWeapon);
+                float hpProportion = targetCharacter.hp / targetCharacter.maxHp;
                 targetCharacter.maxHp += maxHp;
+                targetCharacter.hp = targetCharacter.maxHp * hpProportion;
                 targetCharacter.ability += ability;
                 targetCharacter.resist += resist;
                 targetCharacter.speed += speed;

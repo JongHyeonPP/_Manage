@@ -28,6 +28,10 @@ public class EquipSlot : SlotBase, IPointerEnterHandler, IPointerExitHandler,IPo
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
+        ItemTooltip tooltip = ItemManager.itemManager.inventoryUi.tooltip;
+        tooltip.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+        tooltip.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+        tooltip.rectTransform.pivot = new Vector2(0f, 0.5f);
         if (expBar.activeSelf)
         {
             ItemManager.itemManager.inventoryUi.SetTooltipAtInventory(transform, new Vector3(50f,30f), item);

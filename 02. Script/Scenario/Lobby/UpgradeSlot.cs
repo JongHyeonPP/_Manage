@@ -12,6 +12,8 @@ public class UpgradeSlot : MonoBehaviour
     public GameObject button_Up;
     public string curId;
     public Image imageIcon;
+    public GameObject imageFame;
+    public TMP_Text textFame;
     public void OnUpBtnClicked()
     {
         GameManager.lobbyScenario.OnUpBtnClicked(this);

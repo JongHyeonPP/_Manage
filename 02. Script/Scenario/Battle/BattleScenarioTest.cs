@@ -34,14 +34,7 @@ public class BattleScenarioTest : MonoBehaviour
     {
         foreach (BaseInBattle x in BattleScenario.enemies)
         {
-            if (((EnemyInBattle)x).isBoss)
-            {
-                GameManager.gameManager.bossNum++;
-            }
-            else
-            {
-                GameManager.gameManager.enemyNum++;
-            }
+            GameManager.gameManager.enemyNum++;
         }
         BattleScenario.RefreshGrid();
         foreach (BaseInBattle x in BattleScenario.characters)

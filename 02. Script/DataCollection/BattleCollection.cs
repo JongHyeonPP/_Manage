@@ -167,7 +167,7 @@ namespace BattleCollection
                     calcValue *= caster.abilityInBattle;
                     break;
                 case ValueBase.Armor:
-                    calcValue *= caster.armor;
+                    calcValue *= caster.GetTempValue_Sum(EffectType.Armor);
                     break;
                 case ValueBase.HpMax_Enemy:
                     calcValue *= target.maxHp;
@@ -178,15 +178,15 @@ namespace BattleCollection
             }
             calcValue = caster.CalcEffectValueByType(calcValue, effectType);
             calcValue *= _valueRate;
-            caster.StartCoroutine(RoopEffect(calcValue, target, valueBase, caster));
+            caster.StartCoroutine(RoopEffect(calcValue, target, caster));
         }
 
-        private IEnumerator RoopEffect(float _calcedValue, BaseInBattle _target, ValueBase _valueBase, BaseInBattle _caster)
+        private IEnumerator RoopEffect(float _calcedValue, BaseInBattle _target, BaseInBattle _caster)
         {
             for (int i = 0; i < count; i++)
             {
                 float beforeAbilityVamp = _target.abilityInBattle;
-                _target.ApplyValue(_calcedValue, effectType, _valueBase, _caster, duration);//////ÇÙ½É
+                _target.ApplyValue(_calcedValue, effectType, _caster, duration);//////ÇÙ½É
                 //´É·ÂÄ¡ Èí¼ö
                 if (effectType == EffectType.AbilityVamp)
                 {
@@ -477,7 +477,7 @@ namespace BattleCollection
                                         activeEffect.ActiveEffect0nTarget(target, valueRate);/////ÇÙ½É
                                     }
                                 }
-                                if (activeEffect.visualEffect != null)
+                                if (SettingManager.settingManager.isSkillEffectOn&& activeEffect.visualEffect != null&&BattleScenario.battlePatern == BattlePatern.Battle)
                                     GameManager.battleScenario.CreateVisualEffect(activeEffect.visualEffect, target, true);
                             }
                     }
@@ -593,12 +593,10 @@ namespace BattleCollection
         public BaseInBattle target;
         public EffectType effectType;
 
-        public TempEffect(float _value, float _duration, ValueBase _valueBase, BaseInBattle _caster, BaseInBattle _target, EffectType _effectType)
+        public TempEffect(float _value, float _duration, BaseInBattle _target, EffectType _effectType)
         {
             value = _value;
             duration = _duration;
-            valueBase = _valueBase;
-            caster = _caster;
             target = _target;
             effectType = _effectType;
             switch (_effectType)

@@ -1,4 +1,8 @@
+using Firebase.Firestore;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,18 +15,29 @@ public class AwakeScenario : MonoBehaviour
     private readonly float fadeOutTime = 1f;
     private readonly float totalPlayTime = 5f;
     private readonly float waitTime = 1f;
+
+    private bool isTestMode = true;
+    [SerializeField] InputIdUi inputIdUi;
     private void Awake()
     {
         Color imageColor = logoImage.color;
         imageColor.a = 0f;
         logoImage.color = imageColor;
-        StartCoroutine(ShowJhLogo());
+        //StartCoroutine(ShowJhLogo());
     }
 
     private async void Start()
     {
-        await GameManager.gameManager.LoadProgressDoc();
-        SceneManager.LoadScene("Start");
+        if (isTestMode)
+        {
+            inputIdUi.gameObject.SetActive(true);
+        }
+        else
+        {
+            inputIdUi.gameObject.SetActive(false);
+            await GameManager.gameManager.LoadProgressDoc();
+            SceneManager.LoadScene("Start");
+        }
     }
 
 
@@ -71,5 +86,22 @@ public class AwakeScenario : MonoBehaviour
 
             yield return null;
         }
+    }
+
+    public async void ProgressWithId(string _gameId)
+    {
+        List<DocumentSnapshot> snapShots = await DataManager.dataManager.GetDocumentSnapshots("User");
+        DocumentSnapshot snapShot = snapShots.Where(data => (string)data.ToDictionary()["GameId"] == _gameId).FirstOrDefault();
+        if (snapShot == null)
+        {
+            GameManager.gameManager.uid = await DataManager.dataManager.GetNewDocumentId("User", _gameId);
+        }
+        else
+        {
+            GameManager.gameManager.uid = snapShot.Id;
+        }
+
+        await GameManager.gameManager.LoadProgressDoc();
+        SceneManager.LoadScene("Start");
     }
 }

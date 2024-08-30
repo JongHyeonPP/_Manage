@@ -8,7 +8,6 @@ public class EnemyInBattle : BaseInBattle
     public static readonly Color TARGET_COLOR = new(1f, 0f, 0f, 0.5f);
     public static readonly float DEFAULT_PROB = 0.6f;
     public static readonly float INCREASE_PROB = 0.1f;
-    public bool isBoss = false;
 
     public void InitEnemy(EnemyClass _enemyClass, GridObject _grid)
     {
@@ -34,10 +33,7 @@ public class EnemyInBattle : BaseInBattle
     {
         GameManager.battleScenario.StartCoroutine(OnDead_Base());
         bool gameOverFlag = false;
-        if (!isBoss)
-            GameManager.gameManager.enemyNum++;
-        else
-            GameManager.gameManager.bossNum++;
+        GameManager.gameManager.enemyNum++;
         foreach (BaseInBattle enemy in BattleScenario.enemies)
         {
             if (!enemy.isDead)

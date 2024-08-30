@@ -27,16 +27,11 @@ public class
     public Camera popUpCamera;
     //public Difficulty difficulty;
     public static Language language;
-    private string uid;
-    public string Uid
-    {
-        get { return uid; }
-    }
+    public string uid;
     public Dictionary<string, object> userDoc;
     public Dictionary<string, object> progressDoc;
     public int fame;
     public int gold;
-    public float fameAscend = 0f;
     public float goldAscend = 0f;
     public Dictionary<string, int> upgradeLevelDict = new();//DocId : Level
     public Dictionary<UpgradeEffectType, float> upgradeValueDict = new();
@@ -70,6 +65,7 @@ public class
     #region Map
     public GameObject smallDotPrefab;
     public GameObject[] stageBaseCanvases;
+    public PhaseProgressUi phaseProgressUi;
     #endregion
     //Menu
     public Button buttonSetting;
@@ -106,11 +102,11 @@ public class
     }
     public async Task LoadProgressDoc()
     {
-        progressDoc = await DataManager.dataManager.GetField("Progress", Uid);
+        progressDoc = await DataManager.dataManager.GetField("Progress", uid);
     }
     public async Task LoadUserDoc()
     {
-        userDoc = await DataManager.dataManager.GetField("User", Uid);
+        userDoc = await DataManager.dataManager.GetField("User", uid);
         Dictionary<string, object> upgradeDict;
         if (userDoc.TryGetValue("Upgrade", out object upgradeObj))
         {
@@ -120,7 +116,10 @@ public class
         {
             upgradeDict = new();
         }
-        fame = (int)(long)userDoc["Fame"];
+        if (userDoc.ContainsKey("Fame"))
+            fame = (int)(long)userDoc["Fame"];
+        else
+            fame = 0;
         bool needToSet = false;
 
 
@@ -150,7 +149,7 @@ public class
         }
         if (needToSet)
         {
-            DataManager.dataManager.SetDocumentData("Upgrade", upgradeLevelDict, "User", Uid);
+            DataManager.dataManager.SetDocumentData("Upgrade", upgradeLevelDict, "User", uid);
         }
 
     }
@@ -179,7 +178,7 @@ public class
                 docDict.Add("Scene", "Stage");
             else
                 docDict.Add("Scene", _arg0.name);
-            DataManager.dataManager.SetDocumentData(docDict, "Progress", Uid);
+            DataManager.dataManager.SetDocumentData(docDict, "Progress", uid);
         }
         if (_arg0.name != "Awake" && _arg0.name != "Start" && _arg0.name != "Lobby" && _arg0.name != "Battle")
         {
@@ -203,6 +202,7 @@ public class
             StageScenarioBase.state = StateInMap.NeedPhase;
         if (StageScenarioBase.stageCanvas)
             StageScenarioBase.stageCanvas.gameObject.SetActive(_arg0.name.Contains("Stage"));
+        phaseProgressUi.gameObject.SetActive(_arg0.name.Contains("Stage"));
        buttonSetting.transform.parent.gameObject.SetActive(_arg0.name.Contains("Stage") || _arg0.name == "Battle" || _arg0.name == "Store" || _arg0.name == "Lobby");
     }
     private void InitGrids()
@@ -263,7 +263,10 @@ public class
             {
                 case "Battle":
                     await BattleScenario.LoadEnemy();
-                    BattleScenario.currentBackground = LoadManager.loadManager.nodeTypesDict[StageScenarioBase.nodeTypes.Where(item => item != null).Last()].backgroundType;
+                    int lastIndex = StageScenarioBase.nodes.Count - 1;
+                    int arrayIndex = lastIndex * 4 + (int)(long)StageScenarioBase.nodes[lastIndex];
+                    string nodeType = StageScenarioBase.nodeTypes[arrayIndex];
+                    BattleScenario.currentBackground = LoadManager.loadManager.nodeTypesDict[nodeType].backgroundType;
                     break;
                 case "Stage":
                     scene += StageScenarioBase.stageNum;
@@ -300,7 +303,7 @@ public class
             {"BossNum", 0  },
             {"FoodNum", 0  }
         };
-        DataManager.dataManager.SetDocumentData(dict, "Progress", Uid);
+        DataManager.dataManager.SetDocumentData(dict, "Progress", uid);
     }
 
     public async Task LoadCharacter(int _battleLevel = -1)
@@ -653,9 +656,11 @@ public class
 
     public async void GameOver()
     {
-        canvasGameOver.SetScore();
-        canvasGameOver.gameObject.SetActive(true);
-        await ResetGame();
+
+            canvasGameOver.SetScore();
+            canvasGameOver.gameObject.SetActive(true);
+            await ResetGame();
+
     }
 
     public async Task ResetGame()
@@ -668,7 +673,12 @@ public class
         {
             await BattleScenario.ClearCharacterAsync();
             await BattleScenario.ClearEnemyAsync();
-            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(Uid);
+            DocumentReference documentRef = FirebaseFirestore.DefaultInstance.Collection("Progress").Document(uid);
+            Dictionary<string, object> docDict = new()
+        {
+            { "Fame", fame },
+        };
+            DataManager.dataManager.SetDocumentData(docDict, "User", uid);
             await documentRef.DeleteAsync();
         });
     }

@@ -17,9 +17,20 @@ public class UpgradeSkillUi : MonoBehaviour
     public List<UpgradeSkillSlot> slots;
     private int skillIndex;
 
+    [SerializeField] TMP_Text textExplain;
+    [SerializeField] TMP_Text textClear;
+    [SerializeField] TMP_Text textUpgrade;
     private void Awake()
     {
         inventoryUi = ItemManager.itemManager.inventoryUi;
+        OnLanguageChange();
+        SettingManager.LanguageChangeEvent += OnLanguageChange;
+    }
+    private void OnLanguageChange()
+    {
+        textExplain.text = GameManager.language == Language.Ko ? "재료로 사용할 스킬을 선택하세요." : "Select a skill to use as material.";
+        textClear.text = GameManager.language == Language.Ko ? "비우기" : "Clear";
+        textUpgrade.text = GameManager.language == Language.Ko ? "강화하기" : "Upgrade";
     }
     public void InitUpgradeSkillUi(SkillAsItem _skillAsItem, int _index)
     {
@@ -138,8 +149,11 @@ public class UpgradeSkillUi : MonoBehaviour
             if (slot.targetInventorySlot.ci.amount == 0)
             {
                 slot.targetInventorySlot.ChangeCiAmount(0);
+                slot.targetInventorySlot.SetSelected(false);
             }
+
             slot.ClearSlot();
+
         }
         {
             //FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>

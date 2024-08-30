@@ -31,7 +31,7 @@ public class StageCanvas : MonoBehaviour
     private int coroutineCount = 0;
 
     private List<Coroutine> coroutines = new List<Coroutine>();
-
+    public int stageNum;
     private void Awake()
     {
         
@@ -133,7 +133,11 @@ public class StageCanvas : MonoBehaviour
                 foreach (int arrayIndex in arrayIndexes)
                 {
                     DestinationNode temp = SetNodeActive(i, arrayIndex);
-
+                    if (i == nodes.Count - 1)
+                    {
+                        if (temp.nodeType.backgroundType != BackgroundType.Store && temp.nodeType.backgroundType != BackgroundType.Lava)
+                            temp.imageTrigger.SetActive(true);
+                    }
                     temp.ActiveWithObject(true);
                     List<GameObject> dots = ConnectDots(prevNode, temp);
                     foreach (var x in dots)
@@ -144,7 +148,11 @@ public class StageCanvas : MonoBehaviour
             {
 
                 DestinationNode temp = SetNodeActive(i, arrayIndexes[0]);
-
+                if (i == nodes.Count - 1)
+                {
+                    if (temp.nodeType.backgroundType != BackgroundType.Store && temp.nodeType.backgroundType != BackgroundType.Lava)
+                        temp.imageTrigger.SetActive(true);
+                }
                 temp.ActiveWithObject(true);
                 if (prevNode.imageName)
                     prevNode.imageName.gameObject.SetActive(false);
@@ -447,6 +455,7 @@ public class StageCanvas : MonoBehaviour
             }
             else
             {
+                node.imageTrigger.SetActive(true);
                 kvps = LoadManager.loadManager.nodeTypesDict.Where(item => item.Value.backgroundType == node.backGroundType).ToList();
             }
             KeyValuePair<string, NodeType> selected = kvps[Random.Range(0, kvps.Count)];
@@ -476,7 +485,7 @@ public class StageCanvas : MonoBehaviour
             { "Nodes", StageScenarioBase.nodes },
             { "NodeTypes", StageScenarioBase.nodeTypes },
         };
-        DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.Uid);
+        DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.uid);
         StartCoroutine(WaitAllConnect(tempTo));
     }
     public IEnumerator MoveMapCoroutine(float targetX, float targetY, float duration)

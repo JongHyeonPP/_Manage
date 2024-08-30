@@ -2,6 +2,7 @@ using BattleCollection;
 using EnumCollection;
 using Firebase.Firestore;
 using ItemCollection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
+using Random = UnityEngine.Random;
 
 public class ItemManager : MonoBehaviour
 {
@@ -110,30 +112,22 @@ public class ItemManager : MonoBehaviour
         IngredientType ingredientType;
         SkillCategori skillCategori;
         ItemGrade skillGrade;
-        GetLootTypesByBackgroundType(BattleScenario.currentBackground, out skillCategori, out skillGrade, out ingredientType);
+        Tuple<int, int> goldAmount;
+        GetLootTypesByBackgroundType(BattleScenario.currentBackground, out skillCategori, out skillGrade, out ingredientType, out goldAmount);
         for (int i = 0; i < 2; i++)
         {
-            int lootCase = GameManager.AllocateProbability(new float[] { 0.5f, 0.5f });
             string id;
             Item item = null;
-            switch (lootCase)
-            {
-                case 0://Weapon
-                    id = GetRandomWeaponIdByGrade(ItemGrade.Normal);
-                    item = GetItemClass(ItemType.Weapon, id);
 
-                    break;
-                case 1://Skill
-                    id = GetRandomSkillIdByGradeCategori(ItemGrade.Normal, skillCategori);
-                    item = GetItemClass(ItemType.Skill, id);
-                    break;
-            }
+            id = GetRandomSkillIdByGradeCategori(ItemGrade.Normal, skillCategori);
+            item = GetItemClass(ItemType.Skill, id);
+
             CountableItem ci = new(item);
             main.Add(ci);
         }
 
-        int ingredientNum = Mathf.RoundToInt(Random.Range(3, 5) * (1 + BattleScenario.rewardAscend));
-        for (int i = 0; i < ingredientNum; i++)//재료는 3개나 4개
+        int ingredientNum = Mathf.RoundToInt(Random.Range(2, 4) * (1 + BattleScenario.rewardAscend));
+        for (int i = 0; i < ingredientNum; i++)//재료는 2개나 3개
         {
             string ingredientId = GetRandomIngredientId(ingredientType);
             Item ingredientItem = GetItemClass(ItemType.Ingredient, ingredientId);
@@ -142,7 +136,7 @@ public class ItemManager : MonoBehaviour
         }
         main = main.OrderBy(data => data.item.itemType).ToList();
         sub = sub.OrderBy(data => ((IngredientClass)data.item).pokerNum).ToList();
-        int gold = Random.Range(10, 13);
+        int gold = Random.Range(goldAmount.Item1, goldAmount.Item2 + 1);
         int goldAscend = Mathf.RoundToInt(gold * BattleScenario.rewardAscend);
         GameManager.gameManager.ChangeGold(gold + goldAscend);
         List<CountableItem> addMainSub = new(main);
@@ -259,8 +253,8 @@ public class ItemManager : MonoBehaviour
         }
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
         {
-            DataManager.dataManager.SetDocumentData("Inventory", setArr, "Progress", GameManager.gameManager.Uid);
-            DataManager.dataManager.SetDocumentData("Gold", GameManager.gameManager.gold, "Progress", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData("Inventory", setArr, "Progress", GameManager.gameManager.uid);
+            DataManager.dataManager.SetDocumentData("Gold", GameManager.gameManager.gold, "Progress", GameManager.gameManager.uid);
             foreach (CharacterData data in GameManager.gameManager.characterList)
             {
                 if (data)
@@ -472,7 +466,7 @@ public class ItemManager : MonoBehaviour
                 return needExp[1];
         }
     }
-    public static void GetLootTypesByBackgroundType(BackgroundType _backgroundType, out SkillCategori _skillCategori, out ItemGrade _skillGrade, out IngredientType _ingredientType)
+    public static void GetLootTypesByBackgroundType(BackgroundType _backgroundType, out SkillCategori _skillCategori, out ItemGrade _skillGrade, out IngredientType _ingredientType, out Tuple<int,int> _goldAmount)
     {
         switch (_backgroundType)
         {
@@ -480,71 +474,85 @@ public class ItemManager : MonoBehaviour
                 _ingredientType = IngredientType.Vegetable;
                 _skillCategori = SkillCategori.Power;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(10, 13);
                 break;
             case BackgroundType.Forest:
                 _ingredientType = IngredientType.Meat;
                 _skillCategori = SkillCategori.Sustain;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(10, 13);
                 break;
             case BackgroundType.Beach:
                 _ingredientType = IngredientType.Fish;
                 _skillCategori = SkillCategori.Util;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(12, 15);
                 break;
             case BackgroundType.Ruins:
                 _ingredientType = IngredientType.Fruit;
                 _skillCategori = SkillCategori.Power;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(12, 15);
                 break;
             case BackgroundType.ElfCity:
                 _ingredientType = IngredientType.All;
                 _skillCategori = SkillCategori.Default;
                 _skillGrade = ItemGrade.Rare;
+                _goldAmount = new(24, 30);
                 break;
             case BackgroundType.MysteriousForest:
                 _ingredientType = IngredientType.Vegetable;
                 _skillCategori = SkillCategori.Sustain;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(14, 17);
                 break;
             case BackgroundType.WinterForest:
                 _ingredientType = IngredientType.Meat;
                 _skillCategori = SkillCategori.Util;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(14, 17);
                 break;
             case BackgroundType.VineForest:
                 _ingredientType = IngredientType.Fish;
                 _skillCategori = SkillCategori.Power;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(16, 19);
                 break;
             case BackgroundType.Swamp:
                 _ingredientType = IngredientType.Fruit;
                 _skillCategori = SkillCategori.Sustain;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(16, 19);
                 break;
             case BackgroundType.IceField:
                 _ingredientType = IngredientType.All;
                 _skillCategori = SkillCategori.Default;
                 _skillGrade = ItemGrade.Rare;
+                _goldAmount = new(32, 38);
                 break;
             case BackgroundType.DesertRuins:
                 _ingredientType = IngredientType.Vegetable;
                 _skillCategori = SkillCategori.Util;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(18, 21);
                 break;
             case BackgroundType.Cave:
                 _ingredientType = IngredientType.Meat;
                 _skillCategori = SkillCategori.Power;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(18, 21);
                 break;
             case BackgroundType.Desert:
                 _ingredientType = IngredientType.Fish;
                 _skillCategori = SkillCategori.Sustain;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(20, 23);
                 break;
             case BackgroundType.RedRock:
                 _ingredientType = IngredientType.Fruit;
                 _skillCategori = SkillCategori.Util;
                 _skillGrade = ItemGrade.Normal;
+                _goldAmount = new(20, 23);
                 break;
         }
     }

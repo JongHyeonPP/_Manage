@@ -48,8 +48,8 @@ public class StageTextUi : MonoBehaviour
         {
             await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
             {
-                GameManager.gameManager.ResetGame();
                 allClearPanel.SetScore();
+                GameManager.gameManager.ResetGame();
                 StartCoroutine(AllClearCoroutine());
             });
         }
@@ -70,20 +70,10 @@ public class StageTextUi : MonoBehaviour
     private IEnumerator ClearCoroutine()
     {
 
-        Dictionary<string, object> docDict = new()
-        {
-            { "Nodes", FieldValue.Delete },
-            { "NodeTypes", FieldValue.Delete },
-            {"StageNum",  StageScenarioBase.stageNum+1}
-        };
-        DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.Uid);
-        StageScenarioBase.nodes = new();
-        StageScenarioBase.nodeTypes = new string[21];
         buttonNext.gameObject.SetActive(true);
         string text0 = GameManager.language == Language.Ko ? "스테이지" : "Stage";
         string text1 = GameManager.language == Language.Ko ? "클리어" : "Clear";
         textInfo.text = $"{text0} {StageScenarioBase.stageNum + 1}\n{text1}!";
-        StageScenarioBase.stageNum++;
         buttonNext.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0f);
         textNext.color = new Color(1f, 1f, 1f, 0f);
         buttonNext.enabled = false;
@@ -95,11 +85,21 @@ public class StageTextUi : MonoBehaviour
     }
     public void OnNextButtonClearClick()
     {
+        StageScenarioBase.nodes = new();
+        Dictionary<string, object> docDict = new()
+        {
+
+            { "Nodes",  FieldValue.Delete},
+            { "NodeTypes", FieldValue.Delete },
+            {"StageNum",  ++StageScenarioBase.stageNum}
+        };
+        DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.uid);
+        StageScenarioBase.phase = -1;
+        StageScenarioBase.nodeTypes = new string[21];
         GameManager.gameManager.buttonInventory.enabled = true;
         GameManager.gameManager.buttonSetting.enabled = true;
         StageScenarioBase.state = StateInMap.NeedPhase;
         LoadingScenario.LoadScene("Stage"+ (StageScenarioBase.stageNum));
-        Destroy(StageScenarioBase.stageCanvas.gameObject);
     }
     private IEnumerator StartCoroutine()
     {

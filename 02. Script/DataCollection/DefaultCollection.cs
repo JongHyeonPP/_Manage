@@ -112,13 +112,15 @@ namespace DefaultCollection
         public Dictionary<VolumeType, float> volume;
         public Dictionary<VolumeType, bool> onOff;
         public FullScreenMode fullScreenMode;
+        public bool isSkillEffectOn;
         public int resolutionIndex;
-        public SettingSet(Language _language, Dictionary<VolumeType, float> _volume, Dictionary<VolumeType, bool> _onOff, FullScreenMode _fullScreenMode, int _resolutionIndex)
+        public SettingSet(Language _language, Dictionary<VolumeType, float> _volume, Dictionary<VolumeType, bool> _onOff, FullScreenMode _fullScreenMode,bool _isSkillEffectOn, int _resolutionIndex)
         {
             language = _language;
             volume = _volume;
             onOff = _onOff;
             fullScreenMode = _fullScreenMode;
+            isSkillEffectOn = _isSkillEffectOn;
             resolutionIndex = _resolutionIndex;
         }
         public SettingSet GetDeepCopySet()
@@ -130,7 +132,7 @@ namespace DefaultCollection
                 newVolume.Add( type, volume[type]);
                 newOnOff.Add(type ,onOff[type]);
             }
-            SettingSet newSet = new(language, newVolume, newOnOff, fullScreenMode, resolutionIndex);
+            SettingSet newSet = new(language, newVolume, newOnOff, fullScreenMode, isSkillEffectOn, resolutionIndex);
             return newSet;
         }
 

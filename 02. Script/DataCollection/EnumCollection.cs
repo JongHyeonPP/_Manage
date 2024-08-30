@@ -2,7 +2,7 @@ namespace EnumCollection
 {
     public enum DataSection : byte
     {
-        SoundSetting, Language, Screen
+        SoundSetting, Language, Screen, Convenience
     }
     public enum VolumeType : byte
     {
@@ -29,7 +29,7 @@ namespace EnumCollection
     }
     public enum UpgradeEffectType : byte
     {
-        AllocateNumberUp, StatusUp, TalentEffectUp, TalentLevelUp, FameUp, RewardUp
+        AllocateNumberUp, StatusUp, StartGoldUp, TalentLevelUp, FameUp, RewardUp
     }
     public enum EffectRange : byte
     {
@@ -46,7 +46,7 @@ namespace EnumCollection
     }
     public enum BattlePatern : byte
     {
-        Battle, OnReady
+        Battle, OnReady, Done
     }
     public enum BackgroundType : byte
     {

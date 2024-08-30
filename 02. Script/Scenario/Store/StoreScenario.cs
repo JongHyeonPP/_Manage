@@ -28,7 +28,7 @@ public class StoreScenario : MonoBehaviour
         raycastBlock.SetActive(false);
         storeUi.gameObject.SetActive(false);
         storeTooltip.gameObject.SetActive(false);
-        Dictionary<string, object> goodsDoc = await DataManager.dataManager.GetField($"Progress/{GameManager.gameManager.Uid}/Store","Data");
+        Dictionary<string, object> goodsDoc = await DataManager.dataManager.GetField($"Progress/{GameManager.gameManager.uid}/Store","Data");
         if (goodsDoc == null)
         {
             storeUi.SetNewGoods();
@@ -68,7 +68,7 @@ public class StoreScenario : MonoBehaviour
     }
     private async Task ClearStoreAtDb()
     {
-        DocumentReference reference = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.Uid}/Store/Data");
+        DocumentReference reference = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.uid}/Store/Data");
         await reference.DeleteAsync();
     }
     public void OnMediumClicked(StoreCase _storeCase)

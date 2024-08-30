@@ -15,15 +15,33 @@ public class LoadingScenario : MonoBehaviour
 
 
     // Start is called before the first frame update
-    void Start()
+    async void Start()
     {
+        if (nextScene.Contains("Stage"))
+        {
+            if (StageScenarioBase.stageCanvas)
+            {
+                if (StageScenarioBase.stageCanvas.stageNum != StageScenarioBase.stageNum)
+                {
+                    Destroy(StageScenarioBase.stageCanvas.gameObject);
+                    StageScenarioBase.stageCanvas = null;
+                }
+            }
+        }
         StartCoroutine(LoadSceneProcess());
+        if (nextScene == "Start")
+        {
+            await GameManager.gameManager.LoadProgressDoc();
+            if (StageScenarioBase.stageCanvas)
+            {
+                Destroy(StageScenarioBase.stageCanvas.gameObject);
+                StageScenarioBase.stageCanvas = null;
+            }
+        }
     }
 
-    public static async void LoadScene(string _sceneName)
+    public static void LoadScene(string _sceneName)
     {
-        if (_sceneName == "Start")
-            await GameManager.gameManager.LoadProgressDoc();
         nextScene = _sceneName;
         SceneManager.LoadSceneAsync("Loading");
     }

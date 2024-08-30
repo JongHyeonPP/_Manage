@@ -8,10 +8,11 @@ using UnityEngine;
 public class LootExplain : MonoBehaviour
 {
     [SerializeField] TMP_Text textExplain;
+    [SerializeField] TMP_Text textGold;
 
     [SerializeField] LootSlot_Stage lootSlotSkill;
     [SerializeField] LootSlot_Stage lootSlotIngredient;
-    internal void SetExplain(SkillCategori _skillCategori, ItemGrade _skillGrade, IngredientType _ingredientType)
+    internal void SetExplain(SkillCategori _skillCategori, ItemGrade _skillGrade, IngredientType _ingredientType,Tuple<int,int> _goldAmount)
     {
         textExplain.text = GameManager.language == Language.Ko ? "획득 가능한 보상" : "Obtainable rewards";
         Sprite sprite;
@@ -88,7 +89,7 @@ public class LootExplain : MonoBehaviour
         }
         text = $"{(GameManager.language==Language.Ko?"요리 재료": "Ingredient")} :\n{text}";
         lootSlotIngredient.SetContent(sprite, text, ItemGrade.None);
-
+        textGold.text = $"{_goldAmount.Item1} ~ {_goldAmount.Item2}";
     }
 
     // Start is called before the first frame update

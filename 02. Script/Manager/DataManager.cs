@@ -7,6 +7,7 @@ using EnumCollection;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
+using System.Text;
 
 public class DataManager : MonoBehaviour
 {
@@ -41,6 +42,8 @@ public class DataManager : MonoBehaviour
                 return (string)gameData.language[_key];
             case DataSection.Screen:
                 return (string)gameData.screen[_key];
+            case DataSection.Convenience:
+                return (string)gameData.convenience[_key];
             default:
                 return null;
         }
@@ -114,7 +117,18 @@ public class DataManager : MonoBehaviour
         await documentRef.SetAsync(_dict, SetOptions.MergeAll);
         return documentRef.Id;
     }
+    public async Task<string> GetNewDocumentId(string _collectionRef, string _newGameId)
+    {
+        DocumentReference newDoc = db.Collection(_collectionRef).Document();
+        Dictionary<string, object> data = new Dictionary<string, object>
+        {
+            { "GameId", _newGameId },
+        };
 
+        // 도큐먼트에 필드 설정
+        await newDoc.SetAsync(data);
+        return newDoc.Id;
+    }
     public void SetConfigData(DataSection _section, string _key, object _value)
     {
         if (!string.IsNullOrEmpty(_key) && _value != null)
@@ -127,7 +141,10 @@ public class DataManager : MonoBehaviour
                     UpdateDict(gameData.language, "Language");
                     break;
                 case DataSection.Screen:
-                    UpdateDict(gameData.language, "Screen");
+                    UpdateDict(gameData.screen, "Screen");
+                    break;
+                case DataSection.Convenience:
+                    UpdateDict(gameData.convenience, "Convenience");
                     break;
             }
 
@@ -157,6 +174,7 @@ public class GameData
     public Dictionary<string, object> soundSetting = new();
     public Dictionary<string, object> language = new();
     public Dictionary<string, object> screen = new();
+    public Dictionary<string, object> convenience = new();
     Dictionary<string, object> curDict;
     public GameData()
     {
@@ -185,6 +203,9 @@ public class GameData
                         break;
                     case "Screen":
                         curDict = screen;
+                        break;
+                    case "Convenience":
+                        curDict = convenience;
                         break;
                 }
             }

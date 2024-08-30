@@ -41,7 +41,7 @@ public class AllClearPanel : MonoBehaviour
         scoreSlotBoss.SetScore(bossNum, bossScore);
         scoreSlotFood.SetScore(foodNum, foodScore);
         scoreSlotAllClear.SetScore(-1, allClearScore);
-
+        GameManager.gameManager.fame += fameScore + Mathf.RoundToInt(fameScore * GameManager.gameManager.upgradeValueDict[UpgradeEffectType.FameUp]);
         await SetFame(fameScore);
     }
     public IEnumerator AllMoveCoroutine()
@@ -84,7 +84,7 @@ public class AllClearPanel : MonoBehaviour
         GameManager.gameManager.fame += fameAscend;
         textFame.text = (GameManager.language == Language.Ko) ? "»πµÊ«— ∏Ìº∫" : "Gain Reputation";
         textFameAscend.gameObject.SetActive(false);
-        await DataManager.dataManager.SetDocumentData("Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.Uid);
+        await DataManager.dataManager.SetDocumentData("Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.uid);
         GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
     }
     public IEnumerator ShowFame()

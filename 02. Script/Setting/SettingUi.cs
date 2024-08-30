@@ -1,12 +1,8 @@
 using DefaultCollection;
 using EnumCollection;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static SettingManager;
@@ -20,6 +16,7 @@ public class SettingUi : MonoBehaviour
     [SerializeField] TMP_Dropdown dropdownResolution;
     [SerializeField] TMP_Dropdown dropdownLanguage;
     [SerializeField] Toggle toggleFullScreen;
+    [SerializeField] Toggle toggleSkillEffect;
     [SerializeField] Transform parentSlider;
     [SerializeField] GameObject buttonSurrender;
     [SerializeField] GameObject buttonExit;
@@ -42,6 +39,7 @@ public class SettingUi : MonoBehaviour
     [SerializeField] TMP_Text textSurrender;
     [SerializeField] TMP_Text textReturn;
     [SerializeField] TMP_Text textExit;
+    [SerializeField] TMP_Text textSurrenderExplain;
     private void Awake()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -76,6 +74,7 @@ public class SettingUi : MonoBehaviour
         InitLanguage();
         InitScreen();
         InitSound();
+        InitConvenience();
     }
 
     public void ConnectLangaugeChange()
@@ -115,7 +114,8 @@ public class SettingUi : MonoBehaviour
         textCancel.text = (GameManager.language == Language.Ko) ? "취소" : "Cancel";
         textSurrenderButton.text = textSurrender.text = (GameManager.language == Language.Ko) ? "포기하기" : "Surrender";
         textReturn.text = (GameManager.language == Language.Ko) ? "돌아가기" : "Return";
-        textExit.text = (GameManager.language == Language.Ko) ? "시작 화면으로" : "To start Screen";
+        textExit.text = (GameManager.language == Language.Ko) ? "시작<br>화면으로" : "To start Screen";
+        textSurrenderExplain.text = (GameManager.language == Language.Ko) ? "정말로 포기하시겠습니까?" : "Really want to surrender?";
     }
     private void InitData()
     {
@@ -123,6 +123,7 @@ public class SettingUi : MonoBehaviour
         Dictionary<VolumeType, float> originVolume = new();
         Dictionary<VolumeType, bool> originOnOff = new();
         FullScreenMode originFullScreenMode;
+        bool originIsSkillEffectOn;
         int originResolutionIndex = 0;
         //Language
         try
@@ -183,6 +184,15 @@ public class SettingUi : MonoBehaviour
         {
             originFullScreenMode = FullScreenMode.Windowed;
         }
+        //IsSkillEffectOn
+        try
+        {
+            originIsSkillEffectOn = bool.Parse(DataManager.dataManager.GetConfigData(DataSection.Convenience, "IsSkillEffectOn"));
+        }
+        catch
+        {
+            originIsSkillEffectOn = true;
+        }
         //ResolutionIndex
         int curWidth = 0;
         int curHeight = 0;
@@ -223,7 +233,7 @@ public class SettingUi : MonoBehaviour
             }
         }
         //Set
-        originSet = new(originLanguage, originVolume, originOnOff, originFullScreenMode, originResolutionIndex);
+        originSet = new(originLanguage, originVolume, originOnOff, originFullScreenMode,originIsSkillEffectOn, originResolutionIndex);
         newSet = originSet.GetDeepCopySet();
     }
     public void InitScreen()
@@ -260,12 +270,22 @@ public class SettingUi : MonoBehaviour
         settingManager.ExecuteLangaugeChange();
         dropdownLanguage.value = (int)originSet.language;
     }
+    public void InitConvenience()
+    {
+        settingManager.isSkillEffectOn = originSet.isSkillEffectOn;
+        toggleSkillEffect.isOn = originSet.isSkillEffectOn;
+    }
     public void FullScreenToggle()
     {
         bool _isFull = toggleFullScreen.isOn;
         FullScreenMode screenMode = _isFull ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
         Screen.SetResolution(Screen.width, Screen.height, screenMode);
         newSet.fullScreenMode = screenMode;
+    }
+    public void SkillEffectToggle()
+    {
+        settingManager.isSkillEffectOn = toggleSkillEffect.isOn;
+        newSet.isSkillEffectOn = settingManager.isSkillEffectOn;
     }
     public void OnCancelBtnClick()
     {
@@ -300,6 +320,8 @@ public class SettingUi : MonoBehaviour
 
         DataManager.dataManager.SetConfigData(DataSection.Screen, "FullScreenMode", newSet.fullScreenMode);
         DataManager.dataManager.SetConfigData(DataSection.Screen, "ResolutionIndex", newSet.resolutionIndex);
+        
+        DataManager.dataManager.SetConfigData(DataSection.Convenience, "IsSkillEffectOn", newSet.isSkillEffectOn);
 
         gameObject.SetActive(false);
         originSet = newSet.GetDeepCopySet();
@@ -308,10 +330,7 @@ public class SettingUi : MonoBehaviour
     {
         ConfirmBtnClick();
         gameObject.SetActive(false);
-        if (StageScenarioBase.stageCanvas)
-        {
-            StageScenarioBase.stageCanvas.gameObject.SetActive(false);
-        }
+
         LoadingScenario.LoadScene("Start");
     }
     public void OnSurrenderButtonClick()
@@ -319,11 +338,6 @@ public class SettingUi : MonoBehaviour
         ConfirmBtnClick();
         gameObject.SetActive(false);
         GameManager.gameManager.GameOver();
-        if (StageScenarioBase.stageCanvas)
-        {
-            Destroy(StageScenarioBase.stageCanvas.gameObject);
-            StageScenarioBase.stageCanvas = null;
-        }
     }
     private void OnEnable()
     {

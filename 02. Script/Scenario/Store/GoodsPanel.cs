@@ -118,7 +118,7 @@ public class GoodsPanel : MonoBehaviour
             dict.Add("Price", slot.price);
             dictList.Add(dict);
         }
-        DataManager.dataManager.SetDocumentData(goodsType.ToString(), dictList, $"Progress/{GameManager.gameManager.Uid}/Store", "Data");
+        DataManager.dataManager.SetDocumentData(goodsType.ToString(), dictList, $"Progress/{GameManager.gameManager.uid}/Store", "Data");
     }
 
     private void AllocateGoods()

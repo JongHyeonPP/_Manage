@@ -27,9 +27,9 @@ public abstract class StageScenarioBase : MonoBehaviour
 
     [SerializeField] Camera overlayCamera;
     [SerializeField] StageTextUi stageTextUi;
-
     protected virtual async void Awake()
     {
+        GameManager.gameManager.phaseProgressUi.SetText();
         //Ui
         lootExplain.gameObject.SetActive(false);
         stageTextUi.gameObject.SetActive(false);
@@ -47,7 +47,6 @@ public abstract class StageScenarioBase : MonoBehaviour
         GameManager.stageScenario = this;
         if (stageCanvas == null)
         {
-
             phase = nodes.Where(item => item != null).Where(item => item is not string).Count() - 1;
             MakeCanvas(stageNum);
 
@@ -96,11 +95,17 @@ public abstract class StageScenarioBase : MonoBehaviour
         ExtendVia(true);
         if (state == StateInMap.NeedPhase)
         {
-
+            if (stageCanvas.currentNode.imageTrigger)
+                stageCanvas.currentNode.imageTrigger.SetActive(false);
             if (phase == 5)
             {
-                    stageTextUi.StageClear();
-
+                GameManager.gameManager.bossNum++;
+                Dictionary<string, object> docDict = new()
+            {
+                { "BossNum", GameManager.gameManager.bossNum }
+            };
+                DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.uid);
+                stageTextUi.StageClear();
             }
             else
             {
@@ -109,10 +114,8 @@ public abstract class StageScenarioBase : MonoBehaviour
 
 
         }
-
         if (stageCanvas.currentNode.buttonEnter)
             stageCanvas.currentNode.buttonEnter.gameObject.SetActive(state == StateInMap.NeedEnter);
-
     }
     private void Start()
     {

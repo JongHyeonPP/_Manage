@@ -24,13 +24,13 @@ public class ScoreSlot : MonoBehaviour
         switch (scoreType)
         {
             case ScoreType.Enemy:
-                typeStr = (GameManager.language == Language.Ko) ? "처치한 적의 수" : "Number of enemies defeated";
+                typeStr = (GameManager.language == Language.Ko) ? "처치한 적의 수" : "Enemies defeated";
                 break;
             case ScoreType.Destination:
                 typeStr = (GameManager.language == Language.Ko) ? "이동한 목적지" : "Destination reached";
                 break;
             case ScoreType.Boss:
-                typeStr = (GameManager.language == Language.Ko) ? "처치한 보스 수" : "Number of bosses defeated";
+                typeStr = (GameManager.language == Language.Ko) ? "처치한 보스 수" : "Bosses defeated";
                 break;
             case ScoreType.Food:
                 typeStr = (GameManager.language == Language.Ko) ? "먹은 음식 수준" : "Quality of food eaten";
@@ -40,7 +40,7 @@ public class ScoreSlot : MonoBehaviour
                 break;
         }
         if (_num != -1)
-            typeStr += $" ({num})";
+            typeStr += $" <size=40>({num})";
         textType.text = typeStr;
         textScore.text = fame.ToString();
     }

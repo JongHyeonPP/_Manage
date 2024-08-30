@@ -62,7 +62,7 @@ public class StartScenario : MonoBehaviour
     {
         isOperating = true;
         //New Game
-        DocumentReference docRef = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.Uid}");
+        DocumentReference docRef = DataManager.dataManager.GetDocumentReference($"Progress/{GameManager.gameManager.uid}");
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(Transaction =>
         {
             docRef.DeleteAsync();
@@ -76,7 +76,7 @@ public class StartScenario : MonoBehaviour
 
         static async void ClearCollection(string _collection)
         {
-            List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.Uid}/{_collection}");
+            List<DocumentSnapshot> snapshots = await DataManager.dataManager.GetDocumentSnapshots($"Progress/{GameManager.gameManager.uid}/{_collection}");
             foreach (DocumentSnapshot snapshot in snapshots)
             {
                 await snapshot.Reference.DeleteAsync();

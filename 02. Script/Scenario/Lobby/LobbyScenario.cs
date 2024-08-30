@@ -113,18 +113,22 @@ public class LobbyScenario : MonoBehaviour
                 int level = GameManager.gameManager.upgradeLevelDict[upgradeKvp.Key];
                 slot.textLv.text = "Lv. " + (level+1);
                 slot.curId = upgradeKvp.Key;
-                if (level == upgradeKvp.Value.content.Count)
+                if (level == upgradeKvp.Value.content.Count-1)
                 {
                     slot.button_Up.SetActive(false);
+                    slot.imageFame.SetActive(false);
                 }
                 else
                 {
                     slot.button_Up.SetActive(true);
+                    slot.imageFame.SetActive(true);
+                    slot.textFame.text = upgradeKvp.Value.content[level + 1].price.ToString();
                 }
                 Dictionary<Language, string> str_name = new() { { Language.Ko, upgradeKvp.Value.name[Language.Ko] }, { Language.En, upgradeKvp.Value.name[Language.En] } };
                 texts.Add(slot.textName, str_name);
                 //slot
                 slot.imageIcon.sprite = upgradeKvp.Value.iconSprite;
+
             }
             else
             {
@@ -232,24 +236,31 @@ public class LobbyScenario : MonoBehaviour
             GameManager.gameManager.upgradeLevelDict[_upgradeSlot.curId]++;
             GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
             //Firestore
-            DataManager.dataManager.SetDocumentData("Fame", fameResult, "User", GameManager.gameManager.Uid);
-            DataManager.dataManager.SetDocumentData("Upgrade", GameManager.gameManager.upgradeLevelDict, "User", GameManager.gameManager.Uid);
+            DataManager.dataManager.SetDocumentData("Fame", fameResult, "User", GameManager.gameManager.uid);
+            DataManager.dataManager.SetDocumentData("Upgrade", GameManager.gameManager.upgradeLevelDict, "User", GameManager.gameManager.uid);
         }
         else
         {
+            string text = GameManager.language == Language.Ko ? "명예가 부족합니다." : "Not enough fame.";
+            GameManager.gameManager.SetPopUp(text);
             Debug.Log("비용 부족");
             return;
         }
         level++;
-        if (level == upgradeClass.content.Count)
+        if (level == upgradeClass.content.Count - 1)
         {
             _upgradeSlot.button_Up.SetActive(false);
+            _upgradeSlot.imageFame.SetActive(false);
         }
-        _upgradeSlot.textLv.text = "Lv. " + (level+1);
+        else
+        {
+            _upgradeSlot.textLv.text = "Lv. " + (level + 1);
+            _upgradeSlot.textFame.text = upgradeClass.content[level + 1].price.ToString();
+        }
     }
     public void OnPointerEnter_Slot(UpgradeSlot _upgradeSlot)
     {
-        upgradeExplainUi.gameObject.SetActive(true);//dd
+        upgradeExplainUi.gameObject.SetActive(true);
         upgradeExplainUi.gameObject.transform.position = _upgradeSlot.transform.position + new Vector3(-0.2f, 0f, 0f);
 
         UpgradeClass upgradeClass = LoadManager.loadManager.upgradeDict[_upgradeSlot.curId];
@@ -259,7 +270,7 @@ public class LobbyScenario : MonoBehaviour
         string cur;
         if (level != -1)
         {
-            cur = upgradeClass.info[GameManager.language].Replace("{Value}", upgradeClass.content[level].value.ToString());
+            cur = ReplaceValueInString(upgradeClass.info[GameManager.language], upgradeClass.content[level].value);
         }
         else
         {
@@ -268,7 +279,7 @@ public class LobbyScenario : MonoBehaviour
         string next;
         if (level != upgradeClass.content.Count-1)
         {
-            next = upgradeClass.info[GameManager.language].Replace("{Value}", upgradeClass.content[level+1].value.ToString());
+            next = ReplaceValueInString(upgradeClass.info[GameManager.language], upgradeClass.content[level+1].value);
         }
         else
         {
@@ -277,7 +288,22 @@ public class LobbyScenario : MonoBehaviour
         upgradeExplainUi.SetInfo(cur, next);
         upgradeExplainUi.SetSize();
 
+        string ReplaceValueInString(string _input, float _value)
+        {
+            // 먼저, %가 포함된 {Value}인지 확인합니다.
+            if (_input.Contains("{Value}%"))
+            {
+                // {Value}%를 value * 100으로 대체하고, %를 추가합니다.
+                _input = _input.Replace("{Value}%", (_value * 100).ToString("F0") + "%");
+            }
+            else
+            {
+                // {Value}만 있을 경우, value를 그대로 대체합니다.
+                _input = _input.Replace("{Value}", _value.ToString("F0"));
+            }
 
+            return _input;
+        }
     }
     public void OnPointerExit_Slot()
     {
@@ -336,6 +362,11 @@ public class LobbyScenario : MonoBehaviour
         GameManager.gameManager.ChangeGold(0);
         StageScenarioBase.stageNum = 0;
         StageScenarioBase.state = StateInMap.NeedPhase;
+        GameManager.gameManager.gold = 0;
+        if (GameManager.gameManager.upgradeValueDict.ContainsKey(UpgradeEffectType.StartGoldUp))
+            GameManager.gameManager.gold = (int)GameManager.gameManager.upgradeValueDict[UpgradeEffectType.StartGoldUp];
+        GameManager.gameManager.textGold.text = GameManager.gameManager.gold.ToString();
+        DataManager.dataManager.SetDocumentData("Gold", GameManager.gameManager.gold, "Progress", GameManager.gameManager.uid);
         SceneManager.LoadScene("Stage0");
         
     }
@@ -396,7 +427,7 @@ public class LobbyScenario : MonoBehaviour
                 { "JobId", "000" },
                 { "Talent",  talentStrs}
             };
-            string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.Uid}/Characters");
+            string docId = await DataManager.dataManager.SetDocumentData(characterDict,$"Progress/{GameManager.gameManager.uid}/Characters");
 
             WeaponClass weapon = LoadManager.loadManager.weaponDict[weaponType]["Default"];
             CharacterData data = _slot.templateObject.AddComponent<CharacterData>();

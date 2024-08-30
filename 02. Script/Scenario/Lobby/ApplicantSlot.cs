@@ -74,8 +74,9 @@ public class ApplicantSlot : MonoBehaviour
 
     private void InitTalent()
     {
-        float talentEffect =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentEffectUp];
-        float talentLevel =  GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentLevelUp];
+        float talentLevel = 0f;
+        if (GameManager.gameManager.upgradeValueDict.ContainsKey(UpgradeEffectType.TalentLevelUp))
+            talentLevel = GameManager.gameManager.upgradeValueDict[UpgradeEffectType.TalentLevelUp];
         int talentNum = GameManager.AllocateProbability(0.1f, 0.6f, 0.25f, 0.05f);//0, 1, 2, 3°³
         //int talentNum = GameManager.AllocateProbability(0.5f, 0.5f);
         List<TalentClass> ableTalents = LoadManager.loadManager.talentDict.Where(item => item.Value.ableLevel>=0).Where(item => item.Value.ableLevel <= talentLevel).Select(item =>item.Value).ToList();

@@ -684,8 +684,8 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
                 case "AllocateNumberUp":
                     type = UpgradeEffectType.AllocateNumberUp;
                     break;
-                case "TalentEffectUp":
-                    type = UpgradeEffectType.TalentEffectUp;
+                case "StartGoldUp":
+                    type = UpgradeEffectType.StartGoldUp;
                     break;
                 case "TalentLevelUp":
                     type = UpgradeEffectType.TalentLevelUp;
@@ -771,7 +771,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
 
     private async Task InitUserDoc()
     {
-        DocumentReference userRef = FirebaseFirestore.DefaultInstance.Collection("User").Document(GameManager.gameManager.Uid);
+        DocumentReference userRef = FirebaseFirestore.DefaultInstance.Collection("User").Document(GameManager.gameManager.uid);
         DocumentSnapshot snapshot = await userRef.GetSnapshotAsync();
 
         await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
@@ -782,7 +782,7 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
             }
             else
             {
-                DataManager.dataManager.SetDocumentData("Fame", 0, "User", GameManager.gameManager.Uid);
+                DataManager.dataManager.SetDocumentData("Fame", 0, "User", GameManager.gameManager.uid);
                 GameManager.gameManager.fame = 0;
             }
         });
@@ -1313,20 +1313,16 @@ public class LoadManager : MonoBehaviour//Firestore¿¡ ÀÖ´Â ±âÃÊ µ¥ÀÌÅÍµé ·ÎµùÇØ¼
     [ContextMenu("SetDoc")]
     public async void SetDoc()
     {
-        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("EnemyCase");
-        foreach (DocumentSnapshot doc in docs)
+        List<DocumentSnapshot> docs = await DataManager.dataManager.GetDocumentSnapshots("Enemy");
+        foreach (DocumentSnapshot doc in docs.Where(item => (int)(long)item.ToDictionary()["EnemyLevel"]!=0))
         {
-            List<Dictionary<string, object>> list = new()
-            {
-                new Dictionary<string, object>() { { "GridIndex", 3 }, { "Type", string.Empty } },
-                new Dictionary<string, object>() { { "GridIndex", 3 }, { "Type", string.Empty } },
-                new Dictionary<string, object>() { { "GridIndex", 3 }, { "Type", string.Empty } }
-            };
+            float abil = (int)(long)doc.ToDictionary()["Hp"] * 1.5f;
+            int asInt = (int)abil;
             Dictionary<string, object> dict = new()
             {
-                { "StatusType", list},
+                { "Hp", asInt},
             };
-            DataManager.dataManager.SetDocumentData("Enemies", list, "EnemyCase", doc.Id);
+            DataManager.dataManager.SetDocumentData(dict, "Enemy", doc.Id);
 
         }
         Debug.Log("Fin");

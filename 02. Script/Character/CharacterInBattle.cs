@@ -13,7 +13,7 @@ public class CharacterInBattle : BaseInBattle
 {
     public static readonly Color TARGET_COLOR = new(0f, 0f, 1f, 0.5f);
     public bool isAct = false;
-    private MoveGaugeBar moveGaugeBar;
+    public MoveGaugeBar moveGaugeBar;
     public void SynchronizeCharacterData(CharacterData _data)
     {
         skillInBattles.Clear();
@@ -64,6 +64,7 @@ public class CharacterInBattle : BaseInBattle
         name = _data.jobClass.name;
 
         moveGaugeBar.gameObject.SetActive(false);
+        hpBarInScene.gameObject.SetActive(true);
     }
     public void InitCharacter(CharacterData _data, GridObject _grid)
     {
@@ -105,10 +106,5 @@ public class CharacterInBattle : BaseInBattle
     public Image[] GetGuageImages()
     {
         return GetComponentsInChildren<Image>();
-    }
-
-    public float GetMoveGauege()
-    {
-        return moveGaugeBar.moveGuage;
     }
 }

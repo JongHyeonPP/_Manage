@@ -1,9 +1,11 @@
 using EnumCollection;
+using Firebase.Firestore;
 using ItemCollection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -72,10 +74,27 @@ public class EatFoodUi : MonoBehaviour
                     x.ApplyFoodEffect();
                 break;
         }
+        FoodClass food = (FoodClass)currentSlot.ci.item;
+        GameManager.gameManager.foodNum += (int)food.pokerCombination;
         currentSlot.ChangeCiAmount(-1);
-        textExplain.text = GameManager.language==Language.Ko? "¾ÆÁÖ ¸ÀÀÖ¾î!": "Delicious!";
-        ItemManager.itemManager.SetInventoryAtDb();
+        textExplain.text = GameManager.language == Language.Ko ? "¾ÆÁÖ ¸ÀÀÖ¾î!" : "Delicious!";
+
+        SetFoodAtDb();
         yield return new WaitForSeconds(3f);
         gameObject.SetActive(false);
+
+        async void SetFoodAtDb()
+        {
+            await FirebaseFirestore.DefaultInstance.RunTransactionAsync(async transaction =>
+            {
+                Dictionary<string, object> docDict = new()
+            {
+                { "FoodNum", GameManager.gameManager.foodNum }
+            };
+                DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.uid);
+                ItemManager.itemManager.SetInventoryAtDb();
+                return Task.CompletedTask;
+            });
+        }
     }
 }

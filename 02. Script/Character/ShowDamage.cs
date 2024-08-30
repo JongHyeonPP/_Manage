@@ -13,6 +13,7 @@ public class ShowDamage : MonoBehaviour
     private List<IEnumerator> coroutineQueue = new List<IEnumerator>();
     private Queue<TMP_Text> textPool = new Queue<TMP_Text>(); // TMP_Text 오브젝트 풀
     [SerializeField] Transform parentDamageText;
+
     private void Awake()
     {
         transform.localPosition = new Vector3(0f, 60f);
@@ -33,6 +34,8 @@ public class ShowDamage : MonoBehaviour
 
     public void StartShowTextsStatus(float _value, bool _isDamage)
     {
+        if (BattleScenario.battlePatern != BattlePatern.Battle)
+            return;
         string message = (_isDamage ? "-" : "+") + _value.ToString("F0");
         Color color = GetStatusColor(_isDamage);
         StartShowText(message, color);
@@ -115,6 +118,7 @@ public class ShowDamage : MonoBehaviour
                 return new Color(0.27f, 1f, 0.39f);//45FF63
         }
     }
+
     public void StartShowText(string message, Color color)
     {
         // 새 코루틴을 대기열에 추가
@@ -123,8 +127,23 @@ public class ShowDamage : MonoBehaviour
         // 대기열이 비어있지 않으면 코루틴 실행
         if (coroutineQueue.Count == 1)
         {
-            StartCoroutine(CoroutineTrigger());
+            if (gameObject.activeInHierarchy)
+                StartCoroutine(CoroutineTrigger());
         }
     }
 
+    public void DeactivateAllTextAndEnqueue()
+    {
+        foreach (TMP_Text text in parentDamageText.GetComponentsInChildren<TMP_Text>())
+        {
+            // TMP_Text 비활성화
+            text.gameObject.SetActive(false);
+
+            // 텍스트가 큐에 없는 경우 큐에 추가
+            if (!textPool.Contains(text))
+            {
+                textPool.Enqueue(text);
+            }
+        }
+    }
 }

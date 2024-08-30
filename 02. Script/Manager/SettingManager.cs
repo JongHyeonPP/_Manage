@@ -23,7 +23,7 @@ public class SettingManager : MonoBehaviour
 
     public static List<Resolution> resolutions = new();
     public GameObject raycastBlock;
-
+    public bool isSkillEffectOn;
 
     private void Start()//DataManager가 먼저 Awake되고 실행돼야함
     {

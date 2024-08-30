@@ -188,9 +188,10 @@ public class SkillExpBar : MonoBehaviour
         {
             imageExpect.fillAmount = 1f;
         }
-        StartCoroutine(ItemManager.itemManager.upgradeSkillUi.UpdateSkillGrade(currentGrade));
+        
         if (_targetFillAmount == 1f || (_isRepeat && _targetFillAmount == 0))
         {
+            StartCoroutine(ItemManager.itemManager.upgradeSkillUi.UpdateSkillGrade(currentGrade));
             yield return new WaitForSeconds(0.5f);
             imageBase.fillAmount = 0f;
         }

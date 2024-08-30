@@ -1,5 +1,6 @@
 using EnumCollection;
 using StageCollection;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -14,7 +15,7 @@ public class DestinationNode : MonoBehaviour
     public Image imageName;
     public TMP_Text textName;
     public Image buttonDot;
-
+    public GameObject imageTrigger;
     public Image imageObject;
 
     public Image buttonEnter;
@@ -79,6 +80,11 @@ public class DestinationNode : MonoBehaviour
         if (StageScenarioBase.state != StateInMap.NeedMove)
             return;
         StageScenarioBase.phase++;
+        foreach (DestinationNode node in StageScenarioBase.stageCanvas.nodePhases[StageScenarioBase.phase])
+        {
+            if (node != this)
+                node.imageTrigger.SetActive(false);
+        }
         StageScenarioBase.state = StateInMap.None;
         StartCoroutine(MoveWaitCor());
 
@@ -88,7 +94,7 @@ public class DestinationNode : MonoBehaviour
         {
             { "Nodes", StageScenarioBase.nodes },
         };
-        DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.Uid);
+        DataManager.dataManager.SetDocumentData(docDict, "Progress", GameManager.gameManager.uid);
     }
 
     private IEnumerator MoveWaitCor()
@@ -116,6 +122,7 @@ public class DestinationNode : MonoBehaviour
         StartCoroutine(StageScenarioBase.stageCanvas.HideDeselectedEdgeNodeCor());
         GameManager.stageScenario.MoveMapVia(false);
         GameManager.stageScenario.ExtendVia(false);
+        StartCoroutine(GameManager.gameManager.phaseProgressUi.FadeOutInText());
         yield return new WaitForSeconds(1.5f);
         StageScenarioBase.state = StateInMap.NeedEnter;
     }
@@ -144,9 +151,6 @@ public class DestinationNode : MonoBehaviour
     {
         if (StageScenarioBase.state != StateInMap.NeedEnter)
             return;
-        //StageScenarioBase.stageBaseCanvas.HideAndFadeOutDeselectedEdgeNodes();
-        //StageScenarioBase.stageBaseCanvas.gameObject.SetActive(false);
-        //buttonEnter.gameObject.SetActive(false);
         if (nodeType.backgroundType == BackgroundType.Store)
             LoadingScenario.LoadScene("Store");
         else
@@ -155,7 +159,7 @@ public class DestinationNode : MonoBehaviour
             LoadingScenario.LoadScene("Battle");
         }
         GameManager.gameManager.destinationNum++;
-        await DataManager.dataManager.SetDocumentData("DestinationNum", GameManager.gameManager.destinationNum, "Progress", GameManager.gameManager.Uid);
+        await DataManager.dataManager.SetDocumentData("DestinationNum", GameManager.gameManager.destinationNum, "Progress", GameManager.gameManager.uid);
     }
     public void ActiveWithObject(bool _isAcitve)
     {
@@ -173,6 +177,7 @@ public class DestinationNode : MonoBehaviour
         ActiveWithObject(false);
         buttonEnter.gameObject.SetActive(false);
         gameObject.SetActive(false);
+        imageTrigger.SetActive(false);
     }
     public void SetNodeType(NodeType _nodeType)
     {
@@ -214,34 +219,23 @@ public class DestinationNode : MonoBehaviour
     }
     public void OnPointerEnter()
     {
-        if (nodeType==null||nodeType.backgroundType == BackgroundType.Store)
-        {
+        if (nodeType == null)
             return;
-        }
-        switch (StageScenarioBase.state)
-        {
-            case StateInMap.NeedEnter:
-                if (this == StageScenarioBase.stageCanvas.currentNode)
-                    ActiveLootExplain();
-                break;
-            case StateInMap.NeedMove:
-                if (StageScenarioBase.phase < phaseNum)
-                    ActiveLootExplain();
-                break;
-        }
+        if (StageScenarioBase.state == StateInMap.NeedEnter || StageScenarioBase.state == StateInMap.NeedMove)
+            ActiveLootExplain();
     }
 
     private void ActiveLootExplain()
     {
         LootExplain lootExplain = GameManager.stageScenario.lootExplain;
 
-        ItemManager.GetLootTypesByBackgroundType(nodeType.backgroundType, out SkillCategori skillCategori, out ItemGrade skillGrade, out IngredientType ingredientType);
-        lootExplain.SetExplain(skillCategori, skillGrade, ingredientType);
+        ItemManager.GetLootTypesByBackgroundType(nodeType.backgroundType, out SkillCategori skillCategori, out ItemGrade skillGrade, out IngredientType ingredientType,out Tuple<int,int> _goldAmount);
+        lootExplain.SetExplain(skillCategori, skillGrade, ingredientType, _goldAmount);
         lootExplain.transform.position = transform.position;
         float screenYProportion = RectTransformUtility.WorldToScreenPoint(Camera.main, transform.position).y / Screen.height;
         //Debug.Log(screenYProportion);
-        if (screenYProportion > 0.64f)
-            lootExplain.transform.localPosition = new Vector3(lootExplain.transform.localPosition.x, 100f, lootExplain.transform.localPosition.y);
+        if (screenYProportion > 0.6f)
+            lootExplain.transform.localPosition = new Vector3(lootExplain.transform.localPosition.x, 50f, lootExplain.transform.localPosition.y);
         else
             lootExplain.transform.localPosition += new Vector3(0f, 20f);
         lootExplain.gameObject.SetActive(true);
@@ -249,6 +243,7 @@ public class DestinationNode : MonoBehaviour
 
     public void OnPointerExit()
     {
+        if (GameManager.stageScenario.lootExplain)
         GameManager.stageScenario.lootExplain.gameObject.SetActive(false);
     }
 }

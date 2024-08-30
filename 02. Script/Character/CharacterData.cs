@@ -86,6 +86,6 @@ public class CharacterData:MonoBehaviour
             string id = skillAsItems[1].itemId + ":::" + skillAsItems[1].itemGrade;
             setDict.Add("Skill_1", id);
         }
-        await DataManager.dataManager.SetDocumentData(setDict, $"Progress/{GameManager.gameManager.Uid}/Characters",docId);
+        await DataManager.dataManager.SetDocumentData(setDict, $"Progress/{GameManager.gameManager.uid}/Characters",docId);
     }
 }

@@ -38,7 +38,8 @@ public class CanvasGameOver : MonoBehaviour
         scoreSlotDestination.SetScore(destinationNum, destinationScore);
         scoreSlotBoss.SetScore(bossNum, bossScore);
         scoreSlotFood.SetScore(foodNum, foodScore);
-
+        GameManager.gameManager.fame += fameScore+ Mathf.RoundToInt(fameScore * GameManager.gameManager.upgradeValueDict[UpgradeEffectType.FameUp]);
+        GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
         await SetFame(fameScore);
         StartCoroutine(AllMoveCoroutine());
 
@@ -80,7 +81,7 @@ public class CanvasGameOver : MonoBehaviour
         int fameAscend = Mathf.RoundToInt(_fame * GameManager.gameManager.upgradeValueDict[UpgradeEffectType.FameUp]);
         textFame.text = (GameManager.language == Language.Ko) ? "»πµÊ«— ∏Ìº∫" : "Gain Reputation";
         textFameAscend.gameObject.SetActive(false);
-        await DataManager.dataManager.SetDocumentData("Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.Uid);
+        await DataManager.dataManager.SetDocumentData("Fame", GameManager.gameManager.fame, "User", GameManager.gameManager.uid);
         GameManager.gameManager.textFame.text = GameManager.gameManager.fame.ToString();
     }
     public IEnumerator ShowFame()
